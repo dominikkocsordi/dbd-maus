@@ -407,6 +407,17 @@ option { background: #14171f; color: var(--text); }
 .btn--sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
 .btn--block { width: 100%; margin-top: 0.4rem; }
 
+.btn--passkey {
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(78, 168, 222, 0.28), rgba(78, 168, 222, 0.12));
+  border-color: rgba(78, 168, 222, 0.45);
+}
+
+.btn--passkey:hover {
+  background: linear-gradient(135deg, rgba(78, 168, 222, 0.42), rgba(78, 168, 222, 0.18));
+  box-shadow: 0 10px 24px rgba(78, 168, 222, 0.25);
+}
+
 .link-btn {
   display: block;
   margin: 0.9rem auto 0;
@@ -458,6 +469,52 @@ option { background: #14171f; color: var(--text); }
 .auth-hint { min-height: 1.2rem; margin: 0.9rem 0 0; font-size: 0.85rem; text-align: center; color: var(--muted); }
 .auth-hint--error { color: var(--bad); }
 .auth-hint--success { color: var(--good); }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.1rem 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--panel-line);
+}
+
+/* -------------------------------------------------------------- Passkeys -- */
+.passkey-list { display: grid; gap: 0.6rem; margin-bottom: 1rem; }
+
+.passkey-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(78, 168, 222, 0.07);
+}
+
+.passkey-item__icon { font-size: 1.15rem; }
+.passkey-item__main { flex: 1; min-width: 0; }
+.passkey-item__main strong { display: block; font-size: 0.95rem; }
+.passkey-item__meta { display: block; font-size: 0.78rem; color: var(--muted); }
+
+.passkey-hint { min-height: 1.2rem; margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--muted); }
+.passkey-hint--error { color: var(--bad); }
+.passkey-hint--success { color: var(--good); }
+
+@media (max-width: 560px) {
+  .passkey-item { flex-wrap: wrap; }
+  .passkey-item__main { flex: 1 1 100%; order: -1; }
+}
 
 /* --------------------------------------------------------------- Tabellen -- */
 .table-wrap { overflow-x: auto; }

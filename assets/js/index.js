@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { initAuth } from './auth.js';
+import { initPasskeyPanel } from './passkeys.js';
 import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js';
 import {
   aggregate, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
@@ -271,6 +272,7 @@ initAuth({
   onLogin: (user) => {
     currentUser = user;
     loadMatches();
+    initPasskeyPanel();
   },
   onLogout: () => {
     currentUser = null;

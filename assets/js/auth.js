@@ -1,5 +1,6 @@
 // Gemeinsamer Login-Gate für alle Seiten.
 import { supabase } from './supabase.js';
+import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js';
 import { toast } from './utils.js';
 
 const AUTH_MARKUP = /* html */ `
@@ -11,6 +12,13 @@ const AUTH_MARKUP = /* html */ `
     </div>
 
     <form id="auth-form" class="auth-form" novalidate>
+      <div id="passkey-login" hidden>
+        <button type="button" class="btn btn--passkey btn--block" id="auth-passkey">
+          <span aria-hidden="true">&#128273;</span> Mit Passkey anmelden
+        </button>
+        <div class="auth-divider"><span>oder mit E-Mail</span></div>
+      </div>
+
       <label class="field">
         <span class="field__label">E-Mail</span>
         <input type="email" id="auth-email" autocomplete="email" required placeholder="du@example.com">
@@ -49,6 +57,20 @@ function readCredentials() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   return { email, password };
+}
+
+function wirePasskeyLogin() {
+  if (!passkeysSupported()) return;
+
+  document.getElementById('passkey-login').hidden = false;
+  document.getElementById('auth-passkey').addEventListener('click', async () => {
+    setBusy(true);
+    hint('Passkey wird abgefragt …');
+
+    const error = await signInWithPasskey();
+    setBusy(false);
+    if (error) hint(passkeyErrorMessage(error), 'error');
+  });
 }
 
 function wireAuthForm() {
@@ -110,6 +132,7 @@ export async function initAuth({ onLogin, onLogout } = {}) {
   const appView = document.getElementById('app-view');
   authView.innerHTML = AUTH_MARKUP;
   wireAuthForm();
+  wirePasskeyLogin();
 
   document.querySelectorAll('[data-logout]').forEach((btn) => {
     btn.addEventListener('click', async () => {

@@ -1,9 +1,9 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=8';
-import { fileFor } from './data.js?v=8';
-import { escapeHtml } from './utils.js?v=8';
+import { SUPABASE_URL } from './config.js?v=9';
+import { fileFor } from './data.js?v=9';
+import { escapeHtml } from './utils.js?v=9';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -20,13 +20,18 @@ export function iconUrl(name) {
   return file ? `${SUPABASE_URL}/storage/v1/object/public/${ICON_BUCKET}/${file}` : null;
 }
 
-/** Ersetzt alle <span data-icon="killer"> durch das passende Bild. */
+/**
+ * Hängt in jedes <span data-icon="killer"> das passende Bild.
+ * Vorhandener Inhalt bleibt als Fallback stehen und wird sichtbar, sobald das
+ * Bild fehlt. Bewusst ohne loading="lazy": die Icons stecken beim Parsen noch
+ * im ausgeblendeten #app-view, und dort laden manche Browser faule Bilder nicht.
+ */
 export function mountIcons(root = document) {
   root.querySelectorAll('[data-icon]').forEach((el) => {
     const url = iconUrl(el.dataset.icon);
     if (!url || el.querySelector('img')) return;
     el.classList.add('icon');
-    el.innerHTML = `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">`;
+    el.insertAdjacentHTML('beforeend', `<img src="${escapeHtml(url)}" alt="" onerror="this.remove()">`);
   });
 }
 

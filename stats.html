@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=11">
+  <link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -20,6 +20,7 @@
       <a href="index.html">Übersicht</a>
       <a href="stats.html" class="is-active">Statistik</a>
       <a href="perks.html">Perks</a>
+      <a href="challenges.html">Challenges</a>
     </nav>
     <div class="topbar__user" data-auth-only hidden>
       <span class="topbar__email" data-user-email></span>
@@ -97,10 +98,22 @@
             <span class="field__label">Zeitraum</span>
             <select id="fl-range">
               <option value="all">Gesamt</option>
+              <option value="today">Heute</option>
               <option value="7">7 Tage</option>
               <option value="30">30 Tage</option>
               <option value="90">90 Tage</option>
+              <option value="custom">Von &ndash; bis</option>
             </select>
+          </label>
+
+          <label class="field" id="fl-from-field" hidden>
+            <span class="field__label">Von</span>
+            <input type="date" id="fl-from">
+          </label>
+
+          <label class="field" id="fl-to-field" hidden>
+            <span class="field__label">Bis</span>
+            <input type="date" id="fl-to">
           </label>
 
           <button type="button" class="btn btn--ghost" id="fl-reset">Zurücksetzen</button>
@@ -210,6 +223,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=11"></script>
+  <script type="module" src="assets/js/stats.js?v=12"></script>
 </body>
 </html>

@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=11';
-import { initAuth } from './auth.js?v=11';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=11';
+import { supabase } from './supabase.js?v=12';
+import { initAuth } from './auth.js?v=12';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=12';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=11';
-import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=11';
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
+} from './utils.js?v=12';
+import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=12';
 
 const MATCH_LIST_LIMIT = 100;
 
@@ -15,8 +15,12 @@ const els = {
   character: document.getElementById('fl-character'),
   mode: document.getElementById('fl-mode'),
   range: document.getElementById('fl-range'),
+  from: document.getElementById('fl-from'),
+  to: document.getElementById('fl-to'),
   reset: document.getElementById('fl-reset'),
 };
+
+const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
 
 // ------------------------------------------------------------------ Filter --
 
@@ -42,36 +46,70 @@ function fillCharacterSelect() {
   els.character.value = [...els.character.options].some((o) => o.value === previous) ? previous : 'all';
 }
 
+/** Zeitfenster als [von, bis] in Millisekunden; null = offen. */
+function activeWindow() {
+  const range = els.range.value;
+
+  if (range === 'today') return [startOfToday(), null];
+  if (range === 'custom') {
+    // "Bis" schließt den ganzen Tag ein, nicht nur 00:00 Uhr.
+    const from = els.from.value ? new Date(`${els.from.value}T00:00:00`).getTime() : null;
+    const to = els.to.value ? new Date(`${els.to.value}T23:59:59.999`).getTime() : null;
+    return [from, to];
+  }
+  if (range === 'all') return [null, null];
+  return [Date.now() - Number(range) * 86400000, null];
+}
+
 function activeFilters() {
   return {
     role: els.role.value,
     character: els.character.value,
     mode: els.mode.value,
-    days: els.range.value === 'all' ? null : Number(els.range.value),
+    range: els.range.value,
   };
 }
 
 function applyFilters() {
-  const { role, character, mode, days } = activeFilters();
-  const since = days ? Date.now() - days * 86400000 : null;
+  const { role, character, mode } = activeFilters();
+  const [from, to] = activeWindow();
 
   return allMatches.filter((m) => {
     if (role !== 'all' && m.role !== role) return false;
     if (character !== 'all' && (m.killer ?? m.survivor) !== character) return false;
     if (mode !== 'all' && m.game_mode !== mode) return false;
-    if (since && new Date(m.played_at).getTime() < since) return false;
+
+    const played = new Date(m.played_at).getTime();
+    if (from !== null && played < from) return false;
+    if (to !== null && played > to) return false;
     return true;
   });
 }
 
+function rangeLabel() {
+  const range = els.range.value;
+  if (range === 'all') return null;
+  if (range === 'today') return 'heute';
+  if (range !== 'custom') return `${range} Tage`;
+
+  const from = els.from.value ? fmtDay(els.from.value) : null;
+  const to = els.to.value ? fmtDay(els.to.value) : null;
+  if (from && to) return `${from} – ${to}`;
+  if (from) return `ab ${from}`;
+  if (to) return `bis ${to}`;
+  return null;
+}
+
 function filterSummary(filtered) {
-  const { role, character, mode, days } = activeFilters();
+  const { role, character, mode } = activeFilters();
   const parts = [`${fmtNumber(filtered.length)} Matches`];
 
   if (role !== 'all') parts.push(role === 'killer' ? 'Killer' : 'Survivor');
   if (character !== 'all') parts.push(labelFor(role === 'survivor' ? 'survivor' : 'killer', character));
   if (mode !== 'all') parts.push(gameModeLabel(mode));
-  if (days) parts.push(`${days} Tage`);
+
+  const range = rangeLabel();
+  if (range) parts.push(range);
 
   return parts.join(' · ');
 }
@@ -257,17 +295,28 @@ async function loadMatches() {
 
 // --------------------------------------------------------------------- Init --
 
+function syncRangeFields() {
+  const custom = els.range.value === 'custom';
+  document.getElementById('fl-from-field').hidden = !custom;
+  document.getElementById('fl-to-field').hidden = !custom;
+}
+
 function initFilters() {
   els.mode.innerHTML = '<option value="all">Alle Modi</option>' + optionsHtml(GAME_MODES);
   fillCharacterSelect();
+  syncRangeFields();
 
   els.role.addEventListener('change', () => { fillCharacterSelect(); render(); });
-  [els.character, els.mode, els.range].forEach((el) => el.addEventListener('change', render));
+  els.range.addEventListener('change', () => { syncRangeFields(); render(); });
+  [els.character, els.mode, els.from, els.to].forEach((el) => el.addEventListener('change', render));
 
   els.reset.addEventListener('click', () => {
     els.role.value = 'all';
     els.mode.value = 'all';
     els.range.value = 'all';
+    els.from.value = '';
+    els.to.value = '';
+    syncRangeFields();
     fillCharacterSelect();
     render();
   });

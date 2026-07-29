@@ -9,7 +9,11 @@ const df = new Intl.DateTimeFormat('de-DE', {
   minute: '2-digit',
 });
 
+const dayFmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+
 export const fmtNumber = (n) => nf.format(Math.round(Number(n) || 0));
+/** Nur das Datum, z. B. für Zeitraum-Angaben ("29.07.26"). */
+export const fmtDay = (value) => (value ? dayFmt.format(new Date(value)) : '–');
 export const fmtDate = (iso) => (iso ? df.format(new Date(iso)) : '–');
 
 export function fmtPercent(value, digits = 1) {

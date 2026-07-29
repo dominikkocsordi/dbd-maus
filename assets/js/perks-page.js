@@ -1,9 +1,9 @@
-import { supabase } from './supabase.js?v=11';
-import { initAuth } from './auth.js?v=11';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=11';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=11';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=11';
-import { escapeHtml, fmtNumber, toast } from './utils.js?v=11';
+import { supabase } from './supabase.js?v=12';
+import { initAuth } from './auth.js?v=12';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=12';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=12';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=12';
+import { escapeHtml, fmtNumber, toast } from './utils.js?v=12';
 
 const MAX_PERKS = 4;
 
@@ -66,7 +66,11 @@ function filteredPerks() {
 
   return PERKS.filter((p) => {
     if (role !== 'all' && p.role !== role) return false;
-    if (term && !p.name.toLowerCase().includes(term)) return false;
+    // Die Suche greift auch auf den Besitzer, damit "feng" alle Feng-Perks findet.
+    if (term) {
+      const ownerText = (perkOwnerLabel(p) ?? '').toLowerCase();
+      if (!p.name.toLowerCase().includes(term) && !ownerText.includes(term)) return false;
+    }
     if (owner === 'general' && !p.general) return false;
     if (owner === 'character' && !p.owner) return false;
     if (owner === 'unknown' && (p.general || p.owner)) return false;

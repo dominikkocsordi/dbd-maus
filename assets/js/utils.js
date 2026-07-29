@@ -74,7 +74,37 @@ export function aggregate(matches) {
   };
 }
 
-/** Gruppiert Matches nach Charakter und liefert eine sortierte Auswertung. */
+/**
+ * Ein Match zählt für die Serie als Erfolg, wenn man als Survivor entkommen ist
+ * bzw. als Killer mindestens einen Kill hatte. Ein 0K beendet die Killer-Serie.
+ */
+export const isStreakHit = (m) => (m.role === 'killer' ? (m.kills ?? 0) > 0 : Boolean(m.escaped));
+
+/**
+ * Serien für eine nach Datum absteigend sortierte Match-Liste.
+ * `current` = laufende Serie ab dem neuesten Match, `best` = längste Serie überhaupt.
+ */
+export function streakFor(matchesDesc) {
+  let current = 0;
+  for (const m of matchesDesc) {
+    if (!isStreakHit(m)) break;
+    current += 1;
+  }
+
+  let best = 0;
+  let run = 0;
+  for (const m of matchesDesc) {
+    run = isStreakHit(m) ? run + 1 : 0;
+    if (run > best) best = run;
+  }
+
+  return { current, best };
+}
+
+/**
+ * Gruppiert Matches nach Charakter und liefert eine sortierte Auswertung.
+ * Erwartet die Liste nach `played_at` absteigend sortiert (wegen der Serien).
+ */
 export function byCharacter(matches, role) {
   const key = role === 'killer' ? 'killer' : 'survivor';
   const groups = new Map();
@@ -86,6 +116,11 @@ export function byCharacter(matches, role) {
   }
 
   return [...groups.entries()]
-    .map(([id, list]) => ({ id, matches: list.length, stats: aggregate(list) }))
+    .map(([id, list]) => ({
+      id,
+      matches: list.length,
+      stats: aggregate(list),
+      streak: streakFor(list),
+    }))
     .sort((a, b) => b.matches - a.matches);
 }

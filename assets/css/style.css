@@ -598,6 +598,28 @@ option { background: #14171f; color: var(--text); }
 .bar__fill--k4 { background: linear-gradient(90deg, #ff5a63, #8c0f16); }
 .bar__value { font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
 
+/* ---------------------------------------------------------------- Serien -- */
+.streaks { display: grid; gap: 0.5rem; }
+
+.streak {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.9rem;
+}
+
+.streak--hot { border-color: rgba(230, 57, 70, 0.35); background: rgba(230, 57, 70, 0.09); }
+.streak__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.streak__current { font-weight: 700; font-variant-numeric: tabular-nums; }
+.streak--hot .streak__current { color: #ff8a63; }
+.streak__best { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.streak-badge { font-weight: 700; color: #ff8a63; white-space: nowrap; }
+
 /* ---------------------------------------------------------------- Filter -- */
 .filters__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem 1rem; align-items: end; }
 .filters__grid .field { margin-bottom: 0; }

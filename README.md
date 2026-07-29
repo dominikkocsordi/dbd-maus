@@ -102,5 +102,16 @@ python3 -m http.server 8000
 | `bloodpoints` | `integer` | 0 – 2.000.000 |
 | `notes` | `text` | optionale Notiz (max. 500 Zeichen) |
 
+## Serien (Streaks)
+
+Pro Charakter werden zwei Werte berechnet – auf der Übersicht im Panel **Serien**, in der
+Detail-Statistik als Spalten *Serie* und *Beste Serie*:
+
+* **Survivor**: Escapes am Stück mit demselben Survivor. Ein Tod beendet die Serie.
+* **Killer**: Matches am Stück mit mindestens einem Kill. Ein 0K beendet die Serie.
+
+`Serie` ist die aktuell laufende Serie (ab dem neuesten Match rückwärts), `Beste Serie` die längste
+je erreichte. In der Detail-Statistik beziehen sich beide Werte auf die gefilterte Auswahl.
+
 Neue Killer, Survivor oder Spielmodi lassen sich in
 [`assets/js/data.js`](assets/js/data.js) ergänzen – gespeichert wird jeweils die `id`.

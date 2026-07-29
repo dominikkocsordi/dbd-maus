@@ -3,7 +3,7 @@ import { initAuth } from './auth.js';
 import { initPasskeyPanel } from './passkeys.js';
 import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js';
 import {
-  aggregate, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
 } from './utils.js';
 
 const BP_MAX = 2000000;
@@ -218,6 +218,30 @@ function renderDistributions() {
   ]);
 }
 
+function renderStreaks() {
+  for (const role of ['killer', 'survivor']) {
+    const container = document.getElementById(`streak-${role}`);
+    const rows = byCharacter(matches, role)
+      .filter((entry) => entry.streak.best > 0)
+      .sort((a, b) => b.streak.current - a.streak.current || b.streak.best - a.streak.best)
+      .slice(0, 6);
+
+    if (!rows.length) {
+      container.innerHTML = '<p class="empty">Noch keine Serie – der erste Erfolg startet sie.</p>';
+      continue;
+    }
+
+    container.innerHTML = rows.map(({ id, streak }) => `
+      <div class="streak${streak.current > 0 ? ' streak--hot' : ''}">
+        <span class="streak__name">${escapeHtml(labelFor(role, id))}</span>
+        <span class="streak__current" title="Laufende Serie">
+          ${streak.current > 0 ? `&#128293; ${fmtNumber(streak.current)}` : '&#128128; 0'}
+        </span>
+        <span class="streak__best" title="Längste Serie">Beste ${fmtNumber(streak.best)}</span>
+      </div>`).join('');
+  }
+}
+
 // -------------------------------------------------------------------- Daten --
 
 async function deleteMatch(id) {
@@ -244,6 +268,7 @@ async function loadMatches() {
   renderKpis();
   renderRecent();
   renderDistributions();
+  renderStreaks();
 }
 
 // --------------------------------------------------------------------- Init --

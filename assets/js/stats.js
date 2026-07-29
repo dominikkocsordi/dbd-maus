@@ -109,11 +109,11 @@ function renderCharacterTable(rows) {
   const body = document.getElementById('character-body');
 
   if (!rows.length) {
-    body.innerHTML = '<tr><td colspan="7" class="empty">Keine Matches für diesen Filter.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="empty">Keine Matches für diesen Filter.</td></tr>';
     return;
   }
 
-  body.innerHTML = rows.map(({ id, role, matches: count, stats }) => {
+  body.innerHTML = rows.map(({ id, role, matches: count, stats, streak }) => {
     const hits = role === 'killer' ? stats.kills : stats.escapes;
     const quote = role === 'killer' ? stats.killRate : stats.escapeRate;
     return `
@@ -123,6 +123,8 @@ function renderCharacterTable(rows) {
         <td data-label="Matches" class="num">${fmtNumber(count)}</td>
         <td data-label="Kills / Escapes" class="num">${fmtNumber(hits)}</td>
         <td data-label="Quote" class="num"><span class="quote ${quote >= 50 ? 'quote--high' : 'quote--low'}">${fmtPercent(quote)}</span></td>
+        <td data-label="Serie" class="num">${streak.current > 0 ? `<span class="streak-badge">&#128293; ${fmtNumber(streak.current)}</span>` : '–'}</td>
+        <td data-label="Beste Serie" class="num">${fmtNumber(streak.best)}</td>
         <td data-label="BP gesamt" class="num">${fmtNumber(stats.bloodpoints)}</td>
         <td data-label="Ø BP" class="num">${stats.bloodpointsAvg === null ? '–' : fmtNumber(stats.bloodpointsAvg)}</td>
       </tr>`;

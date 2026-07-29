@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Einstellungen</title>
+  <meta name="description" content="Konto, Passwort und Passkeys verwalten.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html">Übersicht</a>
+      <a href="stats.html">Statistik</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn is-active" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;   // nur wenn wirklich nichts da ist
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;          // fehlende Portraits sind egal
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view" hidden>
+      <div class="page-head">
+        <h1>Einstellungen</h1>
+        <span class="page-head__meta" id="account-meta"></span>
+      </div>
+
+      <div class="settings-grid">
+        <section class="panel">
+          <header class="panel__head">
+            <h2>E-Mail</h2>
+          </header>
+          <form id="email-form" class="settings-form" novalidate>
+            <label class="field">
+              <span class="field__label">Neue E-Mail</span>
+              <input type="email" id="set-email" autocomplete="email" required placeholder="neu@example.com">
+            </label>
+            <button type="submit" class="btn btn--primary btn--block">E-Mail ändern</button>
+            <p class="form-hint" id="email-hint"></p>
+          </form>
+        </section>
+
+        <section class="panel">
+          <header class="panel__head">
+            <h2>Passwort</h2>
+          </header>
+          <form id="password-form" class="settings-form" novalidate>
+            <label class="field">
+              <span class="field__label">Neues Passwort</span>
+              <input type="password" id="set-password" autocomplete="new-password" minlength="6" required
+                     placeholder="Mindestens 6 Zeichen">
+            </label>
+            <label class="field">
+              <span class="field__label">Wiederholen</span>
+              <input type="password" id="set-password2" autocomplete="new-password" minlength="6" required>
+            </label>
+            <button type="submit" class="btn btn--primary btn--block">Passwort ändern</button>
+            <p class="form-hint" id="password-hint"></p>
+          </form>
+        </section>
+      </div>
+
+      <section class="panel" id="passkey-panel" hidden>
+        <header class="panel__head">
+          <h2>Passkeys</h2>
+        </header>
+        <div id="passkey-list" class="passkey-list"></div>
+        <button type="button" class="btn btn--passkey" id="passkey-add">Passkey anlegen</button>
+        <p class="passkey-hint" id="passkey-hint"></p>
+      </section>
+
+      <section class="panel">
+        <header class="panel__head">
+          <h2>Sitzung</h2>
+        </header>
+        <div class="settings-row">
+          <button type="button" class="btn btn--ghost" data-logout>Abmelden</button>
+          <button type="button" class="btn btn--ghost" id="logout-all">Auf allen Geräten abmelden</button>
+        </div>
+        <p class="form-hint" id="session-hint"></p>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/settings.js?v=8"></script>
+</body>
+</html>

@@ -1,11 +1,35 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=7';
-import { fileFor } from './data.js?v=7';
-import { escapeHtml } from './utils.js?v=7';
+import { SUPABASE_URL } from './config.js?v=8';
+import { fileFor } from './data.js?v=8';
+import { escapeHtml } from './utils.js?v=8';
 
 export const CHARACTER_BUCKET = 'characters';
+export const ICON_BUCKET = 'icons';
+
+/** Icons aus dem Bucket "icons" – Schlüssel entspricht dem data-icon-Attribut. */
+export const ICONS = {
+  bp: 'bp_icon.png',
+  killer: 'killer_icon.png',
+  survivor: 'survivor_icon.png',
+};
+
+export function iconUrl(name) {
+  const file = ICONS[name];
+  return file ? `${SUPABASE_URL}/storage/v1/object/public/${ICON_BUCKET}/${file}` : null;
+}
+
+/** Ersetzt alle <span data-icon="killer"> durch das passende Bild. */
+export function mountIcons(root = document) {
+  root.querySelectorAll('[data-icon]').forEach((el) => {
+    const url = iconUrl(el.dataset.icon);
+    if (!url || el.querySelector('img')) return;
+    el.classList.add('icon');
+    el.innerHTML = `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">`;
+  });
+}
+
 /** Unterordner im Bucket, leer = direkt im Bucket-Root. Mit / am Ende, z. B. 'portraits/'. */
 export const IMAGE_FOLDER = '';
 

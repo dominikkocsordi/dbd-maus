@@ -1,11 +1,11 @@
-import { supabase } from './supabase.js?v=7';
-import { initAuth } from './auth.js?v=7';
-import { initPasskeyPanel } from './passkeys.js?v=7';
-import { avatarHtml, characterCellHtml } from './images.js?v=7';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=7';
+import { supabase } from './supabase.js?v=8';
+import { initAuth } from './auth.js?v=8';
+import { initPasskeyPanel } from './passkeys.js?v=8';
+import { avatarHtml, characterCellHtml, mountIcons } from './images.js?v=8';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=8';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=7';
+} from './utils.js?v=8';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -436,6 +436,7 @@ function initForm() {
 }
 
 initForm();
+mountIcons();
 initAuth({
   onLogin: (user) => {
     currentUser = user;

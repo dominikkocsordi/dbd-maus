@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=7">
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -22,6 +22,7 @@
     </nav>
     <div class="topbar__user" data-auth-only hidden>
       <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
       <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
     </div>
   </header>
@@ -112,17 +113,17 @@
           <span class="kpi__hint" id="kpi-split">–</span>
         </article>
         <article class="kpi kpi--killer">
-          <span class="kpi__label">Kill-Rate</span>
+          <span class="kpi__label"><span class="icon" data-icon="killer"></span>Kill-Rate</span>
           <strong class="kpi__value" id="kpi-killrate">–</strong>
           <span class="kpi__hint" id="kpi-kills">–</span>
         </article>
         <article class="kpi kpi--survivor">
-          <span class="kpi__label">Escape-Rate</span>
+          <span class="kpi__label"><span class="icon" data-icon="survivor"></span>Escape-Rate</span>
           <strong class="kpi__value" id="kpi-escaperate">–</strong>
           <span class="kpi__hint" id="kpi-escapes">–</span>
         </article>
         <article class="kpi kpi--bp">
-          <span class="kpi__label">Blutpunkte</span>
+          <span class="kpi__label"><span class="icon" data-icon="bp"></span>Blutpunkte</span>
           <strong class="kpi__value" id="kpi-bp">–</strong>
           <span class="kpi__hint" id="kpi-bp-avg">–</span>
         </article>
@@ -187,6 +188,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=7"></script>
+  <script type="module" src="assets/js/stats.js?v=8"></script>
 </body>
 </html>

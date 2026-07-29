@@ -6,7 +6,7 @@
   <title>DBD Stats – Übersicht</title>
   <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=7">
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -22,6 +22,7 @@
     </nav>
     <div class="topbar__user" data-auth-only hidden>
       <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
       <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
     </div>
   </header>
@@ -73,17 +74,17 @@
           <span class="kpi__hint" id="kpi-split">–</span>
         </article>
         <article class="kpi kpi--killer">
-          <span class="kpi__label">Kill-Rate</span>
+          <span class="kpi__label"><span class="icon" data-icon="killer"></span>Kill-Rate</span>
           <strong class="kpi__value" id="kpi-killrate">–</strong>
           <span class="kpi__hint" id="kpi-kills">–</span>
         </article>
         <article class="kpi kpi--survivor">
-          <span class="kpi__label">Escape-Rate</span>
+          <span class="kpi__label"><span class="icon" data-icon="survivor"></span>Escape-Rate</span>
           <strong class="kpi__value" id="kpi-escaperate">–</strong>
           <span class="kpi__hint" id="kpi-escapes">–</span>
         </article>
         <article class="kpi kpi--bp">
-          <span class="kpi__label">Blutpunkte</span>
+          <span class="kpi__label"><span class="icon" data-icon="bp"></span>Blutpunkte</span>
           <strong class="kpi__value" id="kpi-bp">–</strong>
           <span class="kpi__hint" id="kpi-bp-avg">–</span>
         </article>
@@ -106,11 +107,11 @@
               <div class="segmented" role="radiogroup" aria-label="Rolle">
                 <label class="segmented__opt">
                   <input type="radio" name="role" value="killer" checked>
-                  <span>Killer</span>
+                  <span><span class="icon" data-icon="killer"></span>Killer</span>
                 </label>
                 <label class="segmented__opt">
                   <input type="radio" name="role" value="survivor">
-                  <span>Survivor</span>
+                  <span><span class="icon" data-icon="survivor"></span>Survivor</span>
                 </label>
               </div>
             </fieldset>
@@ -159,7 +160,7 @@
             </div>
 
             <fieldset class="field bp-field">
-              <legend class="field__label">Blutpunkte</legend>
+              <legend class="field__label"><span class="icon" data-icon="bp"></span>Blutpunkte</legend>
 
               <div class="bp-display">
                 <input id="f-bp" type="text" inputmode="numeric" value="0"
@@ -225,11 +226,11 @@
 
         <div class="streak-groups">
           <div class="streak-group">
-            <h3 class="subhead subhead--killer">Killer</h3>
+            <h3 class="subhead subhead--killer"><span class="icon" data-icon="killer"></span>Killer</h3>
             <div id="streak-killer" class="streak-grid"></div>
           </div>
           <div class="streak-group">
-            <h3 class="subhead subhead--survivor">Survivor</h3>
+            <h3 class="subhead subhead--survivor"><span class="icon" data-icon="survivor"></span>Survivor</h3>
             <div id="streak-survivor" class="streak-grid"></div>
           </div>
         </div>
@@ -241,27 +242,19 @@
         </header>
         <div class="split">
           <div>
-            <h3 class="subhead subhead--killer">Kills</h3>
+            <h3 class="subhead subhead--killer"><span class="icon" data-icon="killer"></span>Kills</h3>
             <div id="dist-kills" class="bars"></div>
           </div>
           <div>
-            <h3 class="subhead subhead--survivor">Ausgang</h3>
+            <h3 class="subhead subhead--survivor"><span class="icon" data-icon="survivor"></span>Ausgang</h3>
             <div id="dist-escape" class="bars"></div>
           </div>
         </div>
       </section>
 
-      <section class="panel" id="passkey-panel" hidden>
-        <header class="panel__head">
-          <h2>Passkeys</h2>
-        </header>
-        <div id="passkey-list" class="passkey-list"></div>
-        <button type="button" class="btn btn--passkey" id="passkey-add">Passkey anlegen</button>
-        <p class="passkey-hint" id="passkey-hint"></p>
-      </section>
     </section>
   </main>
 
-  <script type="module" src="assets/js/index.js?v=7"></script>
+  <script type="module" src="assets/js/index.js?v=8"></script>
 </body>
 </html>

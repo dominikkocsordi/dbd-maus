@@ -107,6 +107,34 @@ export function streakFor(matchesDesc) {
 }
 
 /**
+ * Serien getrennt nach Gamemode – eine Serie läuft immer nur innerhalb eines
+ * Modus. `current`/`best` sind die jeweils höchsten Werte über alle Modi,
+ * `currentMode`/`bestMode` sagen, in welchem Modus sie stehen.
+ */
+export function streakByMode(matchesDesc) {
+  const groups = new Map();
+  for (const m of matchesDesc) {
+    if (!groups.has(m.game_mode)) groups.set(m.game_mode, []);
+    groups.get(m.game_mode).push(m);
+  }
+
+  const modes = [...groups.entries()]
+    .map(([mode, list]) => ({ mode, ...streakFor(list) }))
+    .sort((a, b) => b.current - a.current || b.best - a.best);
+
+  const top = modes[0] ?? { mode: null, current: 0, best: 0 };
+  const bestEntry = modes.reduce((acc, m) => (m.best > (acc?.best ?? -1) ? m : acc), null);
+
+  return {
+    modes,
+    current: top.current,
+    currentMode: top.current > 0 ? top.mode : null,
+    best: bestEntry?.best ?? 0,
+    bestMode: bestEntry?.best > 0 ? bestEntry.mode : null,
+  };
+}
+
+/**
  * Gruppiert Matches nach Charakter und liefert eine sortierte Auswertung.
  * Erwartet die Liste nach `played_at` absteigend sortiert (wegen der Serien).
  */
@@ -125,7 +153,7 @@ export function byCharacter(matches, role) {
       id,
       matches: list.length,
       stats: aggregate(list),
-      streak: streakFor(list),
+      streak: streakByMode(list),
     }))
     .sort((a, b) => b.matches - a.matches);
 }

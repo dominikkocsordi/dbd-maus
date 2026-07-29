@@ -66,13 +66,14 @@ function applyFilters() {
 
 function filterSummary(filtered) {
   const { role, character, mode, days } = activeFilters();
-  const parts = [
-    role === 'all' ? 'Alle Rollen' : (role === 'killer' ? 'Killer' : 'Survivor'),
-    character === 'all' ? 'alle Charaktere' : labelFor(role === 'survivor' ? 'survivor' : 'killer', character),
-    mode === 'all' ? 'alle Modi' : gameModeLabel(mode),
-    days ? `letzte ${days} Tage` : 'gesamter Zeitraum',
-  ];
-  return `${fmtNumber(filtered.length)} Matches · ${parts.join(' · ')}`;
+  const parts = [`${fmtNumber(filtered.length)} Matches`];
+
+  if (role !== 'all') parts.push(role === 'killer' ? 'Killer' : 'Survivor');
+  if (character !== 'all') parts.push(labelFor(role === 'survivor' ? 'survivor' : 'killer', character));
+  if (mode !== 'all') parts.push(gameModeLabel(mode));
+  if (days) parts.push(`${days} Tage`);
+
+  return parts.join(' · ');
 }
 
 // ------------------------------------------------------------------ Render --
@@ -90,7 +91,7 @@ function renderKpis(filtered) {
 
   document.getElementById('kpi-escaperate').textContent = fmtPercent(s.escapeRate);
   document.getElementById('kpi-escapes').textContent =
-    `${fmtNumber(s.escapes)} ${s.escapes === 1 ? 'Escape' : 'Escapes'} bei ${fmtNumber(s.survivorMatches)} Trials`;
+    `${fmtNumber(s.escapes)} ${s.escapes === 1 ? 'Escape' : 'Escapes'} bei ${fmtNumber(s.survivorMatches)} ${s.survivorMatches === 1 ? 'Trial' : 'Trials'}`;
 
   document.getElementById('kpi-bp').textContent = fmtNumber(s.bloodpoints);
   document.getElementById('kpi-bp-avg').textContent =
@@ -110,23 +111,29 @@ function renderCharacterTable(rows) {
   const body = document.getElementById('character-body');
 
   if (!rows.length) {
-    body.innerHTML = '<tr><td colspan="9" class="empty">Keine Matches für diesen Filter.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">Keine Matches für diesen Filter.</td></tr>';
     return;
   }
+
+  // Serien gelten je Gamemode – ist kein Modus gefiltert, steht daneben, aus
+  // welchem Modus der Wert stammt.
+  const showMode = els.mode.value === 'all';
 
   body.innerHTML = rows.map(({ id, role, matches: count, stats, streak }) => {
     const hits = role === 'killer' ? stats.kills : stats.escapes;
     const quote = role === 'killer' ? stats.killRate : stats.escapeRate;
+    const roleLabel = role === 'killer' ? 'Killer' : 'Survivor';
+    const modeTag = (mode) => (showMode && mode ? `<span class="mode-tag">${escapeHtml(gameModeLabel(mode))}</span>` : '');
+
     return `
       <tr>
-        <td data-label="Charakter">${characterCellHtml(role, id, labelFor(role, id))}</td>
-        <td data-label="Rolle"><span class="role-tag role-tag--${role}">${role === 'killer' ? 'Killer' : 'Survivor'}</span></td>
+        <td data-label="Charakter">${characterCellHtml(role, id, labelFor(role, id), roleLabel)}</td>
         <td data-label="Matches" class="num">${fmtNumber(count)}</td>
         <td data-label="Kills / Escapes" class="num">${fmtNumber(hits)}</td>
         <td data-label="Quote" class="num"><span class="quote ${quote >= 50 ? 'quote--high' : 'quote--low'}">${fmtPercent(quote)}</span></td>
-        <td data-label="Serie" class="num">${streak.current > 0 ? `<span class="streak-badge">&#128293; ${fmtNumber(streak.current)}</span>` : '–'}</td>
-        <td data-label="Beste Serie" class="num">${fmtNumber(streak.best)}</td>
-        <td data-label="BP gesamt" class="num">${fmtNumber(stats.bloodpoints)}</td>
+        <td data-label="Serie" class="num">${streak.current > 0 ? `<span class="streak-badge">&#128293;${fmtNumber(streak.current)}</span>${modeTag(streak.currentMode)}` : '–'}</td>
+        <td data-label="Beste" class="num">${streak.best > 0 ? `${fmtNumber(streak.best)}${modeTag(streak.bestMode)}` : '–'}</td>
+        <td data-label="BP" class="num">${fmtNumber(stats.bloodpoints)}</td>
         <td data-label="Ø BP" class="num">${stats.bloodpointsAvg === null ? '–' : fmtNumber(stats.bloodpointsAvg)}</td>
       </tr>`;
   }).join('');
@@ -155,11 +162,11 @@ function renderMatchList(filtered) {
   const shown = filtered.slice(0, MATCH_LIST_LIMIT);
 
   document.getElementById('match-count').textContent = filtered.length > MATCH_LIST_LIMIT
-    ? `${fmtNumber(MATCH_LIST_LIMIT)} von ${fmtNumber(filtered.length)} Matches (neueste zuerst)`
+    ? `${fmtNumber(MATCH_LIST_LIMIT)} von ${fmtNumber(filtered.length)}`
     : `${fmtNumber(filtered.length)} Matches`;
 
   if (!shown.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty">Keine Matches für diesen Filter.</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty">Keine Matches für diesen Filter.</td></tr>';
     return;
   }
 
@@ -171,8 +178,7 @@ function renderMatchList(filtered) {
     return `
       <tr>
         <td data-label="Datum">${fmtDate(m.played_at)}</td>
-        <td data-label="Rolle"><span class="role-tag role-tag--${m.role}">${m.role === 'killer' ? 'Killer' : 'Survivor'}</span></td>
-        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor))}</td>
+        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor), m.role === 'killer' ? 'Killer' : 'Survivor')}</td>
         <td data-label="Gamemode">${escapeHtml(gameModeLabel(m.game_mode))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
@@ -210,9 +216,6 @@ async function loadMatches() {
   }
 
   allMatches = data ?? [];
-  document.getElementById('hero-sub').textContent = allMatches.length
-    ? `${fmtNumber(allMatches.length)} Matches insgesamt erfasst.`
-    : 'Noch keine Matches erfasst – trag auf der Übersicht dein erstes Trial ein.';
   render();
 }
 

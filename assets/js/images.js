@@ -38,7 +38,13 @@ export function avatarHtml(role, id, label, modifier = '') {
   </span>`;
 }
 
-/** Avatar plus Name – das Standard-Layout in den Tabellen. */
-export function characterCellHtml(role, id, label) {
-  return `<span class="char-cell">${avatarHtml(role, id, label)}<span class="char-cell__name">${escapeHtml(label)}</span></span>`;
+/** Avatar plus Name (und optional eine Zeile Kleingedrucktes) für die Tabellen. */
+export function characterCellHtml(role, id, label, sub = '') {
+  return `<span class="char-cell">
+    ${avatarHtml(role, id, label)}
+    <span class="char-cell__text">
+      <span class="char-cell__name">${escapeHtml(label)}</span>
+      ${sub ? `<span class="char-cell__sub">${escapeHtml(sub)}</span>` : ''}
+    </span>
+  </span>`;
 }

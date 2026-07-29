@@ -14,6 +14,7 @@ let currentUser = null;
 let matches = [];
 let editingId = null;
 let pendingEditId = new URLSearchParams(window.location.search).get('edit');
+let streakMode = null;
 
 // ---------------------------------------------------------------- Formular --
 
@@ -143,10 +144,7 @@ function applyFormMode() {
   const editing = editingId !== null;
 
   document.getElementById('form-title').textContent = editing ? 'Match bearbeiten' : 'Match eintragen';
-  document.getElementById('form-sub').textContent = editing
-    ? 'Änderungen werden für den ausgewählten Eintrag gespeichert.'
-    : 'Ein Formular, beide Rollen – die Felder passen sich an.';
-  document.getElementById('f-submit').textContent = editing ? 'Änderungen speichern' : 'Match speichern';
+  document.getElementById('f-submit').textContent = editing ? 'Änderungen speichern' : 'Speichern';
   document.getElementById('f-cancel').hidden = !editing;
   document.getElementById('entry-panel').classList.toggle('panel--editing', editing);
 
@@ -242,22 +240,22 @@ function renderKpis() {
 
   document.getElementById('kpi-escaperate').textContent = fmtPercent(s.escapeRate);
   document.getElementById('kpi-escapes').textContent =
-    `${fmtNumber(s.escapes)} ${s.escapes === 1 ? 'Escape' : 'Escapes'} bei ${fmtNumber(s.survivorMatches)} Trials`;
+    `${fmtNumber(s.escapes)} ${s.escapes === 1 ? 'Escape' : 'Escapes'} bei ${fmtNumber(s.survivorMatches)} ${s.survivorMatches === 1 ? 'Trial' : 'Trials'}`;
 
   document.getElementById('kpi-bp').textContent = fmtNumber(s.bloodpoints);
   document.getElementById('kpi-bp-avg').textContent =
     s.bloodpointsAvg === null ? 'noch keine Daten' : `Ø ${fmtNumber(s.bloodpointsAvg)} pro Match`;
 
-  document.getElementById('hero-sub').textContent = s.total
-    ? `${fmtNumber(s.total)} Matches erfasst – zuletzt am ${fmtDate(matches[0].played_at)}.`
-    : 'Noch keine Matches erfasst. Trag dein erstes Trial unten ein.';
+  document.getElementById('last-played').textContent = s.total
+    ? `zuletzt ${fmtDate(matches[0].played_at)}`
+    : '';
 }
 
 function renderRecent() {
   const body = document.getElementById('recent-body');
 
   if (!matches.length) {
-    body.innerHTML = '<tr><td colspan="6" class="empty">Noch nichts eingetragen.</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" class="empty">Noch nichts eingetragen.</td></tr>';
     return;
   }
 
@@ -265,12 +263,12 @@ function renderRecent() {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
       : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
+    const character = m.killer ?? m.survivor;
 
     return `
       <tr>
-        <td data-label="Datum">${fmtDate(m.played_at)}<span class="td-sub">${escapeHtml(gameModeLabel(m.game_mode))}</span></td>
-        <td data-label="Rolle"><span class="role-tag role-tag--${m.role}">${m.role === 'killer' ? 'Killer' : 'Survivor'}</span></td>
-        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor))}</td>
+        <td data-label="Datum">${fmtDate(m.played_at)}</td>
+        <td data-label="Charakter">${characterCellHtml(m.role, character, labelFor(m.role, character), gameModeLabel(m.game_mode))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
         <td data-label="Aktion" class="num row-actions">
@@ -319,28 +317,54 @@ function renderDistributions() {
   ]);
 }
 
+/** Serien laufen pro Gamemode – die Tabs zeigen nur Modi mit Matches. */
+function renderStreakTabs() {
+  const container = document.getElementById('streak-modes');
+  const counts = new Map();
+  for (const m of matches) counts.set(m.game_mode, (counts.get(m.game_mode) ?? 0) + 1);
+
+  const modes = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  if (!modes.some(([mode]) => mode === streakMode)) streakMode = modes[0]?.[0] ?? null;
+
+  container.innerHTML = modes.map(([mode, count]) => `
+    <button type="button" role="tab" class="tab${mode === streakMode ? ' is-active' : ''}"
+            data-streak-mode="${escapeHtml(mode)}" aria-selected="${mode === streakMode}">
+      ${escapeHtml(gameModeLabel(mode))}<span class="tab__count">${fmtNumber(count)}</span>
+    </button>`).join('');
+
+  container.querySelectorAll('[data-streak-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      streakMode = btn.dataset.streakMode;
+      renderStreaks();
+    });
+  });
+}
+
 function renderStreaks() {
+  renderStreakTabs();
+  const scoped = matches.filter((m) => m.game_mode === streakMode);
+
   for (const role of ['killer', 'survivor']) {
     const container = document.getElementById(`streak-${role}`);
-    const rows = byCharacter(matches, role)
+    const rows = byCharacter(scoped, role)
       .filter((entry) => entry.streak.best > 0)
       .sort((a, b) => b.streak.current - a.streak.current || b.streak.best - a.streak.best)
-      .slice(0, 6);
+      .slice(0, 8);
 
     if (!rows.length) {
-      container.innerHTML = '<p class="empty">Noch keine Serie – der erste Erfolg startet sie.</p>';
+      container.innerHTML = '<p class="empty">Keine Serie</p>';
       continue;
     }
 
     container.innerHTML = rows.map(({ id, streak }) => `
-      <div class="streak${streak.current > 0 ? ' streak--hot' : ''}">
-        ${avatarHtml(role, id, labelFor(role, id))}
-        <span class="streak__name">${escapeHtml(labelFor(role, id))}</span>
-        <span class="streak__current" title="Laufende Serie">
-          ${streak.current > 0 ? `&#128293; ${fmtNumber(streak.current)}` : '&#128128; 0'}
-        </span>
-        <span class="streak__best" title="Längste Serie">Beste ${fmtNumber(streak.best)}</span>
-      </div>`).join('');
+      <article class="streak-card${streak.current > 0 ? ' streak-card--hot' : ''}">
+        ${avatarHtml(role, id, labelFor(role, id), 'avatar--xl')}
+        <div class="streak-card__body">
+          <span class="streak-card__name">${escapeHtml(labelFor(role, id))}</span>
+          <span class="streak-card__meta">Beste ${fmtNumber(streak.best)}</span>
+        </div>
+        <span class="streak-card__value">${streak.current > 0 ? `&#128293;${fmtNumber(streak.current)}` : '0'}</span>
+      </article>`).join('');
   }
 }
 

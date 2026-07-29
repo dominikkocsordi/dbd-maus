@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=13';
-import { initAuth } from './auth.js?v=13';
-import { CHALLENGES } from './challenges.js?v=13';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=13';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=13';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=13';
-import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=13';
+import { supabase } from './supabase.js?v=14';
+import { initAuth } from './auth.js?v=14';
+import { CHALLENGES } from './challenges.js?v=14';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=14';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=14';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=14';
+import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=14';
 
 const PERKS_PER_BUILD = 4;
 
@@ -38,6 +38,11 @@ function cardOf(id) {
   return document.querySelector(`[data-challenge="${id}"]`);
 }
 
+/** Was der Wurf umfasst: alles, nur der Charakter oder nur die Perks. */
+function selectedScope(id) {
+  return cardOf(id).querySelector(`input[name="scope-${id}"]:checked`).value;
+}
+
 function selectedRole(id) {
   const value = cardOf(id).querySelector(`input[name="role-${id}"]:checked`).value;
   return value === 'random' ? pick(['killer', 'survivor']) : value;
@@ -46,22 +51,28 @@ function selectedRole(id) {
 /** Perk-Pool: alle Perks der Rolle, optional nur die des Charakters. */
 function perkPool(id, role, character) {
   const ofRole = PERKS.filter((p) => p.role === role);
-  if (!cardOf(id).querySelector('[data-own-perks]').checked) return ofRole;
+  if (!character || !cardOf(id).querySelector('[data-own-perks]').checked) return ofRole;
 
   const restricted = ofRole.filter((p) => p.general || p.owner === character);
   // Weniger als vier eigene Perks -> lieber der volle Pool als ein halber Build.
   return restricted.length >= PERKS_PER_BUILD ? restricted : ofRole;
 }
 
-function rollAll(id) {
-  const role = selectedRole(id);
-  const character = pick(roster(role)).id;
+function rollFor(id) {
+  const scope = selectedScope(id);
+  const previous = rolls[id];
 
-  rolls[id] = {
-    role,
-    character,
-    perks: pickMany(perkPool(id, role, character), PERKS_PER_BUILD).map((p) => p.file),
-  };
+  // Bei Teilwürfen bleibt die Rolle des vorherigen Wurfs stehen, sonst würden
+  // behaltene Perks nicht mehr zum Charakter passen.
+  const role = previous && scope !== 'all' ? previous.role : selectedRole(id);
+  const character = scope === 'perks'
+    ? (previous?.character ?? null)
+    : pick(roster(role)).id;
+  const perks = scope === 'character'
+    ? (previous?.perks ?? [])
+    : pickMany(perkPool(id, role, character), PERKS_PER_BUILD).map((p) => p.file);
+
+  rolls[id] = { role, character, perks };
   delete accepted[id];
 
   renderCard(id);
@@ -95,13 +106,14 @@ async function acceptChallenge(id) {
 
   const card = cardOf(id);
   const button = card.querySelector('[data-accept]');
-  const name = `Zufall · ${labelFor(roll.role, roll.character)} · ${fmtDay(new Date())}`.slice(0, 60);
+  const who = roll.character ? labelFor(roll.role, roll.character) : (roll.role === 'killer' ? 'Killer' : 'Survivor');
+  const name = `Zufall · ${who} · ${fmtDay(new Date())}`.slice(0, 60);
 
   button.disabled = true;
   const { error } = await supabase.from('builds').insert({
     name,
     role: roll.role,
-    character: roll.character,
+    character: roll.character ?? null,
     perks: roll.perks,
   });
   button.disabled = false;
@@ -122,11 +134,14 @@ async function acceptChallenge(id) {
 
 function resultHtml(id) {
   const roll = rolls[id];
-  if (!roll) return '<p class="empty">Noch nichts ausgewürfelt.</p>';
+  if (!roll || (!roll.character && !roll.perks.length)) {
+    return '<p class="empty">Noch nichts ausgewürfelt.</p>';
+  }
 
-  const label = labelFor(roll.role, roll.character);
+  const label = roll.character ? labelFor(roll.role, roll.character) : null;
 
   return `
+    ${!roll.character ? '' : `
     <div class="roll-character">
       ${avatarHtml(roll.role, roll.character, label, 'avatar--lg')}
       <div class="roll-character__text">
@@ -134,7 +149,7 @@ function resultHtml(id) {
         <span class="roll-character__role">${roll.role === 'killer' ? 'Killer' : 'Survivor'}</span>
       </div>
       <button type="button" class="btn btn--ghost btn--sm" data-reroll-character>Charakter neu</button>
-    </div>
+    </div>`}
 
     <div class="roll-perks">
       ${roll.perks.map((file, i) => {
@@ -175,14 +190,29 @@ function generatorHtml(id) {
           </div>
         </fieldset>
 
+        <fieldset class="field">
+          <legend class="field__label">Auswürfeln</legend>
+          <div class="segmented" role="radiogroup" aria-label="Umfang">
+            <label class="segmented__opt">
+              <input type="radio" name="scope-${id}" value="all" checked><span>Alles</span>
+            </label>
+            <label class="segmented__opt">
+              <input type="radio" name="scope-${id}" value="character"><span>Charakter</span>
+            </label>
+            <label class="segmented__opt">
+              <input type="radio" name="scope-${id}" value="perks"><span>Perks</span>
+            </label>
+          </div>
+        </fieldset>
+
         <label class="check">
           <input type="checkbox" data-own-perks>
           <span>Nur eigene Perks des Charakters (plus allgemeine)</span>
         </label>
 
         <div class="settings-row">
-          <button type="button" class="btn btn--ghost" data-roll>Auswürfeln</button>
-          <button type="button" class="btn btn--primary" data-accept ${rolls[id] ? '' : 'disabled'}>Challenge annehmen</button>
+          <button type="button" class="btn btn--ghost" data-roll>Würfeln</button>
+          <button type="button" class="btn btn--primary" data-accept ${rolls[id]?.character || rolls[id]?.perks.length ? '' : 'disabled'}>Challenge annehmen</button>
         </div>
         <p class="form-hint" data-hint>${accepted[id]
           ? `Angenommen – „${escapeHtml(accepted[id])}“ liegt als Build bereit. <a href="index.html">Match eintragen</a>`
@@ -205,7 +235,9 @@ function cardHtml(challenge) {
           ? '<span class="challenge-card__badge challenge-card__badge--done">Angenommen</span>'
           : (roll ? '<span class="challenge-card__badge">Ausgewürfelt</span>' : '')}
         <span class="challenge-card__meta">${roll
-          ? `${roll.role === 'killer' ? 'Killer' : 'Survivor'} · ${fmtNumber(perkPool(challenge.id, roll.role, roll.character).length)} Perks im Topf`
+          ? `${roll.role === 'killer' ? 'Killer' : 'Survivor'}${roll.perks.length
+              ? ` · ${fmtNumber(perkPool(challenge.id, roll.role, roll.character).length)} Perks im Topf`
+              : ''}`
           : escapeHtml(challenge.tagline)}</span>
       </header>
 
@@ -219,7 +251,7 @@ function wireCard(id) {
   const card = cardOf(id);
   if (!card) return;
 
-  card.querySelector('[data-roll]')?.addEventListener('click', () => rollAll(id));
+  card.querySelector('[data-roll]')?.addEventListener('click', () => rollFor(id));
   card.querySelector('[data-accept]')?.addEventListener('click', () => acceptChallenge(id));
   card.querySelector('[data-reroll-character]')?.addEventListener('click', () => rerollCharacter(id));
   card.querySelectorAll('[data-reroll]').forEach((btn) => {
@@ -227,6 +259,9 @@ function wireCard(id) {
   });
   card.querySelectorAll(`input[name="role-${id}"]`).forEach((radio) => {
     radio.addEventListener('change', () => { delete rolls[id]; delete accepted[id]; renderCard(id); });
+  });
+  card.querySelectorAll(`input[name="scope-${id}"]`).forEach((radio) => {
+    radio.addEventListener('change', () => renderCard(id));
   });
   card.querySelector('[data-own-perks]')?.addEventListener('change', () => renderCard(id));
 
@@ -241,6 +276,7 @@ function renderCard(id) {
 
   const ownPerks = card.querySelector('[data-own-perks]')?.checked;
   const role = card.querySelector(`input[name="role-${id}"]:checked`)?.value;
+  const scope = card.querySelector(`input[name="scope-${id}"]:checked`)?.value;
 
   card.outerHTML = cardHtml(challenge);
 
@@ -248,6 +284,7 @@ function renderCard(id) {
   const fresh = cardOf(id);
   if (ownPerks) fresh.querySelector('[data-own-perks]').checked = true;
   if (role) fresh.querySelector(`input[name="role-${id}"][value="${role}"]`).checked = true;
+  if (scope) fresh.querySelector(`input[name="scope-${id}"][value="${scope}"]`).checked = true;
 
   wireCard(id);
 }

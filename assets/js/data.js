@@ -113,8 +113,7 @@ export const SURVIVORS = [
   { id: 'eleven', label: 'Eleven', file: 'T_UI_S51_Eleven_Portrait.png' },
   { id: 'kwon', label: 'Kwon', file: 'T_UI_S52_KwonTaeYoung_Portrait.png' },
   { id: 'shane', label: 'Shane', file: 'T_UI_S53_ShaneWiigwaas_Portrait.png' },
-  // Portrait vorhanden (S46_OrelaRose_Portrait.png), Eintrag auf Wunsch aktivierbar:
-  // { id: 'orela_rose', label: 'Orela', file: 'S46_OrelaRose_Portrait.png' },
+  { id: 'orela_rose', label: 'Orela', file: 'S46_OrelaRose_Portrait.png' },
   { id: 'other_survivor', label: 'Anderer Survivor', file: 'empty.png' },
 ];
 

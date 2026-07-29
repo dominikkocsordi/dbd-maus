@@ -9,10 +9,9 @@ export const CHALLENGES = [
     title: 'Alles dem Zufall',
     tagline: 'Charakter und Build werden ausgewürfelt.',
     rules: [
-      'Rolle festlegen oder ebenfalls auswürfeln lassen.',
-      'Charakter und vier Perks kommen aus dem Generator.',
-      'Nichts tauschen – so spielen, wie es fällt.',
-      'Ergebnis als Build speichern und beim Match eintragen.',
+      'Charakter und vier Perks kommen aus dem Generator',
+      'nichts tauschen',
+      'Annehmen legt den Build zum Eintragen bereit',
     ],
     generator: 'random_build',
   },

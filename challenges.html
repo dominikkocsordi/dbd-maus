@@ -6,7 +6,7 @@
   <title>DBD Stats – Challenges</title>
   <meta name="description" content="Challenges für Dead by Daylight inklusive Zufallsgenerator für Charakter und Build.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=12">
+  <link rel="stylesheet" href="assets/css/style.css?v=13">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -70,54 +70,9 @@
       </div>
 
       <div id="challenge-list" class="challenge-list"></div>
-
-      <!-- Zufallsgenerator -->
-      <section class="panel" id="generator-panel">
-        <header class="panel__head panel__head--row">
-          <h2>Zufallsgenerator</h2>
-          <span class="panel__meta" id="roll-meta"></span>
-        </header>
-
-        <div class="generator">
-          <div class="generator__controls">
-            <fieldset class="field">
-              <legend class="field__label">Rolle</legend>
-              <div class="segmented" role="radiogroup" aria-label="Rolle">
-                <label class="segmented__opt">
-                  <input type="radio" name="gen-role" value="killer" checked>
-                  <span><span class="icon" data-icon="killer"></span>Killer</span>
-                </label>
-                <label class="segmented__opt">
-                  <input type="radio" name="gen-role" value="survivor">
-                  <span><span class="icon" data-icon="survivor"></span>Survivor</span>
-                </label>
-                <label class="segmented__opt">
-                  <input type="radio" name="gen-role" value="random">
-                  <span>Zufall</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <label class="check">
-              <input type="checkbox" id="gen-own-perks">
-              <span>Nur eigene Perks des Charakters (plus allgemeine)</span>
-            </label>
-
-            <div class="settings-row">
-              <button type="button" class="btn btn--primary" id="gen-roll">Auswürfeln</button>
-              <button type="button" class="btn btn--ghost" id="gen-save" disabled>Als Build speichern</button>
-            </div>
-            <p class="form-hint" id="gen-hint"></p>
-          </div>
-
-          <div class="generator__result" id="gen-result">
-            <p class="empty">Noch nichts ausgewürfelt.</p>
-          </div>
-        </div>
-      </section>
     </section>
   </main>
 
-  <script type="module" src="assets/js/challenges-page.js?v=12"></script>
+  <script type="module" src="assets/js/challenges-page.js?v=13"></script>
 </body>
 </html>

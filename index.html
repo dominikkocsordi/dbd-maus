@@ -6,7 +6,7 @@
   <title>DBD Stats – Übersicht</title>
   <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=9">
+  <link rel="stylesheet" href="assets/css/style.css?v=10">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -146,14 +146,22 @@
                 </span>
               </label>
 
+              <label class="field">
+                <span class="field__label">Gegner <em>optional</em></span>
+                <span class="select-row">
+                  <select id="f-faced-killer"></select>
+                  <span class="portrait" id="f-faced-killer-portrait"></span>
+                </span>
+              </label>
+
               <fieldset class="field">
                 <legend class="field__label">Ausgang</legend>
                 <div class="segmented" role="radiogroup" aria-label="Ausgang">
                   <label class="segmented__opt segmented__opt--good">
-                    <input type="radio" name="escaped" value="true" checked><span>Entkommen</span>
+                    <input type="radio" name="escaped" value="true" checked><span><span class="icon" data-icon="escape"></span>Entkommen</span>
                   </label>
                   <label class="segmented__opt segmented__opt--bad">
-                    <input type="radio" name="escaped" value="false"><span>Gestorben</span>
+                    <input type="radio" name="escaped" value="false"><span><span class="icon" data-icon="sacrificed"></span>Gestorben</span>
                   </label>
                 </div>
               </fieldset>
@@ -255,6 +263,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/index.js?v=9"></script>
+  <script type="module" src="assets/js/index.js?v=10"></script>
 </body>
 </html>

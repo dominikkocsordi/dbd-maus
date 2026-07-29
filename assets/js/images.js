@@ -1,9 +1,9 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=9';
-import { fileFor } from './data.js?v=9';
-import { escapeHtml } from './utils.js?v=9';
+import { SUPABASE_URL } from './config.js?v=10';
+import { fileFor } from './data.js?v=10';
+import { escapeHtml } from './utils.js?v=10';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -13,11 +13,20 @@ export const ICONS = {
   bp: 'bp_icon.png',
   killer: 'killer_icon.png',
   survivor: 'survivor_icon.png',
+  escape: 'icon_escape.png',
+  sacrificed: 'icon_sacrificed.png',
 };
 
 export function iconUrl(name) {
   const file = ICONS[name];
   return file ? `${SUPABASE_URL}/storage/v1/object/public/${ICON_BUCKET}/${file}` : null;
+}
+
+/** Fertiges Icon-Markup für dynamisch erzeugte Inhalte (Tabellen, Listen). */
+export function iconHtml(name, fallback = '') {
+  const url = iconUrl(name);
+  if (!url) return fallback ? `<span class="icon"><i class="icon__fallback">${escapeHtml(fallback)}</i></span>` : '';
+  return `<span class="icon">${fallback ? `<i class="icon__fallback">${escapeHtml(fallback)}</i>` : ''}<img src="${escapeHtml(url)}" alt="" onerror="this.remove()"></span>`;
 }
 
 /**

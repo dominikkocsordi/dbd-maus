@@ -742,6 +742,14 @@ option { background: var(--surface-2); color: var(--text); }
 .pill--k3 { color: #ef7d54; }
 .pill--k4 { color: #fff; border-color: rgba(255, 93, 99, 0.5); background: rgba(255, 93, 99, 0.25); }
 
+.pill .icon { width: 1.1em; height: 1.1em; margin-right: 0.3em; }
+.bar__label .icon { width: 1.2em; height: 1.2em; }
+
+.tally { display: inline-flex; align-items: center; justify-content: flex-end; font-weight: 600; }
+.tally .icon { width: 1.15em; height: 1.15em; margin-right: 0.3em; }
+.tally--good { color: var(--good); }
+.tally--bad { color: var(--bad); }
+
 .quote { font-weight: 600; }
 .quote--high { color: var(--good); }
 .quote--low { color: var(--muted); }

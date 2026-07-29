@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=9';
-import { initAuth } from './auth.js?v=9';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=9';
+import { supabase } from './supabase.js?v=10';
+import { initAuth } from './auth.js?v=10';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=10';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=9';
-import { characterCellHtml, mountIcons } from './images.js?v=9';
+} from './utils.js?v=10';
+import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=10';
 
 const MATCH_LIST_LIMIT = 100;
 
@@ -157,6 +157,40 @@ function renderTopBars(rows) {
     </div>`).join('');
 }
 
+/** Ergebnisse als Survivor, aufgeschlüsselt nach gespieltem Gegner-Killer. */
+function renderFacedKillers(filtered) {
+  const panel = document.getElementById('faced-panel');
+  const body = document.getElementById('faced-body');
+
+  const groups = new Map();
+  for (const m of filtered) {
+    if (m.role !== 'survivor' || !m.faced_killer) continue;
+    if (!groups.has(m.faced_killer)) groups.set(m.faced_killer, []);
+    groups.get(m.faced_killer).push(m);
+  }
+
+  const rows = [...groups.entries()]
+    .map(([id, list]) => {
+      const escapes = list.filter((m) => m.escaped).length;
+      const bp = list.reduce((sum, m) => sum + (m.bloodpoints ?? 0), 0);
+      return { id, total: list.length, escapes, deaths: list.length - escapes, rate: (escapes / list.length) * 100, bpAvg: bp / list.length };
+    })
+    .sort((a, b) => b.total - a.total || b.rate - a.rate);
+
+  panel.hidden = rows.length === 0;
+  if (!rows.length) return;
+
+  body.innerHTML = rows.map((r) => `
+    <tr>
+      <td data-label="Killer">${characterCellHtml('killer', r.id, labelFor('killer', r.id))}</td>
+      <td data-label="Matches" class="num">${fmtNumber(r.total)}</td>
+      <td data-label="Entkommen" class="num"><span class="tally tally--good">${iconHtml('escape')}${fmtNumber(r.escapes)}</span></td>
+      <td data-label="Gestorben" class="num"><span class="tally tally--bad">${iconHtml('sacrificed')}${fmtNumber(r.deaths)}</span></td>
+      <td data-label="Escape-Rate" class="num"><span class="quote ${r.rate >= 50 ? 'quote--high' : 'quote--low'}">${fmtPercent(r.rate)}</span></td>
+      <td data-label="Ø BP" class="num">${fmtNumber(r.bpAvg)}</td>
+    </tr>`).join('');
+}
+
 function renderMatchList(filtered) {
   const body = document.getElementById('match-body');
   const shown = filtered.slice(0, MATCH_LIST_LIMIT);
@@ -173,12 +207,13 @@ function renderMatchList(filtered) {
   body.innerHTML = shown.map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
-      : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
+      : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${iconHtml(m.escaped ? 'escape' : 'sacrificed')}${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
 
     return `
       <tr>
         <td data-label="Datum">${fmtDate(m.played_at)}</td>
-        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor), m.role === 'killer' ? 'Killer' : 'Survivor')}</td>
+        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor),
+          m.faced_killer ? `vs ${labelFor('killer', m.faced_killer)}` : (m.role === 'killer' ? 'Killer' : 'Survivor'))}</td>
         <td data-label="Gamemode">${escapeHtml(gameModeLabel(m.game_mode))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
@@ -197,6 +232,7 @@ function render() {
   document.getElementById('filter-summary').textContent = filterSummary(filtered);
   renderKpis(filtered);
   renderCharacterTable(rows);
+  renderFacedKillers(filtered);
   renderTopBars(rows);
   renderMatchList(filtered);
 }
@@ -206,7 +242,7 @@ function render() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 

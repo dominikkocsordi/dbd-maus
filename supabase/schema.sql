@@ -22,6 +22,7 @@ create table if not exists public.matches (
   -- Nur bei role = 'survivor'
   survivor     text,
   escaped      boolean,
+  faced_killer text,          -- optional: gegen welchen Killer gespielt wurde
 
   bloodpoints  integer not null default 0
                  check (bloodpoints >= 0 and bloodpoints <= 2000000),
@@ -34,7 +35,7 @@ create table if not exists public.matches (
   constraint matches_role_fields check (
     (role = 'killer'
        and killer is not null and kills is not null
-       and survivor is null and escaped is null)
+       and survivor is null and escaped is null and faced_killer is null)
     or
     (role = 'survivor'
        and survivor is not null and escaped is not null
@@ -42,10 +43,25 @@ create table if not exists public.matches (
   )
 );
 
+-- Nachtrag für bereits bestehende Tabellen (das Skript ist erneut ausführbar):
+alter table public.matches add column if not exists faced_killer text;
+
+alter table public.matches drop constraint if exists matches_role_fields;
+alter table public.matches add constraint matches_role_fields check (
+  (role = 'killer'
+     and killer is not null and kills is not null
+     and survivor is null and escaped is null and faced_killer is null)
+  or
+  (role = 'survivor'
+     and survivor is not null and escaped is not null
+     and killer is null and kills is null)
+);
+
 comment on table  public.matches            is 'Einzelne Dead-by-Daylight-Matches pro Benutzer';
 comment on column public.matches.game_mode  is 'public | 2v8 | chaos_shuffle | event | custom | other';
 comment on column public.matches.kills      is 'Anzahl Kills (0-4), nur für role = killer';
 comment on column public.matches.escaped    is 'Entkommen ja/nein, nur für role = survivor';
+comment on column public.matches.faced_killer is 'Optional: gegen welchen Killer gespielt wurde, nur für role = survivor';
 
 -- ---------------------------------------------------------------------------
 -- 2) Indizes
@@ -54,6 +70,7 @@ create index if not exists matches_user_played_idx on public.matches (user_id, p
 create index if not exists matches_user_role_idx   on public.matches (user_id, role);
 create index if not exists matches_killer_idx      on public.matches (user_id, killer)   where killer   is not null;
 create index if not exists matches_survivor_idx    on public.matches (user_id, survivor) where survivor is not null;
+create index if not exists matches_faced_killer_idx on public.matches (user_id, faced_killer) where faced_killer is not null;
 
 -- ---------------------------------------------------------------------------
 -- 3) updated_at automatisch pflegen

@@ -1,11 +1,11 @@
-import { supabase } from './supabase.js?v=9';
-import { initAuth } from './auth.js?v=9';
-import { initPasskeyPanel } from './passkeys.js?v=9';
-import { avatarHtml, characterCellHtml, mountIcons } from './images.js?v=9';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=9';
+import { supabase } from './supabase.js?v=10';
+import { initAuth } from './auth.js?v=10';
+import { initPasskeyPanel } from './passkeys.js?v=10';
+import { avatarHtml, characterCellHtml, iconHtml, mountIcons } from './images.js?v=10';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=10';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=9';
+} from './utils.js?v=10';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -18,9 +18,9 @@ let streakMode = null;
 
 // ---------------------------------------------------------------- Formular --
 
-function fillSelect(select, entries, placeholder) {
+function fillSelect(select, entries, placeholder, optional = false) {
   select.innerHTML =
-    `<option value="" disabled selected>${placeholder}</option>` +
+    `<option value=""${optional ? '' : ' disabled'} selected>${placeholder}</option>` +
     entries.map((e) => `<option value="${e.id}">${escapeHtml(e.label)}</option>`).join('');
 }
 
@@ -29,9 +29,9 @@ function currentRole() {
 }
 
 /** Zeigt das Bild des gewählten Charakters neben dem Dropdown. */
-function syncPortrait(role) {
-  const select = document.getElementById(`f-${role}`);
-  const target = document.getElementById(`f-${role}-portrait`);
+function syncPortrait(field, role = field) {
+  const select = document.getElementById(`f-${field}`);
+  const target = document.getElementById(`f-${field}-portrait`);
   const id = select.value;
 
   target.innerHTML = id
@@ -121,6 +121,7 @@ function buildPayload() {
     kills: null,
     survivor: null,
     escaped: null,
+    faced_killer: null,
   };
 
   if (role === 'killer') {
@@ -133,6 +134,7 @@ function buildPayload() {
     if (!survivor) return { error: 'Bitte einen Survivor wählen.' };
     payload.survivor = survivor;
     payload.escaped = document.querySelector('input[name="escaped"]:checked').value === 'true';
+    payload.faced_killer = document.getElementById('f-faced-killer').value || null;
   }
 
   return { payload };
@@ -159,6 +161,7 @@ function resetForm() {
   document.querySelector('input[name="role"][value="killer"]').checked = true;
   document.getElementById('f-killer').value = '';
   document.getElementById('f-survivor').value = '';
+  document.getElementById('f-faced-killer').value = '';
   document.querySelector('input[name="kills"][value="0"]').checked = true;
   document.querySelector('input[name="escaped"][value="true"]').checked = true;
   document.getElementById('f-notes').value = '';
@@ -167,6 +170,7 @@ function resetForm() {
   syncRoleBlocks();
   syncPortrait('killer');
   syncPortrait('survivor');
+  syncPortrait('faced-killer', 'killer');
   applyFormMode();
 }
 
@@ -185,6 +189,8 @@ function startEdit(id) {
   } else {
     document.getElementById('f-survivor').value = match.survivor ?? '';
     document.querySelector(`input[name="escaped"][value="${match.escaped}"]`).checked = true;
+    document.getElementById('f-faced-killer').value = match.faced_killer ?? '';
+    syncPortrait('faced-killer', 'killer');
   }
 
   syncPortrait(match.role);
@@ -227,6 +233,8 @@ async function handleSubmit(event) {
 
 // ------------------------------------------------------------------ Render --
 
+const outcomeIcon = (escaped) => iconHtml(escaped ? 'escape' : 'sacrificed');
+
 function renderKpis() {
   const s = aggregate(matches);
 
@@ -262,13 +270,16 @@ function renderRecent() {
   body.innerHTML = matches.slice(0, 15).map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
-      : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
+      : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${outcomeIcon(m.escaped)}${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
     const character = m.killer ?? m.survivor;
+    const sub = m.faced_killer
+      ? `${gameModeLabel(m.game_mode)} · vs ${labelFor('killer', m.faced_killer)}`
+      : gameModeLabel(m.game_mode);
 
     return `
       <tr>
         <td data-label="Datum">${fmtDate(m.played_at)}</td>
-        <td data-label="Charakter">${characterCellHtml(m.role, character, labelFor(m.role, character), gameModeLabel(m.game_mode))}</td>
+        <td data-label="Charakter">${characterCellHtml(m.role, character, labelFor(m.role, character), sub)}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
         <td data-label="Aktion" class="num row-actions">
@@ -292,7 +303,7 @@ function renderBars(container, rows) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   container.innerHTML = rows.map((r) => `
     <div class="bar">
-      <span class="bar__label">${escapeHtml(r.label)}</span>
+      <span class="bar__label">${r.icon ? iconHtml(r.icon) : ''}${escapeHtml(r.label)}</span>
       <span class="bar__track"><span class="bar__fill ${r.modifier ?? ''}" style="width:${(r.value / max) * 100}%"></span></span>
       <span class="bar__value">${fmtNumber(r.value)}</span>
     </div>`).join('');
@@ -312,8 +323,8 @@ function renderDistributions() {
   );
 
   renderBars(document.getElementById('dist-escape'), [
-    { label: 'Entkommen', value: survivor.filter((m) => m.escaped).length, modifier: 'bar__fill--good' },
-    { label: 'Gestorben', value: survivor.filter((m) => !m.escaped).length, modifier: 'bar__fill--bad' },
+    { label: 'Entkommen', icon: 'escape', value: survivor.filter((m) => m.escaped).length, modifier: 'bar__fill--good' },
+    { label: 'Gestorben', icon: 'sacrificed', value: survivor.filter((m) => !m.escaped).length, modifier: 'bar__fill--bad' },
   ]);
 }
 
@@ -383,7 +394,7 @@ async function deleteMatch(id) {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 
@@ -413,6 +424,7 @@ function initForm() {
   fillSelect(document.getElementById('f-mode'), GAME_MODES, 'Gamemode wählen …');
   fillSelect(document.getElementById('f-killer'), KILLERS, 'Killer wählen …');
   fillSelect(document.getElementById('f-survivor'), SURVIVORS, 'Survivor wählen …');
+  fillSelect(document.getElementById('f-faced-killer'), KILLERS, 'Kein Eintrag', true);
 
   document.getElementById('f-mode').value = 'public';
   document.getElementById('f-played-at').value = localNowValue();
@@ -425,9 +437,9 @@ function initForm() {
   wireBloodpointsField();
   setBloodpoints(0);
 
-  for (const role of ['killer', 'survivor']) {
-    document.getElementById(`f-${role}`).addEventListener('change', () => syncPortrait(role));
-    syncPortrait(role);
+  for (const [field, role] of [['killer', 'killer'], ['survivor', 'survivor'], ['faced-killer', 'killer']]) {
+    document.getElementById(`f-${field}`).addEventListener('change', () => syncPortrait(field, role));
+    syncPortrait(field, role);
   }
 
   document.getElementById('match-form').addEventListener('submit', handleSubmit);

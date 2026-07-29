@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=9">
+  <link rel="stylesheet" href="assets/css/style.css?v=10">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -154,6 +154,27 @@
         </div>
       </section>
 
+      <section class="panel" id="faced-panel" hidden>
+        <header class="panel__head">
+          <h2>Gegen Killer</h2>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Killer</th>
+                <th class="num">Matches</th>
+                <th class="num">Entkommen</th>
+                <th class="num">Gestorben</th>
+                <th class="num">Escape-Rate</th>
+                <th class="num">Ø BP</th>
+              </tr>
+            </thead>
+            <tbody id="faced-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="panel">
         <header class="panel__head">
           <h2>Top-Charaktere</h2>
@@ -188,6 +209,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=9"></script>
+  <script type="module" src="assets/js/stats.js?v=10"></script>
 </body>
 </html>

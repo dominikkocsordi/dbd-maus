@@ -552,6 +552,12 @@ a.icon-btn { display: inline-block; text-decoration: none; }
   color: var(--muted);
 }
 
+/* Die Portraits sind transparent – sobald ein Bild da ist, müssen die
+   Initialen weg, sonst scheinen sie durch. `:has()` greift auch bei
+   Bildern aus dem Cache, die Klasse ist der Fallback für ältere Browser. */
+.avatar:has(img) .avatar__fallback,
+.avatar--has-image .avatar__fallback { display: none; }
+
 .avatar img {
   position: absolute;
   inset: 0;

@@ -32,7 +32,9 @@ export function avatarHtml(role, id, label, modifier = '') {
 
   return `<span class="avatar avatar--${role}${modifier ? ` ${modifier}` : ''}" title="${safeLabel}">
     <span class="avatar__fallback">${escapeHtml(initials(label))}</span>
-    ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+    ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy"
+      onload="this.parentNode.classList.add('avatar--has-image')"
+      onerror="this.remove()">` : ''}
   </span>`;
 }
 

@@ -6,7 +6,7 @@
   <title>DBD Stats – Übersicht</title>
   <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=7">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -27,6 +27,37 @@
   </header>
 
   <main>
+  <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;   // nur wenn wirklich nichts da ist
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;          // fehlende Portraits sind egal
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
     <section id="auth-view" class="auth-view"></section>
 
     <section id="app-view" class="app-view" hidden>
@@ -231,6 +262,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/index.js"></script>
+  <script type="module" src="assets/js/index.js?v=7"></script>
 </body>
 </html>

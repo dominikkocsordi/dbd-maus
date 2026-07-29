@@ -745,6 +745,33 @@ option { background: var(--surface-2); color: var(--text); }
 .filters__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem 0.8rem; align-items: end; }
 .filters__grid .field { margin-bottom: 0; }
 
+/* ------------------------------------------------------------ Ladefehler -- */
+.boot-error {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 640px;
+  margin: clamp(2rem, 8vh, 4rem) auto 0;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid rgba(242, 96, 122, 0.4);
+  border-radius: var(--r-lg);
+  font-size: 0.9rem;
+}
+
+.boot-error strong { color: var(--bad); font-weight: 650; }
+.boot-error span { color: var(--muted); }
+
+.boot-error code {
+  font-size: 0.78rem;
+  color: var(--muted);
+  word-break: break-word;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  padding: 0.4rem 0.6rem;
+}
+
+.boot-error code:empty { display: none; }
+
 /* ----------------------------------------------------------------- Toast -- */
 .toast {
   position: fixed;

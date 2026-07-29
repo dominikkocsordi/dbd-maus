@@ -2,12 +2,12 @@
 --  Charakterbilder – Supabase Storage
 --  Einspielen: Dashboard -> SQL Editor -> New query -> Run
 --
---  Danach im Dashboard unter Storage -> characters die Bilder hochladen:
---    Ordner "killers"   -> <killer-id>.png     (z. B. blight.png)
---    Ordner "survivors" -> <survivor-id>.png   (z. B. feng_min.png)
+--  Danach im Dashboard unter Storage -> characters alle Portraits hochladen –
+--  unter ihren Original-Dateinamen aus dem Spiel, ohne Unterordner:
+--    K01_TheTrapper_Portrait.png, S09_FengMin_Portrait.png, empty.png, ...
 --
---  Die IDs stehen in assets/js/data.js, die komplette Dateiliste in
---  supabase/bilder-dateinamen.txt.
+--  Welche Datei zu welchem Charakter gehört, steht als `file` in
+--  assets/js/data.js; die Liste als Übersicht in supabase/bilder-dateinamen.txt.
 -- ============================================================================
 
 -- Öffentlicher Bucket: die App liest die Bilder ohne Login über

@@ -1,16 +1,18 @@
 // Charakterbilder aus Supabase Storage.
-// Bucket "characters", darin die Ordner "killers" und "survivors";
-// der Dateiname ist die ID aus data.js plus Endung, z. B. killers/blight.png.
+// Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
+// (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
 import { SUPABASE_URL } from './config.js';
+import { fileFor } from './data.js';
 import { escapeHtml } from './utils.js';
 
 export const CHARACTER_BUCKET = 'characters';
-export const IMAGE_EXT = 'png';
+/** Unterordner im Bucket, leer = direkt im Bucket-Root. Mit / am Ende, z. B. 'portraits/'. */
+export const IMAGE_FOLDER = '';
 
 export function characterImageUrl(role, id) {
-  if (!id) return null;
-  const folder = role === 'killer' ? 'killers' : 'survivors';
-  return `${SUPABASE_URL}/storage/v1/object/public/${CHARACTER_BUCKET}/${folder}/${encodeURIComponent(id)}.${IMAGE_EXT}`;
+  const file = fileFor(role, id);
+  if (!file) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${CHARACTER_BUCKET}/${IMAGE_FOLDER}${encodeURIComponent(file)}`;
 }
 
 function initials(label) {

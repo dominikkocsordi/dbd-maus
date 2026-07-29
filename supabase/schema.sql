@@ -145,7 +145,78 @@ create trigger matches_set_user_id
   for each row execute function public.matches_set_user_id();
 
 -- ---------------------------------------------------------------------------
--- 6) Komfort-View: aggregierte Kennzahlen der eigenen Matches
+-- 6) Builds: gespeicherte Perk-Zusammenstellungen
+-- ---------------------------------------------------------------------------
+create table if not exists public.builds (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+
+  name       text not null check (char_length(trim(name)) between 1 and 60),
+  role       text not null check (role in ('killer', 'survivor')),
+  character  text,                    -- optional: für welchen Killer/Survivor gedacht
+  perks      text[] not null default '{}'
+               check (coalesce(array_length(perks, 1), 0) <= 4),
+  notes      text check (notes is null or char_length(notes) <= 300),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+comment on table  public.builds       is 'Gespeicherte Perk-Builds pro Benutzer';
+comment on column public.builds.perks is 'Bis zu 4 Perk-Dateinamen, z. B. {Adrenaline.png}';
+
+create index if not exists builds_user_idx on public.builds (user_id, role, created_at desc);
+
+alter table public.builds enable row level security;
+
+drop policy if exists "builds_select_own" on public.builds;
+create policy "builds_select_own" on public.builds for select
+  to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "builds_insert_own" on public.builds;
+create policy "builds_insert_own" on public.builds for insert
+  to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "builds_update_own" on public.builds;
+create policy "builds_update_own" on public.builds for update
+  to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "builds_delete_own" on public.builds;
+create policy "builds_delete_own" on public.builds for delete
+  to authenticated using (auth.uid() = user_id);
+
+drop trigger if exists builds_set_updated_at on public.builds;
+create trigger builds_set_updated_at
+  before update on public.builds
+  for each row execute function public.set_updated_at();
+
+create or replace function public.builds_set_user_id()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.user_id is null then
+    new.user_id = auth.uid();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists builds_set_user_id on public.builds;
+create trigger builds_set_user_id
+  before insert on public.builds
+  for each row execute function public.builds_set_user_id();
+
+-- Build optional an ein Match hängen; wird der Build gelöscht, bleibt das Match.
+alter table public.matches
+  add column if not exists build_id uuid references public.builds (id) on delete set null;
+
+create index if not exists matches_build_idx on public.matches (build_id) where build_id is not null;
+
+-- ---------------------------------------------------------------------------
+-- 7) Komfort-View: aggregierte Kennzahlen der eigenen Matches
 --    (security_invoker => RLS der Basistabelle greift weiterhin)
 -- ---------------------------------------------------------------------------
 create or replace view public.my_stats

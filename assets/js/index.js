@@ -1,11 +1,12 @@
-import { supabase } from './supabase.js?v=10';
-import { initAuth } from './auth.js?v=10';
-import { initPasskeyPanel } from './passkeys.js?v=10';
-import { avatarHtml, characterCellHtml, iconHtml, mountIcons } from './images.js?v=10';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=10';
+import { supabase } from './supabase.js?v=11';
+import { initAuth } from './auth.js?v=11';
+import { initPasskeyPanel } from './passkeys.js?v=11';
+import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=11';
+import { perkName } from './perks.js?v=11';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=11';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=10';
+} from './utils.js?v=11';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -15,6 +16,7 @@ let matches = [];
 let editingId = null;
 let pendingEditId = new URLSearchParams(window.location.search).get('edit');
 let streakMode = null;
+let builds = [];
 
 // ---------------------------------------------------------------- Formular --
 
@@ -39,6 +41,28 @@ function syncPortrait(field, role = field) {
     : '';
 }
 
+/** Build-Auswahl: nur Builds der aktuellen Rolle, plus Vorschau der Perks. */
+function syncBuildSelect(keep = true) {
+  const select = document.getElementById('f-build');
+  const previous = keep ? select.value : '';
+  const role = currentRole();
+  const matching = builds.filter((b) => b.role === role);
+
+  select.innerHTML = '<option value="">Kein Build</option>'
+    + matching.map((b) => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
+  select.value = matching.some((b) => b.id === previous) ? previous : '';
+  select.disabled = matching.length === 0;
+
+  syncBuildPreview();
+}
+
+function syncBuildPreview() {
+  const build = builds.find((b) => b.id === document.getElementById('f-build').value);
+  document.getElementById('f-build-preview').innerHTML = build
+    ? (build.perks ?? []).map((f) => perkIconHtml(f, perkName(f))).join('')
+    : '';
+}
+
 function syncRoleBlocks() {
   const role = currentRole();
   document.querySelectorAll('[data-role-block]').forEach((block) => {
@@ -47,6 +71,7 @@ function syncRoleBlocks() {
     block.querySelectorAll('select').forEach((el) => { el.disabled = !active; });
   });
   document.getElementById('entry-panel').dataset.role = role;
+  syncBuildSelect(false);
 }
 
 // --- Blutpunkte-Feld: Textfeld, Slider und Chips halten sich gegenseitig aktuell
@@ -122,6 +147,7 @@ function buildPayload() {
     survivor: null,
     escaped: null,
     faced_killer: null,
+    build_id: document.getElementById('f-build').value || null,
   };
 
   if (role === 'killer') {
@@ -162,6 +188,7 @@ function resetForm() {
   document.getElementById('f-killer').value = '';
   document.getElementById('f-survivor').value = '';
   document.getElementById('f-faced-killer').value = '';
+  document.getElementById('f-build').value = '';
   document.querySelector('input[name="kills"][value="0"]').checked = true;
   document.querySelector('input[name="escaped"][value="true"]').checked = true;
   document.getElementById('f-notes').value = '';
@@ -171,6 +198,7 @@ function resetForm() {
   syncPortrait('killer');
   syncPortrait('survivor');
   syncPortrait('faced-killer', 'killer');
+  syncBuildSelect(false);
   applyFormMode();
 }
 
@@ -194,6 +222,8 @@ function startEdit(id) {
   }
 
   syncPortrait(match.role);
+  document.getElementById('f-build').value = match.build_id ?? '';
+  syncBuildPreview();
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
   document.getElementById('f-notes').value = match.notes ?? '';
   setBloodpoints(match.bloodpoints ?? 0);
@@ -272,9 +302,12 @@ function renderRecent() {
       ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
       : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${outcomeIcon(m.escaped)}${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
     const character = m.killer ?? m.survivor;
-    const sub = m.faced_killer
-      ? `${gameModeLabel(m.game_mode)} · vs ${labelFor('killer', m.faced_killer)}`
-      : gameModeLabel(m.game_mode);
+    const buildName = builds.find((b) => b.id === m.build_id)?.name;
+    const sub = [
+      gameModeLabel(m.game_mode),
+      m.faced_killer ? `vs ${labelFor('killer', m.faced_killer)}` : null,
+      buildName,
+    ].filter(Boolean).join(' · ');
 
     return `
       <tr>
@@ -391,10 +424,25 @@ async function deleteMatch(id) {
   await loadMatches();
 }
 
+async function loadBuilds() {
+  const { data, error } = await supabase
+    .from('builds')
+    .select('id, name, role, character, perks')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    toast(`Builds konnten nicht geladen werden: ${error.message}`, 'error');
+    return;
+  }
+
+  builds = data ?? [];
+  syncBuildSelect();
+}
+
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, build_id, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 
@@ -444,6 +492,7 @@ function initForm() {
 
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
+  document.getElementById('f-build').addEventListener('change', syncBuildPreview);
   applyFormMode();
 }
 
@@ -452,7 +501,7 @@ mountIcons();
 initAuth({
   onLogin: (user) => {
     currentUser = user;
-    loadMatches();
+    loadBuilds().then(loadMatches);
     initPasskeyPanel();
   },
   onLogout: () => {

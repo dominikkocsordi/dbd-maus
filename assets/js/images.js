@@ -1,12 +1,29 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=10';
-import { fileFor } from './data.js?v=10';
-import { escapeHtml } from './utils.js?v=10';
+import { SUPABASE_URL } from './config.js?v=11';
+import { fileFor } from './data.js?v=11';
+import { escapeHtml } from './utils.js?v=11';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
+export const PERK_BUCKET = 'perks';
+
+/** Bild eines Perks; `file` ist der Dateiname aus perks.js. */
+export function perkImageUrl(file) {
+  if (!file) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${PERK_BUCKET}/${encodeURIComponent(file)}`;
+}
+
+/** Perk-Kachelbild mit Namenskürzel als Fallback. */
+export function perkIconHtml(file, name, modifier = '') {
+  const url = perkImageUrl(file);
+  const short = String(name ?? '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || '?';
+  return `<span class="perk-icon${modifier ? ` ${modifier}` : ''}" title="${escapeHtml(name ?? '')}">
+    <span class="perk-icon__fallback">${escapeHtml(short)}</span>
+    ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+  </span>`;
+}
 
 /** Icons aus dem Bucket "icons" – Schlüssel entspricht dem data-icon-Attribut. */
 export const ICONS = {

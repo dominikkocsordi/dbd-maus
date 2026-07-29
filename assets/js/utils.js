@@ -74,11 +74,16 @@ export function aggregate(matches) {
   };
 }
 
+/** Ab wie vielen Kills ein Killer-Match die Serie fortsetzt (2K oder weniger = Serie weg). */
+export const KILLER_STREAK_MIN_KILLS = 3;
+
 /**
  * Ein Match zählt für die Serie als Erfolg, wenn man als Survivor entkommen ist
- * bzw. als Killer mindestens einen Kill hatte. Ein 0K beendet die Killer-Serie.
+ * bzw. als Killer mindestens 3 Kills hatte.
  */
-export const isStreakHit = (m) => (m.role === 'killer' ? (m.kills ?? 0) > 0 : Boolean(m.escaped));
+export const isStreakHit = (m) => (m.role === 'killer'
+  ? (m.kills ?? 0) >= KILLER_STREAK_MIN_KILLS
+  : Boolean(m.escaped));
 
 /**
  * Serien für eine nach Datum absteigend sortierte Match-Liste.

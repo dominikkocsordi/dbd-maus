@@ -65,8 +65,8 @@
         <!-- Eingabeformular -->
         <section class="panel" id="entry-panel">
           <header class="panel__head">
-            <h2>Match eintragen</h2>
-            <p>Ein Formular, beide Rollen – die Felder passen sich an.</p>
+            <h2 id="form-title">Match eintragen</h2>
+            <p id="form-sub">Ein Formular, beide Rollen – die Felder passen sich an.</p>
           </header>
 
           <form id="match-form" class="match-form" novalidate>
@@ -161,6 +161,7 @@
             </label>
 
             <button type="submit" class="btn btn--primary btn--block" id="f-submit">Match speichern</button>
+            <button type="button" class="btn btn--ghost btn--block" id="f-cancel" hidden>Bearbeiten abbrechen</button>
           </form>
         </section>
 
@@ -179,7 +180,7 @@
                   <th>Charakter</th>
                   <th>Ergebnis</th>
                   <th class="num">BP</th>
-                  <th></th>
+                  <th class="num">Aktion</th>
                 </tr>
               </thead>
               <tbody id="recent-body">
@@ -196,7 +197,7 @@
           <h2>Serien</h2>
           <p>
             Survivor: Escapes am Stück mit demselben Charakter. Killer: Matches am Stück mit
-            mindestens einem Kill – ein 0K beendet die Serie.
+            mindestens 3 Kills – bei 2K oder weniger ist die Serie weg.
           </p>
         </header>
         <div class="dist">

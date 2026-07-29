@@ -443,7 +443,18 @@ option { background: #14171f; color: var(--text); }
   cursor: pointer;
 }
 
-.icon-btn:hover { color: var(--blood-bright); border-color: rgba(230, 57, 70, 0.4); background: rgba(230, 57, 70, 0.1); }
+.icon-btn:hover { color: var(--survivor); border-color: rgba(78, 168, 222, 0.4); background: rgba(78, 168, 222, 0.12); }
+.icon-btn--danger:hover { color: var(--blood-bright); border-color: rgba(230, 57, 70, 0.4); background: rgba(230, 57, 70, 0.1); }
+.icon-btn.is-editing { color: var(--survivor); border-color: rgba(78, 168, 222, 0.6); background: rgba(78, 168, 222, 0.18); }
+
+a.icon-btn { display: inline-block; text-decoration: none; }
+
+.row-actions { display: flex; gap: 0.25rem; justify-content: flex-end; }
+
+.panel--editing {
+  border-color: rgba(78, 168, 222, 0.45);
+  box-shadow: var(--shadow), 0 0 0 1px rgba(78, 168, 222, 0.25) inset;
+}
 
 /* ----------------------------------------------------------------- Login -- */
 .auth-view { display: flex; justify-content: center; padding-top: clamp(2rem, 8vh, 5rem); }
@@ -667,6 +678,7 @@ option { background: #14171f; color: var(--text); }
   .table td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: 0.25rem 0.2rem; text-align: right; }
   .table td::before { content: attr(data-label); color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
   .table td.num { text-align: right; }
+  .table td.row-actions::before { margin-right: auto; }
   .notes { max-width: none; }
   .topbar__email { display: none; }
   .bar { grid-template-columns: minmax(60px, 110px) 1fr auto; }

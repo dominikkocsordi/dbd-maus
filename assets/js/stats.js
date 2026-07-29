@@ -158,7 +158,7 @@ function renderMatchList(filtered) {
     : `${fmtNumber(filtered.length)} Matches`;
 
   if (!shown.length) {
-    body.innerHTML = '<tr><td colspan="7" class="empty">Keine Matches für diesen Filter.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">Keine Matches für diesen Filter.</td></tr>';
     return;
   }
 
@@ -176,6 +176,9 @@ function renderMatchList(filtered) {
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
         <td data-label="Notiz" class="notes">${escapeHtml(m.notes ?? '')}</td>
+        <td data-label="Aktion" class="num">
+          <a class="icon-btn" href="index.html?edit=${encodeURIComponent(m.id)}" title="Bearbeiten" aria-label="Match bearbeiten">&#9998;</a>
+        </td>
       </tr>`;
   }).join('');
 }

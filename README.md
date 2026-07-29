@@ -5,7 +5,7 @@ Kleine Web-App, um eigene **Dead by Daylight**-Matches zu tracken – Login und 
 
 | Seite | Inhalt |
 | --- | --- |
-| `index.html` | Allgemeine Statistik (Matches, Kill-Rate, Escape-Rate, Blutpunkte), Eingabeformular, letzte Matches, Verteilungen |
+| `index.html` | Allgemeine Statistik (Matches, Kill-Rate, Escape-Rate, Blutpunkte), Eingabeformular, letzte Matches, Serien, Verteilungen |
 | `stats.html` | Detail-Statistik mit Filtern nach Rolle (Killer/Survivor), Charakter, Gamemode und Zeitraum |
 
 ## 1. Datenbank einrichten
@@ -102,13 +102,24 @@ python3 -m http.server 8000
 | `bloodpoints` | `integer` | 0 – 2.000.000 |
 | `notes` | `text` | optionale Notiz (max. 500 Zeichen) |
 
+## Einträge bearbeiten
+
+In der Liste **Letzte Matches** öffnet das Stift-Symbol den Eintrag im Formular; der Panel-Titel
+wechselt auf „Match bearbeiten“, **Bearbeiten abbrechen** verwirft die Änderung. Auch die Rolle lässt
+sich umstellen – die Felder der anderen Rolle werden dabei geleert, damit der Check-Constraint der
+Tabelle passt. In der Detail-Statistik führt das Stift-Symbol über `index.html?edit=<id>` auf dasselbe
+Formular, sodass sich auch ältere Matches bearbeiten lassen.
+
 ## Serien (Streaks)
 
 Pro Charakter werden zwei Werte berechnet – auf der Übersicht im Panel **Serien**, in der
 Detail-Statistik als Spalten *Serie* und *Beste Serie*:
 
 * **Survivor**: Escapes am Stück mit demselben Survivor. Ein Tod beendet die Serie.
-* **Killer**: Matches am Stück mit mindestens einem Kill. Ein 0K beendet die Serie.
+* **Killer**: Matches am Stück mit mindestens 3 Kills. Bei 2K oder weniger ist die Serie weg.
+
+Die Schwelle für Killer steht als `KILLER_STREAK_MIN_KILLS` in
+[`assets/js/utils.js`](assets/js/utils.js).
 
 `Serie` ist die aktuell laufende Serie (ab dem neuesten Match rückwärts), `Beste Serie` die längste
 je erreichte. In der Detail-Statistik beziehen sich beide Werte auf die gefilterte Auswahl.

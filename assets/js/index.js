@@ -11,6 +11,8 @@ const SLIDER_MAX = 1000000;
 
 let currentUser = null;
 let matches = [];
+let editingId = null;
+let pendingEditId = new URLSearchParams(window.location.search).get('edit');
 
 // ---------------------------------------------------------------- Formular --
 
@@ -73,10 +75,15 @@ function wireBloodpointsField() {
   });
 }
 
+/** ISO-Zeitstempel -> Wert für <input type="datetime-local"> in lokaler Zeit. */
+function toLocalInput(iso) {
+  const date = new Date(iso);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+}
+
 function localNowValue() {
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  return now.toISOString().slice(0, 16);
+  return toLocalInput(new Date());
 }
 
 function buildPayload() {
@@ -87,6 +94,9 @@ function buildPayload() {
   if (!mode) return { error: 'Bitte einen Gamemode wählen.' };
   if (!playedAtRaw) return { error: 'Bitte einen Zeitpunkt angeben.' };
 
+  // Die Felder der jeweils anderen Rolle müssen leer sein – sonst greift der
+  // Check-Constraint der Tabelle, etwa wenn ein Match von Killer auf Survivor
+  // umgestellt wird.
   const payload = {
     user_id: currentUser.id,
     played_at: new Date(playedAtRaw).toISOString(),
@@ -94,6 +104,10 @@ function buildPayload() {
     role,
     bloodpoints: getBloodpoints(),
     notes: document.getElementById('f-notes').value.trim() || null,
+    killer: null,
+    kills: null,
+    survivor: null,
+    escaped: null,
   };
 
   if (role === 'killer') {
@@ -111,26 +125,90 @@ function buildPayload() {
   return { payload };
 }
 
+// ---------------------------------------------------------- Bearbeitungsmodus --
+
+function applyFormMode() {
+  const editing = editingId !== null;
+
+  document.getElementById('form-title').textContent = editing ? 'Match bearbeiten' : 'Match eintragen';
+  document.getElementById('form-sub').textContent = editing
+    ? 'Änderungen werden für den ausgewählten Eintrag gespeichert.'
+    : 'Ein Formular, beide Rollen – die Felder passen sich an.';
+  document.getElementById('f-submit').textContent = editing ? 'Änderungen speichern' : 'Match speichern';
+  document.getElementById('f-cancel').hidden = !editing;
+  document.getElementById('entry-panel').classList.toggle('panel--editing', editing);
+
+  document.querySelectorAll('[data-edit]').forEach((btn) => {
+    btn.classList.toggle('is-editing', btn.dataset.edit === editingId);
+  });
+}
+
+function resetForm() {
+  editingId = null;
+  document.getElementById('f-mode').value = 'public';
+  document.querySelector('input[name="role"][value="killer"]').checked = true;
+  document.getElementById('f-killer').value = '';
+  document.getElementById('f-survivor').value = '';
+  document.querySelector('input[name="kills"][value="0"]').checked = true;
+  document.querySelector('input[name="escaped"][value="true"]').checked = true;
+  document.getElementById('f-notes').value = '';
+  document.getElementById('f-played-at').value = localNowValue();
+  setBloodpoints(0);
+  syncRoleBlocks();
+  applyFormMode();
+}
+
+function startEdit(id) {
+  const match = matches.find((m) => m.id === id);
+  if (!match) return;
+
+  editingId = id;
+  document.getElementById('f-mode').value = match.game_mode;
+  document.querySelector(`input[name="role"][value="${match.role}"]`).checked = true;
+  syncRoleBlocks();
+
+  if (match.role === 'killer') {
+    document.getElementById('f-killer').value = match.killer ?? '';
+    document.querySelector(`input[name="kills"][value="${match.kills ?? 0}"]`).checked = true;
+  } else {
+    document.getElementById('f-survivor').value = match.survivor ?? '';
+    document.querySelector(`input[name="escaped"][value="${match.escaped}"]`).checked = true;
+  }
+
+  document.getElementById('f-played-at').value = toLocalInput(match.played_at);
+  document.getElementById('f-notes').value = match.notes ?? '';
+  setBloodpoints(match.bloodpoints ?? 0);
+
+  applyFormMode();
+  document.getElementById('entry-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 async function handleSubmit(event) {
   event.preventDefault();
   const submitBtn = document.getElementById('f-submit');
   const { payload, error: validationError } = buildPayload();
   if (validationError) return toast(validationError, 'error');
 
+  const editing = editingId;
   submitBtn.disabled = true;
   submitBtn.textContent = 'Speichere …';
 
-  const { error } = await supabase.from('matches').insert(payload);
+  // Beim Update bleibt der Besitzer unverändert – user_id gehört nur in den Insert.
+  const { user_id: _owner, ...changes } = payload;
+
+  const { error } = editing
+    ? await supabase.from('matches').update(changes).eq('id', editing)
+    : await supabase.from('matches').insert(payload);
 
   submitBtn.disabled = false;
-  submitBtn.textContent = 'Match speichern';
 
-  if (error) return toast(`Speichern fehlgeschlagen: ${error.message}`, 'error');
+  if (error) {
+    applyFormMode();
+    return toast(`Speichern fehlgeschlagen: ${error.message}`, 'error');
+  }
 
-  toast('Match gespeichert.', 'success');
-  document.getElementById('f-notes').value = '';
-  setBloodpoints(0);
-  document.getElementById('f-played-at').value = localNowValue();
+  toast(editing ? 'Match aktualisiert.' : 'Match gespeichert.', 'success');
+  resetForm();
   await loadMatches();
 }
 
@@ -180,13 +258,21 @@ function renderRecent() {
         <td data-label="Charakter">${escapeHtml(labelFor(m.role, m.killer ?? m.survivor))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
-        <td class="num"><button type="button" class="icon-btn" data-delete="${m.id}" title="Löschen" aria-label="Match löschen">&#10005;</button></td>
+        <td data-label="Aktion" class="num row-actions">
+          <button type="button" class="icon-btn" data-edit="${m.id}" title="Bearbeiten" aria-label="Match bearbeiten">&#9998;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-delete="${m.id}" title="Löschen" aria-label="Match löschen">&#10005;</button>
+        </td>
       </tr>`;
   }).join('');
 
   body.querySelectorAll('[data-delete]').forEach((btn) => {
     btn.addEventListener('click', () => deleteMatch(btn.dataset.delete));
   });
+  body.querySelectorAll('[data-edit]').forEach((btn) => {
+    btn.addEventListener('click', () => startEdit(btn.dataset.edit));
+  });
+
+  applyFormMode();
 }
 
 function renderBars(container, rows) {
@@ -248,7 +334,9 @@ async function deleteMatch(id) {
   if (!window.confirm('Dieses Match wirklich löschen?')) return;
   const { error } = await supabase.from('matches').delete().eq('id', id);
   if (error) return toast(`Löschen fehlgeschlagen: ${error.message}`, 'error');
+
   toast('Match gelöscht.');
+  if (editingId === id) resetForm();
   await loadMatches();
 }
 
@@ -269,6 +357,14 @@ async function loadMatches() {
   renderRecent();
   renderDistributions();
   renderStreaks();
+
+  // Aus der Detail-Statistik verlinkt: index.html?edit=<id>
+  if (pendingEditId) {
+    const id = pendingEditId;
+    pendingEditId = null;
+    window.history.replaceState({}, '', window.location.pathname);
+    startEdit(id);
+  }
 }
 
 // --------------------------------------------------------------------- Init --
@@ -290,6 +386,8 @@ function initForm() {
   setBloodpoints(0);
 
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
+  document.getElementById('f-cancel').addEventListener('click', resetForm);
+  applyFormMode();
 }
 
 initForm();

@@ -216,7 +216,183 @@ alter table public.matches
 create index if not exists matches_build_idx on public.matches (build_id) where build_id is not null;
 
 -- ---------------------------------------------------------------------------
--- 7) Komfort-View: aggregierte Kennzahlen der eigenen Matches
+-- 7) Profile und Rollen
+--
+--    Rolle vergeben (im SQL-Editor, nach der Registrierung):
+--      update public.profiles set role = 'owner' where email = 'kontakt@example.de';
+-- ---------------------------------------------------------------------------
+create table if not exists public.profiles (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  email      text,
+  role       text not null default 'user' check (role in ('user', 'owner')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+comment on table  public.profiles      is 'Zusatzdaten und Rolle pro Benutzer';
+comment on column public.profiles.role is 'user = normaler Zugang | owner = sieht und pflegt alle Tickets';
+
+-- Profil bei der Registrierung automatisch anlegen. Schlägt das Anlegen des
+-- Triggers an fehlenden Rechten fehl, greift der Upsert der App beim Login.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.profiles (user_id, email)
+  values (new.id, new.email)
+  on conflict (user_id) do update set email = excluded.email;
+  return new;
+end;
+$$;
+
+do $$
+begin
+  drop trigger if exists on_auth_user_created on auth.users;
+  create trigger on_auth_user_created
+    after insert on auth.users
+    for each row execute function public.handle_new_user();
+exception
+  when insufficient_privilege then
+    raise notice 'Trigger auf auth.users nicht erlaubt – die App legt das Profil beim Login an.';
+end;
+$$;
+
+-- Bereits registrierte Benutzer nachtragen
+insert into public.profiles (user_id, email)
+select id, email from auth.users
+on conflict (user_id) do nothing;
+
+/*
+  Rollenprüfung als security definer: eine Policy auf profiles, die selbst
+  profiles abfragt, würde sich sonst endlos rekursiv aufrufen.
+*/
+create or replace function public.is_owner()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.user_id = auth.uid() and p.role = 'owner'
+  );
+$$;
+
+grant execute on function public.is_owner() to authenticated;
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "profiles_select" on public.profiles;
+create policy "profiles_select" on public.profiles for select
+  to authenticated using (auth.uid() = user_id or public.is_owner());
+
+drop policy if exists "profiles_insert_self" on public.profiles;
+create policy "profiles_insert_self" on public.profiles for insert
+  to authenticated with check (auth.uid() = user_id and role = 'user');
+
+drop policy if exists "profiles_update_owner" on public.profiles;
+create policy "profiles_update_owner" on public.profiles for update
+  to authenticated using (public.is_owner()) with check (public.is_owner());
+
+drop trigger if exists profiles_set_updated_at on public.profiles;
+create trigger profiles_set_updated_at
+  before update on public.profiles
+  for each row execute function public.set_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- 8) Tickets: Bugs und Verbesserungswünsche
+-- ---------------------------------------------------------------------------
+create table if not exists public.tickets (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+
+  kind        text not null check (kind in ('bug', 'feature')),
+  title       text not null check (char_length(trim(title)) between 3 and 120),
+  description text not null check (char_length(trim(description)) between 5 and 4000),
+  page        text,                       -- betroffene Seite, z. B. 'stats'
+
+  status      text not null default 'new'
+                check (status in ('new', 'in_progress', 'planned', 'done', 'rejected')),
+  priority    text not null default 'normal' check (priority in ('low', 'normal', 'high')),
+  owner_note  text check (owner_note is null or char_length(owner_note) <= 2000),
+
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  resolved_at timestamptz
+);
+
+comment on table  public.tickets            is 'Gemeldete Bugs und Verbesserungswünsche';
+comment on column public.tickets.owner_note is 'Antwort bzw. Notiz der Besitzerrolle';
+
+create index if not exists tickets_status_idx on public.tickets (status, created_at desc);
+create index if not exists tickets_user_idx   on public.tickets (user_id, created_at desc);
+
+alter table public.tickets enable row level security;
+
+-- Lesen: eigene Tickets, die Besitzerrolle sieht alle
+drop policy if exists "tickets_select" on public.tickets;
+create policy "tickets_select" on public.tickets for select
+  to authenticated using (auth.uid() = user_id or public.is_owner());
+
+-- Einreichen: nur für sich selbst, immer im Status "new"
+drop policy if exists "tickets_insert_own" on public.tickets;
+create policy "tickets_insert_own" on public.tickets for insert
+  to authenticated with check (auth.uid() = user_id and status = 'new');
+
+/*
+  Nachbessern darf der Melder nur, solange das Ticket unbearbeitet ist. Weil
+  auch die with-check-Bedingung status = 'new' verlangt, kann er den Status
+  nicht selbst weiterdrehen – das bleibt der Besitzerrolle.
+*/
+drop policy if exists "tickets_update_own_new" on public.tickets;
+create policy "tickets_update_own_new" on public.tickets for update
+  to authenticated
+  using (auth.uid() = user_id and status = 'new')
+  with check (auth.uid() = user_id and status = 'new');
+
+drop policy if exists "tickets_update_owner" on public.tickets;
+create policy "tickets_update_owner" on public.tickets for update
+  to authenticated using (public.is_owner()) with check (public.is_owner());
+
+drop policy if exists "tickets_delete" on public.tickets;
+create policy "tickets_delete" on public.tickets for delete
+  to authenticated using ((auth.uid() = user_id and status = 'new') or public.is_owner());
+
+create or replace function public.tickets_before_write()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.user_id is null then
+    new.user_id = auth.uid();
+  end if;
+
+  new.updated_at = now();
+
+  -- Abschlusszeitpunkt automatisch mitführen
+  if new.status in ('done', 'rejected') then
+    new.resolved_at = coalesce(new.resolved_at, now());
+  else
+    new.resolved_at = null;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists tickets_before_write on public.tickets;
+create trigger tickets_before_write
+  before insert or update on public.tickets
+  for each row execute function public.tickets_before_write();
+
+-- ---------------------------------------------------------------------------
+-- 9) Komfort-View: aggregierte Kennzahlen der eigenen Matches
 --    (security_invoker => RLS der Basistabelle greift weiterhin)
 -- ---------------------------------------------------------------------------
 create or replace view public.my_stats

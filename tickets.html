@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Tickets</title>
+  <meta name="description" content="Bugs melden und Verbesserungswünsche einreichen.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css?v=15">
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html">Übersicht</a>
+      <a href="stats.html">Statistik</a>
+      <a href="perks.html">Perks</a>
+      <a href="challenges.html">Challenges</a>
+      <a href="tickets.html" class="is-active">Tickets</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+  <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;   // nur wenn wirklich nichts da ist
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;          // fehlende Bilder sind egal
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view" hidden>
+      <div class="page-head">
+        <h1>Tickets</h1>
+        <span class="page-head__meta" id="role-meta"></span>
+      </div>
+
+      <div class="columns">
+        <!-- Einreichen -->
+        <section class="panel" id="ticket-panel">
+          <header class="panel__head">
+            <h2 id="ticket-form-title">Neues Ticket</h2>
+          </header>
+
+          <form id="ticket-form" novalidate>
+            <fieldset class="field">
+              <legend class="field__label">Art</legend>
+              <div class="segmented" role="radiogroup" aria-label="Art">
+                <label class="segmented__opt segmented__opt--bad">
+                  <input type="radio" name="kind" value="bug" checked><span>&#128027; Bug</span>
+                </label>
+                <label class="segmented__opt segmented__opt--good">
+                  <input type="radio" name="kind" value="feature"><span>&#128161; Wunsch</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <label class="field">
+              <span class="field__label">Titel</span>
+              <input type="text" id="t-title" maxlength="120" required placeholder="Kurz und konkret">
+            </label>
+
+            <label class="field">
+              <span class="field__label">Seite</span>
+              <select id="t-page">
+                <option value="">Keine Angabe</option>
+                <option value="index">Übersicht</option>
+                <option value="stats">Statistik</option>
+                <option value="perks">Perks &amp; Builds</option>
+                <option value="challenges">Challenges</option>
+                <option value="settings">Einstellungen</option>
+                <option value="tickets">Tickets</option>
+                <option value="other">Sonstiges</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Beschreibung</span>
+              <textarea id="t-description" rows="6" maxlength="4000" required
+                        placeholder="Was passiert, was sollte passieren? Bei Bugs: Schritte zum Nachstellen."></textarea>
+            </label>
+
+            <button type="submit" class="btn btn--primary btn--block" id="t-submit">Absenden</button>
+            <button type="button" class="btn btn--ghost btn--block" id="t-cancel" hidden>Abbrechen</button>
+            <p class="form-hint" id="ticket-hint"></p>
+          </form>
+        </section>
+
+        <!-- Eigene Tickets -->
+        <section class="panel">
+          <header class="panel__head panel__head--row">
+            <h2>Meine Tickets</h2>
+            <span class="panel__meta" id="my-count"></span>
+          </header>
+          <div id="my-tickets" class="ticket-list"></div>
+        </section>
+      </div>
+
+      <!-- Nur für die Besitzerrolle -->
+      <section class="panel" id="owner-panel" hidden>
+        <header class="panel__head panel__head--row">
+          <h2>Alle Tickets</h2>
+          <span class="panel__meta" id="owner-count"></span>
+        </header>
+
+        <div class="filters__grid">
+          <label class="field">
+            <span class="field__label">Status</span>
+            <select id="fo-status">
+              <option value="open">Offen</option>
+              <option value="all">Alle</option>
+              <option value="new">Neu</option>
+              <option value="in_progress">In Arbeit</option>
+              <option value="planned">Geplant</option>
+              <option value="done">Erledigt</option>
+              <option value="rejected">Abgelehnt</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Art</span>
+            <select id="fo-kind">
+              <option value="all">Alle</option>
+              <option value="bug">Bug</option>
+              <option value="feature">Wunsch</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Suche</span>
+            <input type="text" id="fo-search" placeholder="Titel, Text, E-Mail" autocomplete="off">
+          </label>
+        </div>
+
+        <div id="owner-tickets" class="ticket-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/tickets-page.js?v=15"></script>
+</body>
+</html>

@@ -1,8 +1,9 @@
-import { supabase } from './supabase.js?v=14';
-import { initAuth } from './auth.js?v=14';
-import { initPasskeyPanel } from './passkeys.js?v=14';
-import { mountIcons } from './images.js?v=14';
-import { fmtDate, toast } from './utils.js?v=14';
+import { supabase } from './supabase.js?v=15';
+import { initAuth } from './auth.js?v=15';
+import { initPasskeyPanel } from './passkeys.js?v=15';
+import { mountIcons } from './images.js?v=15';
+import { loadProfile, roleLabel } from './profile.js?v=15';
+import { fmtDate, toast } from './utils.js?v=15';
 
 function hint(id, message, type = 'info') {
   const el = document.getElementById(id);
@@ -75,9 +76,10 @@ document.getElementById('logout-all').addEventListener('click', logoutEverywhere
 mountIcons();
 
 initAuth({
-  onLogin: (user) => {
+  onLogin: async (user) => {
+    await loadProfile(user);
     document.getElementById('account-meta').textContent =
-      `${user.email} · dabei seit ${fmtDate(user.created_at)}`;
+      `${user.email} · ${roleLabel()} · dabei seit ${fmtDate(user.created_at)}`;
     document.getElementById('set-email').placeholder = user.email ?? '';
     initPasskeyPanel();
   },

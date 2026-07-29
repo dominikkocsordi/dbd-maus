@@ -1,12 +1,12 @@
-import { supabase } from './supabase.js?v=14';
-import { initAuth } from './auth.js?v=14';
-import { initPasskeyPanel } from './passkeys.js?v=14';
-import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=14';
-import { perkName } from './perks.js?v=14';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=14';
+import { supabase } from './supabase.js?v=15';
+import { initAuth } from './auth.js?v=15';
+import { initPasskeyPanel } from './passkeys.js?v=15';
+import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=15';
+import { perkName } from './perks.js?v=15';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=15';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=14';
+} from './utils.js?v=15';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;

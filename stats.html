@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Detail-Statistik</title>
+  <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="fog" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html">Übersicht</a>
+      <a href="stats.html" class="is-active">Detail-Statistik</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view" hidden>
+      <section class="hero">
+        <h1>Detail-Statistik</h1>
+        <p class="hero__sub" id="hero-sub">Filtere nach Rolle, Charakter, Gamemode und Zeitraum.</p>
+      </section>
+
+      <!-- Filter -->
+      <section class="panel filters" aria-label="Filter">
+        <div class="filters__grid">
+          <label class="field">
+            <span class="field__label">Rolle</span>
+            <select id="fl-role">
+              <option value="all">Alle Rollen</option>
+              <option value="killer">Killer</option>
+              <option value="survivor">Survivor</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Charakter</span>
+            <select id="fl-character">
+              <option value="all">Alle Charaktere</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Gamemode</span>
+            <select id="fl-mode">
+              <option value="all">Alle Modi</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Zeitraum</span>
+            <select id="fl-range">
+              <option value="all">Gesamt</option>
+              <option value="7">Letzte 7 Tage</option>
+              <option value="30">Letzte 30 Tage</option>
+              <option value="90">Letzte 90 Tage</option>
+            </select>
+          </label>
+
+          <button type="button" class="btn btn--ghost" id="fl-reset">Filter zurücksetzen</button>
+        </div>
+        <p class="filters__summary" id="filter-summary">–</p>
+      </section>
+
+      <!-- KPIs -->
+      <section class="kpi-grid">
+        <article class="kpi">
+          <span class="kpi__label">Matches</span>
+          <strong class="kpi__value" id="kpi-total">–</strong>
+          <span class="kpi__hint" id="kpi-split">–</span>
+        </article>
+        <article class="kpi kpi--killer">
+          <span class="kpi__label">Kill-Rate</span>
+          <strong class="kpi__value" id="kpi-killrate">–</strong>
+          <span class="kpi__hint" id="kpi-kills">–</span>
+        </article>
+        <article class="kpi kpi--survivor">
+          <span class="kpi__label">Escape-Rate</span>
+          <strong class="kpi__value" id="kpi-escaperate">–</strong>
+          <span class="kpi__hint" id="kpi-escapes">–</span>
+        </article>
+        <article class="kpi kpi--bp">
+          <span class="kpi__label">Blutpunkte</span>
+          <strong class="kpi__value" id="kpi-bp">–</strong>
+          <span class="kpi__hint" id="kpi-bp-avg">–</span>
+        </article>
+      </section>
+
+      <!-- Auswertung nach Charakter -->
+      <section class="panel">
+        <header class="panel__head">
+          <h2>Nach Charakter</h2>
+          <p id="character-note">Killer- und Survivor-Auswertung im Vergleich.</p>
+        </header>
+        <div class="table-wrap">
+          <table class="table" id="character-table">
+            <thead>
+              <tr>
+                <th>Charakter</th>
+                <th>Rolle</th>
+                <th class="num">Matches</th>
+                <th class="num">Kills / Escapes</th>
+                <th class="num">Quote</th>
+                <th class="num">BP gesamt</th>
+                <th class="num">Ø BP</th>
+              </tr>
+            </thead>
+            <tbody id="character-body">
+              <tr><td colspan="7" class="empty">Lade …</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Verlauf / Verteilung -->
+      <section class="panel">
+        <header class="panel__head">
+          <h2>Top-Charaktere</h2>
+          <p>Meistgespielt im aktuellen Filter.</p>
+        </header>
+        <div id="top-bars" class="bars"></div>
+      </section>
+
+      <!-- Matchliste -->
+      <section class="panel">
+        <header class="panel__head">
+          <h2>Matches</h2>
+          <p id="match-count">–</p>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Rolle</th>
+                <th>Charakter</th>
+                <th>Gamemode</th>
+                <th>Ergebnis</th>
+                <th class="num">BP</th>
+                <th>Notiz</th>
+              </tr>
+            </thead>
+            <tbody id="match-body">
+              <tr><td colspan="7" class="empty">Lade …</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>DBD Stats · Daten liegen in deinem Supabase-Projekt</span>
+  </footer>
+
+  <script type="module" src="assets/js/stats.js"></script>
+</body>
+</html>

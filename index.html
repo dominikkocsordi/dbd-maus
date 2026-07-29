@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Übersicht</title>
+  <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="fog" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html" class="is-active">Übersicht</a>
+      <a href="stats.html">Detail-Statistik</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Login -->
+    <section id="auth-view" class="auth-view"></section>
+
+    <!-- App -->
+    <section id="app-view" class="app-view" hidden>
+      <section class="hero">
+        <h1>Deine Trials im Überblick</h1>
+        <p id="hero-sub" class="hero__sub">Lade Daten …</p>
+      </section>
+
+      <!-- KPIs -->
+      <section class="kpi-grid" id="kpi-grid" aria-label="Allgemeine Statistik">
+        <article class="kpi">
+          <span class="kpi__label">Matches gesamt</span>
+          <strong class="kpi__value" id="kpi-total">–</strong>
+          <span class="kpi__hint" id="kpi-split">–</span>
+        </article>
+        <article class="kpi kpi--killer">
+          <span class="kpi__label">Kill-Rate</span>
+          <strong class="kpi__value" id="kpi-killrate">–</strong>
+          <span class="kpi__hint" id="kpi-kills">–</span>
+        </article>
+        <article class="kpi kpi--survivor">
+          <span class="kpi__label">Escape-Rate</span>
+          <strong class="kpi__value" id="kpi-escaperate">–</strong>
+          <span class="kpi__hint" id="kpi-escapes">–</span>
+        </article>
+        <article class="kpi kpi--bp">
+          <span class="kpi__label">Blutpunkte gesamt</span>
+          <strong class="kpi__value" id="kpi-bp">–</strong>
+          <span class="kpi__hint" id="kpi-bp-avg">–</span>
+        </article>
+      </section>
+
+      <div class="columns">
+        <!-- Eingabeformular -->
+        <section class="panel" id="entry-panel">
+          <header class="panel__head">
+            <h2>Match eintragen</h2>
+            <p>Ein Formular, beide Rollen – die Felder passen sich an.</p>
+          </header>
+
+          <form id="match-form" class="match-form" novalidate>
+            <label class="field">
+              <span class="field__label">Gamemode</span>
+              <select id="f-mode" required></select>
+            </label>
+
+            <fieldset class="field">
+              <legend class="field__label">Rolle</legend>
+              <div class="segmented" role="radiogroup" aria-label="Rolle">
+                <label class="segmented__opt">
+                  <input type="radio" name="role" value="killer" checked>
+                  <span>&#128481; Killer</span>
+                </label>
+                <label class="segmented__opt">
+                  <input type="radio" name="role" value="survivor">
+                  <span>&#127939; Survivor</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- Killer-Block -->
+            <div class="role-block" data-role-block="killer">
+              <label class="field">
+                <span class="field__label">Killer</span>
+                <select id="f-killer"></select>
+              </label>
+
+              <fieldset class="field">
+                <legend class="field__label">Kills am Ende</legend>
+                <div class="segmented segmented--kills" role="radiogroup" aria-label="Kills">
+                  <label class="segmented__opt"><input type="radio" name="kills" value="0" checked><span>0K</span></label>
+                  <label class="segmented__opt"><input type="radio" name="kills" value="1"><span>1K</span></label>
+                  <label class="segmented__opt"><input type="radio" name="kills" value="2"><span>2K</span></label>
+                  <label class="segmented__opt"><input type="radio" name="kills" value="3"><span>3K</span></label>
+                  <label class="segmented__opt"><input type="radio" name="kills" value="4"><span>4K</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- Survivor-Block -->
+            <div class="role-block" data-role-block="survivor" hidden>
+              <label class="field">
+                <span class="field__label">Survivor</span>
+                <select id="f-survivor"></select>
+              </label>
+
+              <fieldset class="field">
+                <legend class="field__label">Ausgang</legend>
+                <div class="segmented" role="radiogroup" aria-label="Ausgang">
+                  <label class="segmented__opt segmented__opt--good">
+                    <input type="radio" name="escaped" value="true" checked><span>Entkommen</span>
+                  </label>
+                  <label class="segmented__opt segmented__opt--bad">
+                    <input type="radio" name="escaped" value="false"><span>Gestorben</span>
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- Blutpunkte -->
+            <fieldset class="field bp-field">
+              <legend class="field__label">Blutpunkte</legend>
+
+              <div class="bp-display">
+                <input id="f-bp" type="text" inputmode="numeric" value="0"
+                       aria-label="Verdiente Blutpunkte" autocomplete="off">
+                <span class="bp-display__unit">BP</span>
+              </div>
+
+              <input id="f-bp-range" class="bp-slider" type="range"
+                     min="0" max="1000000" step="1000" value="0" aria-label="Blutpunkte-Regler">
+
+              <div class="bp-chips">
+                <button type="button" class="chip" data-bp="10000">+10k</button>
+                <button type="button" class="chip" data-bp="25000">+25k</button>
+                <button type="button" class="chip" data-bp="50000">+50k</button>
+                <button type="button" class="chip" data-bp="100000">+100k</button>
+                <button type="button" class="chip chip--reset" data-bp="reset">Reset</button>
+              </div>
+            </fieldset>
+
+            <label class="field">
+              <span class="field__label">Zeitpunkt</span>
+              <input type="datetime-local" id="f-played-at" required>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Notiz <em>(optional)</em></span>
+              <input type="text" id="f-notes" maxlength="500" placeholder="z.&nbsp;B. Build, Map, Vibe …">
+            </label>
+
+            <button type="submit" class="btn btn--primary btn--block" id="f-submit">Match speichern</button>
+          </form>
+        </section>
+
+        <!-- Letzte Matches -->
+        <section class="panel">
+          <header class="panel__head">
+            <h2>Letzte Matches</h2>
+            <p>Die 15 neuesten Einträge.</p>
+          </header>
+          <div class="table-wrap">
+            <table class="table" id="recent-table">
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Rolle</th>
+                  <th>Charakter</th>
+                  <th>Ergebnis</th>
+                  <th class="num">BP</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="recent-body">
+                <tr><td colspan="6" class="empty">Lade …</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Verteilung -->
+      <section class="panel">
+        <header class="panel__head">
+          <h2>Verteilung</h2>
+          <p>Kills als Killer und Ausgänge als Survivor.</p>
+        </header>
+        <div class="dist">
+          <div class="dist__col">
+            <h3>Kills pro Match</h3>
+            <div id="dist-kills" class="bars"></div>
+          </div>
+          <div class="dist__col">
+            <h3>Survivor-Ausgang</h3>
+            <div id="dist-escape" class="bars"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>DBD Stats · Daten liegen in deinem Supabase-Projekt</span>
+  </footer>
+
+  <script type="module" src="assets/js/index.js"></script>
+</body>
+</html>

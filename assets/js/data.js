@@ -3,12 +3,12 @@
 // angezeigt das `label`. Die IDs bleiben stabil, damit alte Einträge lesbar bleiben.
 
 export const GAME_MODES = [
-  { id: 'public', label: 'Öffentliches Spiel (1v4)' },
+  { id: 'public', label: 'Normal' },
   { id: '2v8', label: '2v8' },
   { id: 'chaos_shuffle', label: 'Chaos Shuffle' },
   { id: 'event', label: 'Event-Modus' },
   { id: 'custom', label: 'Privates Spiel (Custom)' },
-  { id: 'other', label: 'Sonstiges' },
+  { id: 'lights_out', label: 'Lights Out' },
 ];
 
 export const KILLERS = [

@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { initAuth } from './auth.js';
 import { initPasskeyPanel } from './passkeys.js';
+import { avatarHtml, characterCellHtml } from './images.js';
 import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
@@ -24,6 +25,17 @@ function fillSelect(select, entries, placeholder) {
 
 function currentRole() {
   return document.querySelector('input[name="role"]:checked').value;
+}
+
+/** Zeigt das Bild des gewählten Charakters neben dem Dropdown. */
+function syncPortrait(role) {
+  const select = document.getElementById(`f-${role}`);
+  const target = document.getElementById(`f-${role}-portrait`);
+  const id = select.value;
+
+  target.innerHTML = id
+    ? avatarHtml(role, id, select.options[select.selectedIndex].textContent, 'avatar--lg')
+    : '';
 }
 
 function syncRoleBlocks() {
@@ -155,6 +167,8 @@ function resetForm() {
   document.getElementById('f-played-at').value = localNowValue();
   setBloodpoints(0);
   syncRoleBlocks();
+  syncPortrait('killer');
+  syncPortrait('survivor');
   applyFormMode();
 }
 
@@ -175,6 +189,7 @@ function startEdit(id) {
     document.querySelector(`input[name="escaped"][value="${match.escaped}"]`).checked = true;
   }
 
+  syncPortrait(match.role);
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
   document.getElementById('f-notes').value = match.notes ?? '';
   setBloodpoints(match.bloodpoints ?? 0);
@@ -255,7 +270,7 @@ function renderRecent() {
       <tr>
         <td data-label="Datum">${fmtDate(m.played_at)}<span class="td-sub">${escapeHtml(gameModeLabel(m.game_mode))}</span></td>
         <td data-label="Rolle"><span class="role-tag role-tag--${m.role}">${m.role === 'killer' ? 'Killer' : 'Survivor'}</span></td>
-        <td data-label="Charakter">${escapeHtml(labelFor(m.role, m.killer ?? m.survivor))}</td>
+        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
         <td data-label="Aktion" class="num row-actions">
@@ -319,6 +334,7 @@ function renderStreaks() {
 
     container.innerHTML = rows.map(({ id, streak }) => `
       <div class="streak${streak.current > 0 ? ' streak--hot' : ''}">
+        ${avatarHtml(role, id, labelFor(role, id))}
         <span class="streak__name">${escapeHtml(labelFor(role, id))}</span>
         <span class="streak__current" title="Laufende Serie">
           ${streak.current > 0 ? `&#128293; ${fmtNumber(streak.current)}` : '&#128128; 0'}
@@ -384,6 +400,11 @@ function initForm() {
 
   wireBloodpointsField();
   setBloodpoints(0);
+
+  for (const role of ['killer', 'survivor']) {
+    document.getElementById(`f-${role}`).addEventListener('change', () => syncPortrait(role));
+    syncPortrait(role);
+  }
 
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);

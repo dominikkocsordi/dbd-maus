@@ -1,0 +1,54 @@
+-- ============================================================================
+--  Charakterbilder – Supabase Storage
+--  Einspielen: Dashboard -> SQL Editor -> New query -> Run
+--
+--  Danach im Dashboard unter Storage -> characters die Bilder hochladen:
+--    Ordner "killers"   -> <killer-id>.png     (z. B. blight.png)
+--    Ordner "survivors" -> <survivor-id>.png   (z. B. feng_min.png)
+--
+--  Die IDs stehen in assets/js/data.js, die komplette Dateiliste in
+--  supabase/bilder-dateinamen.txt.
+-- ============================================================================
+
+-- Öffentlicher Bucket: die App liest die Bilder ohne Login über
+-- <SUPABASE_URL>/storage/v1/object/public/characters/killers/<id>.png
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'characters',
+  'characters',
+  true,
+  2097152,                                            -- 2 MB pro Datei
+  array['image/png', 'image/jpeg', 'image/webp']
+)
+on conflict (id) do update
+  set public             = excluded.public,
+      file_size_limit    = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+-- Lesen darf jede:r (der Bucket ist ohnehin öffentlich).
+drop policy if exists "characters_public_read" on storage.objects;
+create policy "characters_public_read"
+  on storage.objects for select
+  to public
+  using (bucket_id = 'characters');
+
+-- Hochladen/Ersetzen/Löschen nur für angemeldete Benutzer.
+-- (Der Upload über das Dashboard funktioniert auch ohne diese Policies.)
+drop policy if exists "characters_auth_insert" on storage.objects;
+create policy "characters_auth_insert"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'characters');
+
+drop policy if exists "characters_auth_update" on storage.objects;
+create policy "characters_auth_update"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id = 'characters')
+  with check (bucket_id = 'characters');
+
+drop policy if exists "characters_auth_delete" on storage.objects;
+create policy "characters_auth_delete"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'characters');

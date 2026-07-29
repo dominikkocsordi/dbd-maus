@@ -4,6 +4,7 @@ import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, toast,
 } from './utils.js';
+import { avatarHtml, characterCellHtml } from './images.js';
 
 const MATCH_LIST_LIMIT = 100;
 
@@ -118,7 +119,7 @@ function renderCharacterTable(rows) {
     const quote = role === 'killer' ? stats.killRate : stats.escapeRate;
     return `
       <tr>
-        <td data-label="Charakter">${escapeHtml(labelFor(role, id))}</td>
+        <td data-label="Charakter">${characterCellHtml(role, id, labelFor(role, id))}</td>
         <td data-label="Rolle"><span class="role-tag role-tag--${role}">${role === 'killer' ? 'Killer' : 'Survivor'}</span></td>
         <td data-label="Matches" class="num">${fmtNumber(count)}</td>
         <td data-label="Kills / Escapes" class="num">${fmtNumber(hits)}</td>
@@ -143,7 +144,7 @@ function renderTopBars(rows) {
   const max = Math.max(...top.map((r) => r.matches));
   container.innerHTML = top.map((r) => `
     <div class="bar">
-      <span class="bar__label">${escapeHtml(labelFor(r.role, r.id))}</span>
+      <span class="bar__label">${characterCellHtml(r.role, r.id, labelFor(r.role, r.id))}</span>
       <span class="bar__track"><span class="bar__fill bar__fill--${r.role}" style="width:${(r.matches / max) * 100}%"></span></span>
       <span class="bar__value">${fmtNumber(r.matches)}</span>
     </div>`).join('');
@@ -171,7 +172,7 @@ function renderMatchList(filtered) {
       <tr>
         <td data-label="Datum">${fmtDate(m.played_at)}</td>
         <td data-label="Rolle"><span class="role-tag role-tag--${m.role}">${m.role === 'killer' ? 'Killer' : 'Survivor'}</span></td>
-        <td data-label="Charakter">${escapeHtml(labelFor(m.role, m.killer ?? m.survivor))}</td>
+        <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor))}</td>
         <td data-label="Gamemode">${escapeHtml(gameModeLabel(m.game_mode))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>

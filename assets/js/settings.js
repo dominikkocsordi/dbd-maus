@@ -1,9 +1,9 @@
-import { supabase } from './supabase.js?v=26';
-import { initAuth } from './auth.js?v=26';
-import { initPasskeyPanel } from './passkeys.js?v=26';
-import { mountIcons } from './images.js?v=26';
-import { loadProfile, roleLabel } from './profile.js?v=26';
-import { fmtDate, toast } from './utils.js?v=26';
+import { supabase } from './supabase.js?v=27';
+import { initAuth } from './auth.js?v=27';
+import { initPasskeyPanel } from './passkeys.js?v=27';
+import { mountIcons } from './images.js?v=27';
+import { loadProfile, roleLabel } from './profile.js?v=27';
+import { fmtDate, toast } from './utils.js?v=27';
 
 function hint(id, message, type = 'info') {
   const el = document.getElementById(id);

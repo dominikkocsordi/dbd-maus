@@ -1,18 +1,19 @@
-import { supabase } from './supabase.js?v=26';
-import { initAuth } from './auth.js?v=26';
-import { initPasskeyPanel } from './passkeys.js?v=26';
+import { supabase } from './supabase.js?v=27';
+import { initAuth } from './auth.js?v=27';
+import { initPasskeyPanel } from './passkeys.js?v=27';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=26';
-import { perkName } from './perks.js?v=26';
+} from './images.js?v=27';
+import { perkName } from './perks.js?v=27';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=26';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=26';
+} from './perk-picker.js?v=27';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=27';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=26';
+} from './utils.js?v=27';
 
+const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
 
@@ -366,7 +367,7 @@ function renderRecent() {
     return;
   }
 
-  body.innerHTML = matches.slice(0, 15).map((m) => {
+  body.innerHTML = matches.slice(0, RECENT_LIMIT).map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
       : outcomeIconHtml(m.escaped);

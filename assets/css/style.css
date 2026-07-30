@@ -161,9 +161,6 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
 .hero__meta { font-size: 0.85rem; color: var(--muted); }
 
 /* Zwei Tafeln nebeneinander, sobald Platz ist. */
-/* Tafeln nebeneinander, sobald Platz ist; sonst untereinander. */
-.panel-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1rem; align-items: start; }
-.panel-row .panel { margin-bottom: 0; }
 .stack { display: grid; gap: 1rem; align-content: start; }
 .stack > .panel { margin-bottom: 0; }
 .split--tight { gap: 1.1rem; }

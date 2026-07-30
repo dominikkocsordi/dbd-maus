@@ -1,7 +1,7 @@
-import { supabase } from './supabase.js?v=15';
-import { initAuth } from './auth.js?v=15';
-import { isOwner, loadProfile, roleLabel } from './profile.js?v=15';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=15';
+import { supabase } from './supabase.js?v=16';
+import { initAuth } from './auth.js?v=16';
+import { isOwner, loadProfile, roleLabel } from './profile.js?v=16';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=16';
 
 export const KIND_LABELS = { bug: 'Bug', feature: 'Wunsch' };
 export const STATUS_LABELS = {

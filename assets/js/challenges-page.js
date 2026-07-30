@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=15';
-import { initAuth } from './auth.js?v=15';
-import { CHALLENGES } from './challenges.js?v=15';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=15';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=15';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=15';
-import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=15';
+import { supabase } from './supabase.js?v=16';
+import { initAuth } from './auth.js?v=16';
+import { CHALLENGES } from './challenges.js?v=16';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=16';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=16';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=16';
+import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=16';
 
 const PERKS_PER_BUILD = 4;
 
@@ -48,9 +48,18 @@ function selectedRole(id) {
   return value === 'random' ? pick(['killer', 'survivor']) : value;
 }
 
-/** Perk-Pool: alle Perks der Rolle, optional nur die des Charakters. */
+/**
+ * Perk-Pool: alle Perks der Rolle, optional nur die des Charakters.
+ * Namensgleiche Einträge (dieselbe Fähigkeit mit zwei Icon-Dateien) kommen nur
+ * einmal in den Topf, sonst könnte ein Build sie doppelt enthalten.
+ */
 function perkPool(id, role, character) {
-  const ofRole = PERKS.filter((p) => p.role === role);
+  const seen = new Set();
+  const ofRole = PERKS.filter((p) => {
+    if (p.role !== role || seen.has(p.name)) return false;
+    seen.add(p.name);
+    return true;
+  });
   if (!character || !cardOf(id).querySelector('[data-own-perks]').checked) return ofRole;
 
   const restricted = ofRole.filter((p) => p.general || p.owner === character);

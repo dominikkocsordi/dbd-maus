@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=16';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=17';
 
 export const PERK_BUCKET = 'perks';
 
@@ -204,7 +204,6 @@ export const PERKS = [
   { file: 'MettleOfMan.png', name: "Mettle of Man", role: 'survivor', owner: 'ash_williams' },
   { file: 'MindBreaker.png', name: "Mind Breaker", role: 'killer', owner: 'demogorgon' },
   { file: 'MirroredIllusion.png', name: "Mirrored Illusion", role: 'survivor', owner: 'troupe' },
-  { file: 'Missing.png', name: "Missing", role: 'killer' },
   { file: 'MomentOfGlory.png', name: "Moment of Glory", role: 'survivor', owner: 'trevor_belmont' },
   { file: 'MonitorAndAbuse.png', name: "Monitor & Abuse", role: 'killer', owner: 'doctor' },
   { file: 'MonstrousShrine.png', name: "Monstrous Shrine", role: 'killer', general: true },
@@ -271,7 +270,7 @@ export const PERKS = [
   { file: 'Self-Preservation.png', name: "Self-Preservation", role: 'survivor', owner: 'yun_jin_lee' },
   { file: 'SepticTouch.png', name: "Septic Touch", role: 'killer', owner: 'dredge' },
   { file: 'Shadowborn.png', name: "Shadowborn", role: 'killer', owner: 'wraith' },
-  { file: 'BoonDestroyer.png', name: "Shattered Hope", role: 'killer' },
+  { file: 'BoonDestroyer.png', name: "Shattered Hope", role: 'killer', general: true },
   { file: 'ShoulderTheBurden.png', name: "Shoulder the Burden", role: 'survivor', owner: 'taurie_cain' },
   { file: 'SilentShadow.png', name: "Silent Shadow", role: 'killer', owner: 'jason' },
   { file: 'situationalAwareness.png', name: "Situational Awareness", role: 'survivor', general: true },
@@ -310,7 +309,6 @@ export const PERKS = [
   { file: 'ThrillingTremors.png', name: "Thrilling Tremors", role: 'killer', owner: 'ghost_face' },
   { file: 'Thwack.png', name: "Thwack", role: 'killer', owner: 'skull_merchant' },
   { file: 'Tinkerer.png', name: "Tinkerer", role: 'killer', owner: 'hillbilly' },
-  { file: 'ToyWithThem.png', name: "Toy with Them", role: 'killer' },
   { file: 'TrailOfTorment.png', name: "Trail of Torment", role: 'killer', owner: 'executioner' },
   { file: 'IconPerks_troubleshooter.png', name: "Troubleshooter", role: 'survivor', owner: 'gabriel_soma' },
   { file: 'TurnBackTheClock.png', name: "Turn Back the Clock", role: 'killer', owner: 'first' },

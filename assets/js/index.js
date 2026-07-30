@@ -1,12 +1,12 @@
-import { supabase } from './supabase.js?v=22';
-import { initAuth } from './auth.js?v=22';
-import { initPasskeyPanel } from './passkeys.js?v=22';
-import { avatarHtml, characterCellHtml, iconHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=22';
-import { perkName } from './perks.js?v=22';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=22';
+import { supabase } from './supabase.js?v=23';
+import { initAuth } from './auth.js?v=23';
+import { initPasskeyPanel } from './passkeys.js?v=23';
+import { avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=23';
+import { perkName } from './perks.js?v=23';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=23';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=22';
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
+} from './utils.js?v=23';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -332,7 +332,7 @@ function renderRecent() {
 
   body.innerHTML = matches.slice(0, 15).map((m) => {
     const result = m.role === 'killer'
-      ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
+      ? killMarksHtml(m.kills)
       : outcomeIconHtml(m.escaped);
     const character = m.killer ?? m.survivor;
     const buildName = builds.find((b) => b.id === m.build_id)?.name;
@@ -348,9 +348,11 @@ function renderRecent() {
         <td data-label="Charakter">${characterCellHtml(m.role, character, labelFor(m.role, character), sub)}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
-        <td data-label="Aktion" class="num row-actions">
-          <button type="button" class="icon-btn" data-edit="${m.id}" title="Bearbeiten" aria-label="Match bearbeiten">&#9998;</button>
-          <button type="button" class="icon-btn icon-btn--danger" data-delete="${m.id}" title="Löschen" aria-label="Match löschen">&#10005;</button>
+        <td data-label="Aktion" class="num">
+          <span class="row-actions">
+            <button type="button" class="icon-btn" data-edit="${m.id}" title="Bearbeiten" aria-label="Match bearbeiten">&#9998;</button>
+            <button type="button" class="icon-btn icon-btn--danger" data-delete="${m.id}" title="Löschen" aria-label="Match löschen">&#10005;</button>
+          </span>
         </td>
       </tr>`;
   }).join('');

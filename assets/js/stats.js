@@ -1,14 +1,15 @@
-import { supabase } from './supabase.js?v=22';
-import { initAuth } from './auth.js?v=22';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=22';
+import { supabase } from './supabase.js?v=23';
+import { initAuth } from './auth.js?v=23';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=23';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
-} from './utils.js?v=22';
-import { characterCellHtml, iconHtml, mountIcons, outcomeIconHtml } from './images.js?v=22';
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
+} from './utils.js?v=23';
+import { characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml } from './images.js?v=23';
 
-const MATCH_LIST_LIMIT = 100;
+const PAGE_SIZE = 30;
 
 let allMatches = [];
+let page = 1;
 
 const els = {
   role: document.getElementById('fl-role'),
@@ -280,13 +281,30 @@ function renderFacedKillers(filtered) {
     </tr>`).join('');
 }
 
+/** Seitenzahl anzeigen und die Pfeile an den Enden abschalten. */
+function renderPager(total, pages) {
+  const pager = document.getElementById('match-pager');
+  pager.hidden = pages <= 1;
+
+  const first = (page - 1) * PAGE_SIZE + 1;
+  const last = Math.min(page * PAGE_SIZE, total);
+  document.getElementById('page-info').textContent =
+    `Seite ${fmtNumber(page)} von ${fmtNumber(pages)} · ${fmtNumber(first)}–${fmtNumber(last)}`;
+
+  document.getElementById('page-prev').disabled = page <= 1;
+  document.getElementById('page-next').disabled = page >= pages;
+}
+
 function renderMatchList(filtered) {
   const body = document.getElementById('match-body');
-  const shown = filtered.slice(0, MATCH_LIST_LIMIT);
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
-  document.getElementById('match-count').textContent = filtered.length > MATCH_LIST_LIMIT
-    ? `${fmtNumber(MATCH_LIST_LIMIT)} von ${fmtNumber(filtered.length)}`
-    : `${fmtNumber(filtered.length)} Matches`;
+  // Nach einem Filterwechsel kann die aktuelle Seite ins Leere zeigen.
+  page = Math.min(Math.max(1, page), pages);
+  const shown = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  document.getElementById('match-count').textContent = `${fmtNumber(filtered.length)} Matches`;
+  renderPager(filtered.length, pages);
 
   if (!shown.length) {
     body.innerHTML = '<tr><td colspan="7" class="empty">Keine Matches für diesen Filter.</td></tr>';
@@ -295,7 +313,7 @@ function renderMatchList(filtered) {
 
   body.innerHTML = shown.map((m) => {
     const result = m.role === 'killer'
-      ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
+      ? killMarksHtml(m.kills)
       : outcomeIconHtml(m.escaped);
 
     return `
@@ -357,9 +375,14 @@ function initFilters() {
   fillCharacterSelect();
   syncRangeFields();
 
-  els.role.addEventListener('change', () => { fillCharacterSelect(); render(); });
-  els.range.addEventListener('change', () => { syncRangeFields(); render(); });
-  [els.character, els.mode, els.from, els.to].forEach((el) => el.addEventListener('change', render));
+  const renderFromStart = () => { page = 1; render(); };
+
+  els.role.addEventListener('change', () => { fillCharacterSelect(); renderFromStart(); });
+  els.range.addEventListener('change', () => { syncRangeFields(); renderFromStart(); });
+  [els.character, els.mode, els.from, els.to].forEach((el) => el.addEventListener('change', renderFromStart));
+
+  document.getElementById('page-prev').addEventListener('click', () => { page -= 1; render(); });
+  document.getElementById('page-next').addEventListener('click', () => { page += 1; render(); });
 
   document.querySelectorAll('#character-table .th-sort').forEach((btn) => {
     btn.addEventListener('click', () => setSort(btn.dataset.sort));
@@ -382,7 +405,7 @@ function initFilters() {
     els.to.value = '';
     syncRangeFields();
     fillCharacterSelect();
-    render();
+    renderFromStart();
   });
 }
 

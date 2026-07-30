@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=22">
+  <link rel="stylesheet" href="assets/css/style.css?v=23">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -237,10 +237,19 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Blättert in Dreißigerschritten durch die gefilterten Matches. -->
+        <nav class="pager" id="match-pager" aria-label="Seiten" hidden>
+          <button type="button" class="btn btn--ghost btn--sm" id="page-prev"
+                  aria-label="Vorherige Seite">&#8249;</button>
+          <span class="pager__info" id="page-info"></span>
+          <button type="button" class="btn btn--ghost btn--sm" id="page-next"
+                  aria-label="Nächste Seite">&#8250;</button>
+        </nav>
       </section>
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=22"></script>
+  <script type="module" src="assets/js/stats.js?v=23"></script>
 </body>
 </html>

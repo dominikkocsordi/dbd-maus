@@ -1362,6 +1362,31 @@ option { background: var(--surface-2); color: var(--text); }
 /* Farbiger Schimmer, damit Entkommen und Tod auf einen Blick auseinandergehen. */
 .outcome--good .icon img { filter: drop-shadow(0 0 5px rgba(79, 203, 155, 0.5)); }
 .outcome--bad .icon img { filter: drop-shadow(0 0 5px rgba(242, 96, 122, 0.5)); }
+
+/* Ein Totenkopf je Kill; ab fünf (2v8) bricht die Reihe um. */
+.kills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem;
+  max-width: 5.2rem;
+}
+
+.kills .icon { width: 1.15rem; height: 1.15rem; margin: 0; filter: drop-shadow(0 0 4px rgba(255, 93, 99, 0.45)); }
+.kills .icon__fallback { font-size: 0.95rem; }
+.kills--none { color: var(--muted); }
+
+/* ---------------------------------------------------------- Seitenwechsel -- */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.pager .btn { min-width: 2.4rem; font-size: 1.05rem; line-height: 1; }
+.pager__info { font-size: 0.83rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bar__label .icon { width: 1.2em; height: 1.2em; }
 
 .tally { display: inline-flex; align-items: center; justify-content: flex-end; font-weight: 600; }
@@ -1475,7 +1500,6 @@ option { background: var(--surface-2); color: var(--text); }
   .table tbody tr:last-child { border-bottom: 0; }
   .table td { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 0; padding: 0.22rem 0.2rem; text-align: right; }
   .table td::before { content: attr(data-label); color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
-  .table td.row-actions::before { margin-right: auto; }
   .notes { max-width: none; }
   .topbar__email { display: none; }
   .bar { grid-template-columns: minmax(80px, 130px) 1fr auto; }

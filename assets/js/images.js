@@ -1,9 +1,9 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=22';
-import { fileFor } from './data.js?v=22';
-import { escapeHtml } from './utils.js?v=22';
+import { SUPABASE_URL } from './config.js?v=23';
+import { fileFor } from './data.js?v=23';
+import { escapeHtml } from './utils.js?v=23';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -56,6 +56,21 @@ export function outcomeIconHtml(escaped) {
 
   return `<span class="outcome outcome--${escaped ? 'good' : 'bad'}" title="${label}">`
     + `${icon}<span class="sr-only">${label}</span></span>`;
+}
+
+/**
+ * Kills als Totenköpfe: ein Symbol je Kill statt "3K". Ohne Kill bleibt der
+ * Gedankenstrich stehen, damit die Zelle nicht leer wirkt.
+ */
+export function killMarksHtml(kills) {
+  const count = Math.max(0, Number(kills) || 0);
+  const label = `${count} ${count === 1 ? 'Kill' : 'Kills'}`;
+
+  if (!count) return `<span class="kills kills--none" title="${label}">–<span class="sr-only"> ${label}</span></span>`;
+
+  return `<span class="kills" title="${label}">`
+    + iconHtml('sacrificed', '\u{1F480}').repeat(count)
+    + `<span class="sr-only">${label}</span></span>`;
 }
 
 /**

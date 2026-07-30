@@ -1,7 +1,9 @@
 // Gemeinsamer Login-Gate für alle Seiten.
-import { supabase } from './supabase.js?v=17';
-import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js?v=17';
-import { toast } from './utils.js?v=17';
+import { supabase } from './supabase.js?v=18';
+import { mountFeedback, unmountFeedback } from './feedback.js?v=18';
+import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js?v=18';
+import { clearProfile, loadProfile } from './profile.js?v=18';
+import { toast } from './utils.js?v=18';
 
 const AUTH_MARKUP = /* html */ `
   <div class="auth-card">
@@ -143,6 +145,14 @@ export async function initAuth({ onLogin, onLogout } = {}) {
 
   let currentUserId = null;
 
+  /* Nur die Besitzerrolle sieht den Einstieg ins Cockpit. Das ist reine
+     Kosmetik – abgesichert wird der Zugriff über die RLS-Policies. */
+  const applyOwnerNav = async (user) => {
+    const profile = await loadProfile(user);
+    if (user.id !== currentUserId) return;                 // zwischenzeitlich abgemeldet
+    document.querySelectorAll('[data-owner-only]').forEach((el) => { el.hidden = profile?.role !== 'owner'; });
+  };
+
   const apply = (session) => {
     const user = session?.user ?? null;
     if (user) {
@@ -152,12 +162,17 @@ export async function initAuth({ onLogin, onLogout } = {}) {
       appView.hidden = false;
       document.querySelectorAll('[data-user-email]').forEach((el) => { el.textContent = user.email; });
       document.querySelectorAll('[data-auth-only]').forEach((el) => { el.hidden = false; });
+      applyOwnerNav(user);
+      mountFeedback(user);
       onLogin?.(user);
     } else {
       currentUserId = null;
+      clearProfile();
       authView.hidden = false;
       appView.hidden = true;
       document.querySelectorAll('[data-auth-only]').forEach((el) => { el.hidden = true; });
+      document.querySelectorAll('[data-owner-only]').forEach((el) => { el.hidden = true; });
+      unmountFeedback();
       onLogout?.();
     }
   };

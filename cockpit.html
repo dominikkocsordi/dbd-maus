@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Cockpit</title>
+  <meta name="description" content="Ticket-Cockpit der Besitzerrolle: alle Bugs und Wünsche auf einem Board.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css?v=18">
+</head>
+<body data-feedback="off">
+  <div class="glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html">Übersicht</a>
+      <a href="stats.html">Statistik</a>
+      <a href="perks.html">Perks</a>
+      <a href="challenges.html">Challenges</a>
+      <a href="cockpit.html" class="is-owner is-active" data-owner-only hidden>&#9670; Cockpit</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+  <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;   // nur wenn wirklich nichts da ist
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;          // fehlende Bilder sind egal
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view" hidden>
+      <!-- Ohne Besitzerrolle gibt es hier nichts zu sehen. -->
+      <section class="panel locked" id="locked-panel" hidden>
+        <span class="locked__glyph" aria-hidden="true">&#128274;</span>
+        <h1>Cockpit gesperrt</h1>
+        <p>Dieser Bereich ist der Besitzerrolle vorbehalten.</p>
+        <a class="btn btn--ghost" href="index.html">Zurück zur Übersicht</a>
+      </section>
+
+      <div id="cockpit" hidden>
+        <div class="page-head page-head--cockpit">
+          <div>
+            <span class="page-head__eyebrow">Besitzerbereich</span>
+            <h1>Ticket-Cockpit</h1>
+          </div>
+          <span class="page-head__meta" id="cockpit-meta"></span>
+          <button type="button" class="btn btn--ghost btn--sm" id="reload">Aktualisieren</button>
+        </div>
+
+        <section class="kpi-grid" aria-label="Kennzahlen">
+          <article class="kpi kpi--killer">
+            <span class="kpi__label">Offen</span>
+            <strong class="kpi__value" id="kpi-open">–</strong>
+            <span class="kpi__hint" id="kpi-open-hint">–</span>
+          </article>
+          <article class="kpi">
+            <span class="kpi__label">Neu</span>
+            <strong class="kpi__value" id="kpi-new">–</strong>
+            <span class="kpi__hint" id="kpi-new-hint">–</span>
+          </article>
+          <article class="kpi kpi--survivor">
+            <span class="kpi__label">Erledigt</span>
+            <strong class="kpi__value" id="kpi-done">–</strong>
+            <span class="kpi__hint" id="kpi-done-hint">–</span>
+          </article>
+          <article class="kpi kpi--bp">
+            <span class="kpi__label">Melder</span>
+            <strong class="kpi__value" id="kpi-people">–</strong>
+            <span class="kpi__hint" id="kpi-people-hint">–</span>
+          </article>
+        </section>
+
+        <section class="panel filters">
+          <div class="filters__grid">
+            <label class="field">
+              <span class="field__label">Art</span>
+              <select id="f-kind">
+                <option value="all">Alle</option>
+                <option value="bug">Bug</option>
+                <option value="feature">Wunsch</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Priorität</span>
+              <select id="f-priority">
+                <option value="all">Alle</option>
+                <option value="high">Hoch</option>
+                <option value="normal">Normal</option>
+                <option value="low">Niedrig</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Suche</span>
+              <input type="text" id="f-search" placeholder="Titel, Text, E-Mail" autocomplete="off">
+            </label>
+            <label class="field">
+              <span class="field__label">Ansicht</span>
+              <select id="f-view">
+                <option value="board">Board</option>
+                <option value="list">Liste</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <div class="board" id="board"></div>
+
+        <section class="panel" id="list-view" hidden>
+          <header class="panel__head panel__head--row">
+            <h2>Alle Tickets</h2>
+            <span class="panel__meta" id="list-count"></span>
+          </header>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Melder</th>
+                  <th>Priorität</th>
+                  <th>Status</th>
+                  <th>Gemeldet</th>
+                </tr>
+              </thead>
+              <tbody id="list-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- Detailansicht eines Tickets -->
+  <div class="drawer drawer--wide" id="detail" hidden>
+    <div class="drawer__scrim" data-detail-close></div>
+
+    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <header class="drawer__head">
+        <h2 class="drawer__title" id="detail-title">Ticket</h2>
+        <button type="button" class="icon-btn" data-detail-close aria-label="Schließen">&#10005;</button>
+      </header>
+
+      <div class="drawer__body">
+        <div class="ticket__head" id="detail-badges"></div>
+        <p class="ticket__meta" id="detail-meta"></p>
+        <p class="ticket__text" id="detail-text"></p>
+
+        <div class="ticket__controls">
+          <label class="field">
+            <span class="field__label">Status</span>
+            <select id="detail-status"></select>
+          </label>
+          <label class="field">
+            <span class="field__label">Priorität</span>
+            <select id="detail-priority"></select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Antwort an den Melder</span>
+          <textarea id="detail-note" rows="4" maxlength="2000" placeholder="optional"></textarea>
+        </label>
+
+        <div class="drawer__actions">
+          <button type="button" class="btn btn--primary" id="detail-save">Speichern</button>
+          <button type="button" class="btn btn--ghost" id="detail-delete">Löschen</button>
+        </div>
+        <p class="form-hint" id="detail-hint"></p>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="assets/js/cockpit.js?v=18"></script>
+</body>
+</html>

@@ -17,7 +17,7 @@ create table if not exists public.matches (
 
   -- Nur bei role = 'killer'
   killer       text,
-  kills        smallint check (kills between 0 and 4),
+  kills        smallint check (kills between 0 and 8),   -- 2v8 geht bis 8
 
   -- Nur bei role = 'survivor'
   survivor     text,
@@ -45,6 +45,11 @@ create table if not exists public.matches (
 
 -- Nachtrag für bereits bestehende Tabellen (das Skript ist erneut ausführbar):
 alter table public.matches add column if not exists faced_killer text;
+
+-- 2v8 kennt acht Survivor, entsprechend sind dort bis zu 8 Kills möglich.
+alter table public.matches drop constraint if exists matches_kills_check;
+alter table public.matches add constraint matches_kills_check
+  check (kills is null or kills between 0 and 8);
 
 alter table public.matches drop constraint if exists matches_role_fields;
 alter table public.matches add constraint matches_role_fields check (

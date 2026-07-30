@@ -360,7 +360,7 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
 .perk-card__text { min-width: 0; }
 .perk-card__name { display: block; font-size: 0.86rem; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .perk-card__meta { display: block; font-size: 0.72rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.perk-card__meta--general { color: rgba(242, 182, 92, 0.75); }
+/* Rot bleibt den Perks vorbehalten, deren Zuordnung noch offen ist. */
 .perk-card__meta--open { color: rgba(242, 96, 122, 0.75); }
 
 /* ----------------------------------------------------------------- Builds -- */
@@ -920,6 +920,7 @@ option { background: var(--surface-2); color: var(--text); }
 .portrait:empty { display: none; }
 
 /* Segmented Control */
+
 .segmented {
   display: flex;
   gap: 0.25rem;
@@ -928,6 +929,9 @@ option { background: var(--surface-2); color: var(--text); }
   border: 1px solid var(--line);
   border-radius: 12px;
 }
+
+/* Bis zu neun Stufen (2v8): feste Fünferreihen statt ungleich breiter Umbrüche. */
+.segmented--kills { display: grid; grid-template-columns: repeat(5, 1fr); }
 
 .segmented__opt { flex: 1 1 auto; position: relative; cursor: pointer; min-width: 0; }
 .segmented__opt input { position: absolute; opacity: 0; pointer-events: none; }

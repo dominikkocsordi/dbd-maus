@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=20';
-import { initAuth } from './auth.js?v=20';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=20';
+import { supabase } from './supabase.js?v=21';
+import { initAuth } from './auth.js?v=21';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=21';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=20';
-import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=20';
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
+} from './utils.js?v=21';
+import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=21';
 
 const MATCH_LIST_LIMIT = 100;
 
@@ -125,7 +125,7 @@ function renderKpis(filtered) {
 
   document.getElementById('kpi-killrate').textContent = fmtPercent(s.killRate);
   document.getElementById('kpi-kills').textContent =
-    `${fmtNumber(s.kills)} Kills · Ø ${fmtDecimal(s.killsAvg)} · ${fmtNumber(s.merciless)}× 4K`;
+    `${fmtNumber(s.kills)} Kills · Ø ${fmtDecimal(s.killsAvg)} · ${fmtNumber(s.merciless)}× alle Kills`;
 
   document.getElementById('kpi-escaperate').textContent = fmtPercent(s.escapeRate);
   document.getElementById('kpi-escapes').textContent =
@@ -304,7 +304,7 @@ function renderMatchList(filtered) {
 
   body.innerHTML = shown.map((m) => {
     const result = m.role === 'killer'
-      ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
+      ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
       : outcomePill(m.escaped);
 
     return `

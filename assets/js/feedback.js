@@ -4,11 +4,11 @@
   einsehen – dadurch braucht es keinen Navigationspunkt mehr, und gemeldet
   werden kann direkt dort, wo etwas auffällt.
 */
-import { supabase } from './supabase.js?v=20';
-import { escapeHtml, fmtDate, toast } from './utils.js?v=20';
+import { supabase } from './supabase.js?v=21';
+import { escapeHtml, fmtDate, toast } from './utils.js?v=21';
 import {
   PAGE_LABELS, currentPageKey, isClosed, kindBadge, pageLabel, statusBadge,
-} from './tickets-shared.js?v=20';
+} from './tickets-shared.js?v=21';
 
 // Merkt sich, welchen Stand eines Tickets der Melder schon gesehen hat.
 const SEEN_KEY = 'dbd:tickets:seen';

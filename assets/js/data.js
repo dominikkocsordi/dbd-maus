@@ -124,6 +124,15 @@ export const SURVIVORS = [
 export const MODES_WITHOUT_BUILDS = ['2v8', 'chaos_shuffle'];
 export const supportsBuilds = (mode) => !MODES_WITHOUT_BUILDS.includes(mode);
 
+/** In 2v8 stehen acht Survivor auf dem Feld, sonst vier. */
+export const maxKills = (mode) => (mode === '2v8' ? 8 : 4);
+
+/**
+ * Ab wie vielen Kills ein Match als Erfolg zählt (drei Viertel des Feldes) –
+ * in 2v8 sind das 6 statt 3, sonst wäre die Serie dort geschenkt.
+ */
+export const streakMinKills = (mode) => Math.ceil(maxKills(mode) * 0.75);
+
 const toMap = (list) => Object.fromEntries(list.map((e) => [e.id, e.label]));
 const toFileMap = (list) => Object.fromEntries(list.map((e) => [e.id, e.file]).filter(([, f]) => f));
 

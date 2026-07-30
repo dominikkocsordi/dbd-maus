@@ -1,12 +1,12 @@
-import { supabase } from './supabase.js?v=20';
-import { initAuth } from './auth.js?v=20';
-import { initPasskeyPanel } from './passkeys.js?v=20';
-import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=20';
-import { perkName } from './perks.js?v=20';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, supportsBuilds } from './data.js?v=20';
+import { supabase } from './supabase.js?v=21';
+import { initAuth } from './auth.js?v=21';
+import { initPasskeyPanel } from './passkeys.js?v=21';
+import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=21';
+import { perkName } from './perks.js?v=21';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=21';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=20';
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
+} from './utils.js?v=21';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -54,6 +54,25 @@ function syncBuildSelect(keep = true) {
   select.disabled = matching.length === 0;
 
   syncBuildField();
+}
+
+/*
+  In 2v8 laufen acht Survivor herum – die Kill-Auswahl geht dort bis 8K. Beim
+  Wechsel in einen kleineren Modus rutscht ein zu hoher Wert auf das Maximum.
+*/
+function syncKillsOptions() {
+  const max = maxKills(document.getElementById('f-mode').value);
+  const container = document.getElementById('f-kills');
+  if (container.dataset.max === String(max)) return;
+
+  const previous = Number(container.querySelector('input:checked')?.value ?? 0);
+  container.dataset.max = String(max);
+  container.innerHTML = Array.from({ length: max + 1 }, (_, k) => `
+    <label class="segmented__opt">
+      <input type="radio" name="kills" value="${k}"><span>${k}K</span>
+    </label>`).join('');
+
+  container.querySelector(`input[value="${Math.min(previous, max)}"]`).checked = true;
 }
 
 /*
@@ -202,6 +221,7 @@ function resetForm() {
   document.getElementById('f-survivor').value = '';
   document.getElementById('f-faced-killer').value = '';
   document.getElementById('f-build').value = '';
+  syncKillsOptions();
   document.querySelector('input[name="kills"][value="0"]').checked = true;
   document.querySelector('input[name="escaped"][value="true"]').checked = true;
   document.getElementById('f-notes').value = '';
@@ -226,7 +246,9 @@ function startEdit(id) {
 
   if (match.role === 'killer') {
     document.getElementById('f-killer').value = match.killer ?? '';
-    document.querySelector(`input[name="kills"][value="${match.kills ?? 0}"]`).checked = true;
+    syncKillsOptions();
+    const killsInput = document.querySelector(`input[name="kills"][value="${match.kills ?? 0}"]`);
+    if (killsInput) killsInput.checked = true;
   } else {
     document.getElementById('f-survivor').value = match.survivor ?? '';
     document.querySelector(`input[name="escaped"][value="${match.escaped}"]`).checked = true;
@@ -294,7 +316,7 @@ function renderKpis() {
 
   document.getElementById('kpi-killrate').textContent = fmtPercent(s.killRate);
   document.getElementById('kpi-kills').textContent =
-    `${fmtNumber(s.kills)} Kills · Ø ${fmtDecimal(s.killsAvg)} pro Match · ${fmtNumber(s.merciless)}× 4K`;
+    `${fmtNumber(s.kills)} Kills · Ø ${fmtDecimal(s.killsAvg)} pro Match · ${fmtNumber(s.merciless)}× alle Kills`;
 
   document.getElementById('kpi-escaperate').textContent = fmtPercent(s.escapeRate);
   document.getElementById('kpi-escapes').textContent =
@@ -319,7 +341,7 @@ function renderRecent() {
 
   body.innerHTML = matches.slice(0, 15).map((m) => {
     const result = m.role === 'killer'
-      ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
+      ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
       : outcomePill(m.escaped);
     const character = m.killer ?? m.survivor;
     const buildName = builds.find((b) => b.id === m.build_id)?.name;
@@ -366,12 +388,14 @@ function renderDistributions() {
   const killer = matches.filter((m) => m.role === 'killer');
   const survivor = matches.filter((m) => m.role === 'survivor');
 
+  const topKills = killer.reduce((max, m) => Math.max(max, maxKills(m.game_mode)), 4);
+
   renderBars(
     document.getElementById('dist-kills'),
-    [0, 1, 2, 3, 4].map((k) => ({
+    Array.from({ length: topKills + 1 }, (_, k) => ({
       label: `${k}K`,
       value: killer.filter((m) => m.kills === k).length,
-      modifier: `bar__fill--k${k}`,
+      modifier: `bar__fill--k${Math.round((k / topKills) * 4)}`,
     })),
   );
 
@@ -496,6 +520,7 @@ function initForm() {
 
   document.getElementById('f-mode').value = 'public';
   document.getElementById('f-played-at').value = localNowValue();
+  syncKillsOptions();
 
   document.querySelectorAll('input[name="role"]').forEach((radio) => {
     radio.addEventListener('change', syncRoleBlocks);
@@ -510,7 +535,10 @@ function initForm() {
     syncPortrait(field, role);
   }
 
-  document.getElementById('f-mode').addEventListener('change', syncBuildField);
+  document.getElementById('f-mode').addEventListener('change', () => {
+    syncBuildField();
+    syncKillsOptions();
+  });
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
   document.getElementById('f-build').addEventListener('change', syncBuildPreview);

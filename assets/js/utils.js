@@ -1,4 +1,5 @@
 // Kleine Helfer für Formatierung, Toasts und Statistik-Berechnung.
+import { maxKills, streakMinKills } from './data.js?v=21';
 
 const nf = new Intl.NumberFormat('de-DE');
 const df = new Intl.DateTimeFormat('de-DE', {
@@ -32,6 +33,12 @@ export function parseNumber(raw) {
   return digits ? parseInt(digits, 10) : 0;
 }
 
+/**
+ * Farbstufe 0–4 für die Kill-Anzeige. Dadurch leuchtet ein 8K in 2v8 so
+ * kräftig wie ein 4K im normalen Spiel, ein 4K in 2v8 dagegen nur halb.
+ */
+export const killTier = (kills, mode) => Math.round(((kills ?? 0) / maxKills(mode)) * 4);
+
 export function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -60,6 +67,8 @@ export function aggregate(matches) {
   const survivor = matches.filter((m) => m.role === 'survivor');
 
   const kills = killer.reduce((sum, m) => sum + (m.kills ?? 0), 0);
+  // Die Quote misst sich am Feld des jeweiligen Modus – in 2v8 also an acht.
+  const killSlots = killer.reduce((sum, m) => sum + maxKills(m.game_mode), 0);
   const escapes = survivor.filter((m) => m.escaped).length;
   const bloodpoints = matches.reduce((sum, m) => sum + (m.bloodpoints ?? 0), 0);
 
@@ -71,22 +80,19 @@ export function aggregate(matches) {
     bloodpointsAvg: matches.length ? bloodpoints / matches.length : null,
     kills,
     killsAvg: killer.length ? kills / killer.length : null,
-    killRate: killer.length ? (kills / (killer.length * 4)) * 100 : null,
-    merciless: killer.filter((m) => m.kills === 4).length,
+    killRate: killSlots ? (kills / killSlots) * 100 : null,
+    merciless: killer.filter((m) => m.kills === maxKills(m.game_mode)).length,
     escapes,
     escapeRate: survivor.length ? (escapes / survivor.length) * 100 : null,
   };
 }
 
-/** Ab wie vielen Kills ein Killer-Match die Serie fortsetzt (2K oder weniger = Serie weg). */
-export const KILLER_STREAK_MIN_KILLS = 3;
-
 /**
  * Ein Match zählt für die Serie als Erfolg, wenn man als Survivor entkommen ist
- * bzw. als Killer mindestens 3 Kills hatte.
+ * bzw. als Killer drei Viertel des Feldes geholt hat (3K normal, 6K in 2v8).
  */
 export const isStreakHit = (m) => (m.role === 'killer'
-  ? (m.kills ?? 0) >= KILLER_STREAK_MIN_KILLS
+  ? (m.kills ?? 0) >= streakMinKills(m.game_mode)
   : Boolean(m.escaped));
 
 /**

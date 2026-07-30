@@ -1,9 +1,9 @@
-import { supabase } from './supabase.js?v=20';
-import { initAuth } from './auth.js?v=20';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=20';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=20';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=20';
-import { escapeHtml, fmtNumber, toast } from './utils.js?v=20';
+import { supabase } from './supabase.js?v=21';
+import { initAuth } from './auth.js?v=21';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=21';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=21';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=21';
+import { escapeHtml, fmtNumber, toast } from './utils.js?v=21';
 
 const MAX_PERKS = 4;
 
@@ -104,7 +104,7 @@ function renderPerkGrid() {
         ${perkIconHtml(p.file, p.name)}
         <span class="perk-card__text">
           <span class="perk-card__name">${escapeHtml(p.name)}</span>
-          <span class="perk-card__meta${p.general ? ' perk-card__meta--general' : ''}${p.owner ? '' : ' perk-card__meta--open'}">${escapeHtml(meta)}</span>
+          <span class="perk-card__meta${p.general || p.owner ? '' : ' perk-card__meta--open'}">${escapeHtml(meta)}</span>
         </span>
       </button>`;
   }).join('');

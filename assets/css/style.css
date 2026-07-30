@@ -363,6 +363,71 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
 /* Rot bleibt den Perks vorbehalten, deren Zuordnung noch offen ist. */
 .perk-card__meta--open { color: rgba(242, 96, 122, 0.75); }
 
+/* ------------------------------------------------------ Perks am Match -- */
+.perk-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.perk-slot-wrap { position: relative; display: block; }
+
+.perk-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 96px;
+  padding: 0.5rem 0.3rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s;
+}
+
+.perk-slot:hover { border-color: rgba(242, 96, 122, 0.5); transform: translateY(-1px); }
+.perk-slot:focus-visible { outline: 2px solid var(--survivor); outline-offset: 2px; }
+
+.perk-slot--empty {
+  justify-content: center;
+  border-style: dashed;
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.perk-slot__plus { font-size: 1.3rem; line-height: 1; color: var(--muted); }
+.perk-slot__name { font-size: 0.7rem; line-height: 1.2; text-align: center; color: var(--muted); }
+.perk-slot--filled .perk-slot__name { color: var(--text); }
+
+.perk-slot__clear {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.perk-slot__clear:hover { color: #fff; background: rgba(242, 96, 122, 0.8); border-color: transparent; }
+
+.field__hint { min-height: 1rem; margin: 0.4rem 0 0; font-size: 0.75rem; color: var(--muted); }
+
+/* Perk in Tabellen (Statistik "Nach Perk") */
+.perk-cell { display: inline-flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.perk-cell .perk-icon { width: 38px; height: 38px; border-radius: 9px; }
+.perk-cell__text { min-width: 0; }
+.perk-cell__name { display: block; font-weight: 550; }
+.perk-cell__meta { display: block; font-size: 0.72rem; color: var(--muted); }
+
 /* ----------------------------------------------------------------- Builds -- */
 .build-editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 1.25rem; align-items: start; }
 
@@ -649,6 +714,9 @@ textarea:focus {
 
 .drawer__title { flex: 1; min-width: 0; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .drawer__tabs { padding: 0.75rem clamp(0.9rem, 2vw, 1.25rem) 0; }
+.drawer__search { padding: 0.75rem clamp(0.9rem, 2vw, 1.25rem) 0; }
+.drawer__foot { padding: 0.75rem clamp(0.9rem, 2vw, 1.25rem); border-top: 1px solid var(--line); }
+.perk-grid--picker { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin-top: 0; }
 .drawer__body { flex: 1; overflow-y: auto; padding: 1rem clamp(0.9rem, 2vw, 1.25rem) 1.5rem; }
 .drawer__body .ticket__head { margin-bottom: 0.5rem; }
 .drawer__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }

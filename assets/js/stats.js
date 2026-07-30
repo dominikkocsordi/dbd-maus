@@ -1,10 +1,11 @@
-import { supabase } from './supabase.js?v=24';
-import { initAuth } from './auth.js?v=24';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=24';
+import { supabase } from './supabase.js?v=25';
+import { initAuth } from './auth.js?v=25';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=25';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=24';
-import { characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml } from './images.js?v=24';
+  aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
+} from './utils.js?v=25';
+import { characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=25';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=25';
 
 const PAGE_SIZE = 30;
 
@@ -247,6 +248,44 @@ function renderTopBars(rows) {
     </div>`).join('');
 }
 
+/*
+  Auswertung der am Match hinterlegten Perks: wie oft gespielt, mit welcher
+  Kill- bzw. Escape-Quote. Ohne Perk-Angaben bleibt die Tafel weg.
+*/
+function renderPerkTable(filtered) {
+  const panel = document.getElementById('perk-panel');
+  const rows = byPerk(filtered);
+
+  panel.hidden = rows.length === 0;
+  if (!rows.length) return;
+
+  const withPerks = filtered.filter((m) => (m.perks ?? []).length).length;
+  document.getElementById('perk-count').textContent =
+    `${fmtNumber(rows.length)} Perks aus ${fmtNumber(withPerks)} Matches`;
+
+  document.getElementById('perk-body').innerHTML = rows.map(({ file, role, matches: count, stats }) => {
+    const killer = role === 'killer';
+    const hits = killer ? stats.kills : stats.escapes;
+    const quote = killer ? stats.killRate : stats.escapeRate;
+    return `
+      <tr>
+        <td data-label="Perk">
+          <span class="perk-cell">
+            ${perkIconHtml(file, perkName(file))}
+            <span class="perk-cell__text">
+              <span class="perk-cell__name">${escapeHtml(perkName(file))}</span>
+              <span class="perk-cell__meta">${escapeHtml(perkOwnerLabel(perkByFile(file)) ?? (killer ? 'Killer' : 'Survivor'))}</span>
+            </span>
+          </span>
+        </td>
+        <td data-label="Matches" class="num">${fmtNumber(count)}</td>
+        <td data-label="Kills / Escapes" class="num">${fmtNumber(hits)}</td>
+        <td data-label="Quote" class="num"><span class="quote ${quote >= 50 ? 'quote--high' : 'quote--low'}">${fmtPercent(quote)}</span></td>
+        <td data-label="Ø BP" class="num">${stats.bloodpointsAvg === null ? '–' : fmtNumber(stats.bloodpointsAvg)}</td>
+      </tr>`;
+  }).join('');
+}
+
 /** Ergebnisse als Survivor, aufgeschlüsselt nach gespieltem Gegner-Killer. */
 function renderFacedKillers(filtered) {
   const panel = document.getElementById('faced-panel');
@@ -339,6 +378,7 @@ function render() {
   document.getElementById('filter-summary').textContent = filterSummary(filtered);
   renderKpis(filtered);
   renderCharacterTable(sortRows(rows));
+  renderPerkTable(filtered);
   renderFacedKillers(filtered);
   renderTopBars(rows);
   renderMatchList(filtered);
@@ -349,7 +389,7 @@ function render() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, perks, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 

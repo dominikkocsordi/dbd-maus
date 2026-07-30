@@ -1,12 +1,15 @@
-import { supabase } from './supabase.js?v=24';
-import { initAuth } from './auth.js?v=24';
-import { initPasskeyPanel } from './passkeys.js?v=24';
-import { avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=24';
-import { perkName } from './perks.js?v=24';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=24';
+import { supabase } from './supabase.js?v=25';
+import { initAuth } from './auth.js?v=25';
+import { initPasskeyPanel } from './passkeys.js?v=25';
+import { avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=25';
+import { perkName } from './perks.js?v=25';
+import {
+  clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
+} from './perk-picker.js?v=25';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=25';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=24';
+} from './utils.js?v=25';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -89,11 +92,34 @@ function syncBuildField() {
   syncBuildPreview();
 }
 
+/*
+  In 2v8 gibt es keine Perks, nur Klassen – dort fällt die Auswahl weg. Chaos
+  Shuffle würfelt zwar, aber was man bekommen hat, lässt sich festhalten.
+*/
+/** Perk-Auswahl kennt den gewählten Charakter und sortiert danach vor. */
+function syncPerkCharacter() {
+  const role = currentRole();
+  setPerkCharacter(document.getElementById(`f-${role}`).value);
+}
+
+function syncPerkField() {
+  const allowed = hasPerks(document.getElementById('f-mode').value);
+  document.getElementById('perk-field').hidden = !allowed;
+  if (!allowed) clearPerks();
+}
+
 function syncBuildPreview() {
   const build = builds.find((b) => b.id === document.getElementById('f-build').value);
   document.getElementById('f-build-preview').innerHTML = build
     ? (build.perks ?? []).map((f) => perkIconHtml(f, perkName(f))).join('')
     : '';
+}
+
+/** Wer einen Build wählt, hat ihn meist auch so gespielt – Plätze füllen. */
+function adoptBuildPerks() {
+  const build = builds.find((b) => b.id === document.getElementById('f-build').value);
+  if (build) setPickedPerks(build.perks ?? []);
+  syncBuildPreview();
 }
 
 function syncRoleBlocks() {
@@ -104,6 +130,8 @@ function syncRoleBlocks() {
     block.querySelectorAll('select').forEach((el) => { el.disabled = !active; });
   });
   document.getElementById('entry-panel').dataset.role = role;
+  setPerkRole(role);
+  syncPerkCharacter();
   syncBuildSelect(false);
 }
 
@@ -181,6 +209,7 @@ function buildPayload() {
     escaped: null,
     faced_killer: null,
     build_id: supportsBuilds(mode) ? (document.getElementById('f-build').value || null) : null,
+    perks: hasPerks(mode) && pickedPerks().length ? pickedPerks() : null,
   };
 
   if (role === 'killer') {
@@ -228,6 +257,7 @@ function resetForm() {
   document.getElementById('f-notes').value = '';
   document.getElementById('f-played-at').value = localNowValue();
   setBloodpoints(0);
+  clearPerks();
   syncRoleBlocks();
   syncPortrait('killer');
   syncPortrait('survivor');
@@ -258,8 +288,11 @@ function startEdit(id) {
   }
 
   syncPortrait(match.role);
+  syncPerkCharacter();
   document.getElementById('f-build').value = match.build_id ?? '';
+  setPickedPerks(match.perks ?? []);
   syncBuildField();
+  syncPerkField();
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
   document.getElementById('f-notes').value = match.notes ?? '';
   setBloodpoints(match.bloodpoints ?? 0);
@@ -480,7 +513,7 @@ async function loadBuilds() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, build_id, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, build_id, perks, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 
@@ -525,17 +558,23 @@ function initForm() {
   setBloodpoints(0);
 
   for (const [field, role] of [['killer', 'killer'], ['survivor', 'survivor'], ['faced-killer', 'killer']]) {
-    document.getElementById(`f-${field}`).addEventListener('change', () => syncPortrait(field, role));
+    document.getElementById(`f-${field}`).addEventListener('change', () => {
+      syncPortrait(field, role);
+      if (field !== 'faced-killer') syncPerkCharacter();
+    });
     syncPortrait(field, role);
   }
 
   document.getElementById('f-mode').addEventListener('change', () => {
     syncBuildField();
+    syncPerkField();
     syncKillsOptions();
   });
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
-  document.getElementById('f-build').addEventListener('change', syncBuildPreview);
+  document.getElementById('f-build').addEventListener('change', adoptBuildPerks);
+  initPerkPicker();
+  syncPerkField();
   applyFormMode();
 }
 

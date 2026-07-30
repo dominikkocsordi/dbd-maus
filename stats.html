@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=24">
+  <link rel="stylesheet" href="assets/css/style.css?v=25">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -186,6 +186,28 @@
         </div>
       </section>
 
+      <!-- Nur sichtbar, sobald an Matches Perks hängen. -->
+      <section class="panel" id="perk-panel" hidden>
+        <header class="panel__head panel__head--row">
+          <h2>Nach Perk</h2>
+          <span class="panel__meta" id="perk-count"></span>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Perk</th>
+                <th class="num">Matches</th>
+                <th class="num">Kills / Escapes</th>
+                <th class="num">Quote</th>
+                <th class="num">Ø BP</th>
+              </tr>
+            </thead>
+            <tbody id="perk-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="panel" id="faced-panel" hidden>
         <header class="panel__head">
           <h2>Gegen Killer</h2>
@@ -250,6 +272,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=24"></script>
+  <script type="module" src="assets/js/stats.js?v=25"></script>
 </body>
 </html>

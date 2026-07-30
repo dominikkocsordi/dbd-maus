@@ -1,5 +1,5 @@
 // Kleine Helfer für Formatierung, Toasts und Statistik-Berechnung.
-import { maxKills, streakMinKills } from './data.js?v=24';
+import { maxKills, streakMinKills } from './data.js?v=25';
 
 const nf = new Intl.NumberFormat('de-DE');
 const df = new Intl.DateTimeFormat('de-DE', {
@@ -136,6 +136,30 @@ export function streakByMode(matchesDesc) {
     best: bestEntry?.best ?? 0,
     bestMode: bestEntry?.best > 0 ? bestEntry.mode : null,
   };
+}
+
+/**
+ * Gruppiert Matches nach gespieltem Perk. Ein Match zählt in jedem seiner
+ * Perks mit – die Summe der Zeilen ist also größer als die Zahl der Matches.
+ */
+export function byPerk(matches) {
+  const groups = new Map();
+
+  for (const m of matches) {
+    for (const file of m.perks ?? []) {
+      if (!groups.has(file)) groups.set(file, []);
+      groups.get(file).push(m);
+    }
+  }
+
+  return [...groups.entries()]
+    .map(([file, list]) => ({
+      file,
+      role: list[0].role,
+      matches: list.length,
+      stats: aggregate(list),
+    }))
+    .sort((a, b) => b.matches - a.matches);
 }
 
 /**

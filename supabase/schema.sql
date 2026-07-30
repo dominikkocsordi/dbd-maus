@@ -220,6 +220,22 @@ alter table public.matches
 
 create index if not exists matches_build_idx on public.matches (build_id) where build_id is not null;
 
+/*
+  Zusätzlich lassen sich die tatsächlich gespielten Perks direkt am Match
+  festhalten – unabhängig davon, ob ein gespeicherter Build dahintersteht.
+  In 2v8 gibt es keine Perks, dort bleibt die Spalte leer.
+*/
+alter table public.matches add column if not exists perks text[];
+
+alter table public.matches drop constraint if exists matches_perks_len;
+alter table public.matches add constraint matches_perks_len
+  check (perks is null or coalesce(array_length(perks, 1), 0) <= 4);
+
+comment on column public.matches.perks is 'Bis zu 4 gespielte Perks als Dateinamen, z. B. {Adrenaline.png}';
+
+-- Auswertung "Nach Perk" liest über den Array – GIN-Index hält das flott.
+create index if not exists matches_perks_idx on public.matches using gin (perks);
+
 -- ---------------------------------------------------------------------------
 -- 7) Profile und Rollen
 --

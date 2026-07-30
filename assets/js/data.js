@@ -127,6 +127,12 @@ export const supportsBuilds = (mode) => !MODES_WITHOUT_BUILDS.includes(mode);
 /** In 2v8 stehen acht Survivor auf dem Feld, sonst vier. */
 export const maxKills = (mode) => (mode === '2v8' ? 8 : 4);
 
+/*
+  2v8 spielt mit Klassen statt Perks – dort gibt es nichts einzutragen. Chaos
+  Shuffle würfelt die Perks zwar zu, festhalten lassen sie sich trotzdem.
+*/
+export const hasPerks = (mode) => mode !== '2v8';
+
 /**
  * Ab wie vielen Kills ein Match als Erfolg zählt (drei Viertel des Feldes) –
  * in 2v8 sind das 6 statt 3, sonst wäre die Serie dort geschenkt.

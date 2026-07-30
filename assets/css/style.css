@@ -506,6 +506,7 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
 .status--planned { color: #b39ae8; border-color: rgba(179, 154, 232, 0.4); background: rgba(179, 154, 232, 0.12); }
 .status--done { color: var(--good); border-color: rgba(79, 203, 155, 0.4); background: rgba(79, 203, 155, 0.12); }
 .status--rejected { color: var(--muted); }
+.status--closed { color: var(--muted); border-color: var(--line-strong); background: rgba(255, 255, 255, 0.04); }
 
 textarea {
   width: 100%;
@@ -527,6 +528,12 @@ textarea:focus {
 
 /* Frisch beantwortet – hebt sich hervor, bis der Melder es gesehen hat. */
 .ticket--fresh { border-color: rgba(89, 180, 240, 0.45); box-shadow: inset 3px 0 0 var(--survivor); }
+
+/* Vom Melder geschlossen: bleibt lesbar, tritt aber zurück. */
+.ticket--closed { opacity: 0.62; box-shadow: none; border-color: var(--line); }
+.ticket--closed .ticket__title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.btn--close { color: var(--muted); }
+.btn--close:hover { color: var(--text); }
 
 /* ------------------------------------------------------- Feedback-Dock -- */
 .fab {
@@ -651,7 +658,7 @@ body.has-drawer { overflow: hidden; }
 .board {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(208px, 1fr);   /* fünf Spalten passen ohne Scrollen */
+  grid-auto-columns: minmax(180px, 1fr);   /* sechs Spalten passen ohne Scrollen */
   gap: 0.75rem;
   align-items: start;
   overflow-x: auto;
@@ -677,6 +684,9 @@ body.has-drawer { overflow: hidden; }
 .board__col--planned .board__dot { background: #b39ae8; }
 .board__col--done .board__dot { background: var(--good); }
 .board__col--rejected .board__dot { background: var(--muted); }
+.board__col--closed .board__dot { background: rgba(255, 255, 255, 0.25); }
+.board__col--readonly { background: rgba(255, 255, 255, 0.012); border-style: dashed; }
+.board__col--closed .tcard { opacity: 0.7; cursor: pointer; }
 
 .board__count {
   margin-left: auto;

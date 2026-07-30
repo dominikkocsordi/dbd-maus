@@ -316,7 +316,7 @@ create table if not exists public.tickets (
   page        text,                       -- betroffene Seite, z. B. 'stats'
 
   status      text not null default 'new'
-                check (status in ('new', 'in_progress', 'planned', 'done', 'rejected')),
+                check (status in ('new', 'in_progress', 'planned', 'done', 'rejected', 'closed')),
   priority    text not null default 'normal' check (priority in ('low', 'normal', 'high')),
   owner_note  text check (owner_note is null or char_length(owner_note) <= 2000),
 
@@ -325,8 +325,14 @@ create table if not exists public.tickets (
   resolved_at timestamptz
 );
 
+-- Nachtrag für bereits bestehende Tabellen (das Skript ist erneut ausführbar):
+alter table public.tickets drop constraint if exists tickets_status_check;
+alter table public.tickets add constraint tickets_status_check
+  check (status in ('new', 'in_progress', 'planned', 'done', 'rejected', 'closed'));
+
 comment on table  public.tickets            is 'Gemeldete Bugs und Verbesserungswünsche';
 comment on column public.tickets.owner_note is 'Antwort bzw. Notiz der Besitzerrolle';
+comment on column public.tickets.status     is 'closed = vom Melder endgültig geschlossen, der Rest ist Sache der Besitzerrolle';
 
 create index if not exists tickets_status_idx on public.tickets (status, created_at desc);
 create index if not exists tickets_user_idx   on public.tickets (user_id, created_at desc);
@@ -344,15 +350,19 @@ create policy "tickets_insert_own" on public.tickets for insert
   to authenticated with check (auth.uid() = user_id and status = 'new');
 
 /*
-  Nachbessern darf der Melder nur, solange das Ticket unbearbeitet ist. Weil
-  auch die with-check-Bedingung status = 'new' verlangt, kann er den Status
-  nicht selbst weiterdrehen – das bleibt der Besitzerrolle.
+  Der Melder darf zweierlei: nachbessern, solange das Ticket unbearbeitet ist,
+  und es jederzeit endgültig schließen. Die with-check-Bedingung lässt als
+  Ergebnis nur 'new' oder 'closed' zu – den Status weiterzudrehen bleibt damit
+  Sache der Besitzerrolle. Dass ein bereits bearbeitetes Ticket dabei nicht
+  heimlich auf 'new' zurückfällt, stellt der Trigger unten sicher (eine Policy
+  allein kann alten und neuen Stand nicht miteinander vergleichen).
 */
 drop policy if exists "tickets_update_own_new" on public.tickets;
-create policy "tickets_update_own_new" on public.tickets for update
+drop policy if exists "tickets_update_own" on public.tickets;
+create policy "tickets_update_own" on public.tickets for update
   to authenticated
-  using (auth.uid() = user_id and status = 'new')
-  with check (auth.uid() = user_id and status = 'new');
+  using (auth.uid() = user_id and status <> 'closed')
+  with check (auth.uid() = user_id and status in ('new', 'closed'));
 
 drop policy if exists "tickets_update_owner" on public.tickets;
 create policy "tickets_update_owner" on public.tickets for update
@@ -375,8 +385,29 @@ begin
 
   new.updated_at = now();
 
+  /*
+    Ohne Besitzerrolle ist die einzige erlaubte Statusänderung das Schließen –
+    und ein geschlossenes Ticket bleibt zu. Am Text darf der Melder nur
+    schrauben, solange noch niemand daran gearbeitet hat.
+  */
+  if tg_op = 'UPDATE' and not public.is_owner() then
+    if old.status = 'closed' then
+      raise exception 'Dieses Ticket ist geschlossen und kann nicht mehr geändert werden.';
+    end if;
+
+    if new.status is distinct from old.status and new.status <> 'closed' then
+      raise exception 'Den Status ändert nur die Besitzerrolle.';
+    end if;
+
+    if old.status <> 'new'
+       and (new.title, new.description, new.kind, new.page)
+           is distinct from (old.title, old.description, old.kind, old.page) then
+      raise exception 'Bearbeiten geht nur, solange das Ticket unbearbeitet ist.';
+    end if;
+  end if;
+
   -- Abschlusszeitpunkt automatisch mitführen
-  if new.status in ('done', 'rejected') then
+  if new.status in ('done', 'rejected', 'closed') then
     new.resolved_at = coalesce(new.resolved_at, now());
   else
     new.resolved_at = null;

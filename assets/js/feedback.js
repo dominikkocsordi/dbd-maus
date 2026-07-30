@@ -4,11 +4,11 @@
   einsehen – dadurch braucht es keinen Navigationspunkt mehr, und gemeldet
   werden kann direkt dort, wo etwas auffällt.
 */
-import { supabase } from './supabase.js?v=19';
-import { escapeHtml, fmtDate, toast } from './utils.js?v=19';
+import { supabase } from './supabase.js?v=20';
+import { escapeHtml, fmtDate, toast } from './utils.js?v=20';
 import {
-  PAGE_LABELS, currentPageKey, kindBadge, pageLabel, statusBadge,
-} from './tickets-shared.js?v=19';
+  PAGE_LABELS, currentPageKey, isClosed, kindBadge, pageLabel, statusBadge,
+} from './tickets-shared.js?v=20';
 
 // Merkt sich, welchen Stand eines Tickets der Melder schon gesehen hat.
 const SEEN_KEY = 'dbd:tickets:seen';
@@ -108,7 +108,7 @@ function writeSeen(map) {
 }
 
 /** Bearbeitet heißt: Antwort da oder Status weitergedreht. */
-const isAnswered = (t) => Boolean(t.owner_note) || t.status !== 'new';
+const isAnswered = (t) => !isClosed(t) && (Boolean(t.owner_note) || t.status !== 'new');
 
 const unseenTickets = () => {
   const seen = readSeen();
@@ -242,6 +242,36 @@ async function deleteTicket(id) {
   markSeen();
 }
 
+/*
+  Schließen ist der Schlussstrich des Melders: das Ticket bleibt als Beleg
+  stehen, lässt sich aber weder bearbeiten noch wieder öffnen.
+*/
+async function closeTicket(id) {
+  const ticket = tickets.find((t) => t.id === id);
+  if (!ticket) return;
+
+  const confirmed = window.confirm(
+    `„${ticket.title}“ endgültig schließen?\n\n`
+    + 'Das Ticket bleibt sichtbar, kann danach aber nicht mehr bearbeitet oder wieder geöffnet werden.',
+  );
+  if (!confirmed) return;
+
+  const { error } = await supabase.from('tickets').update({ status: 'closed' }).eq('id', id);
+  if (error) {
+    // Solange supabase/schema.sql nicht eingespielt ist, kennt die Tabelle den
+    // Status "closed" noch nicht – die Rohmeldung hilft da wenig weiter.
+    const hint = /constraint|policy|violates/i.test(error.message)
+      ? 'Schließen fehlgeschlagen – der Datenbank fehlt noch das Update aus supabase/schema.sql.'
+      : `Schließen fehlgeschlagen: ${error.message}`;
+    return toast(hint, 'error');
+  }
+
+  if (editingId === id) resetForm();
+  toast('Ticket geschlossen.', 'success');
+  await loadTickets();
+  markSeen();
+}
+
 // ------------------------------------------------------------------ Rendern --
 
 function metaLine(ticket) {
@@ -251,9 +281,22 @@ function metaLine(ticket) {
   return parts.join(' · ');
 }
 
+function actionsHtml(t) {
+  if (isClosed(t)) return '';
+
+  const buttons = [
+    t.status === 'new' ? `<button type="button" class="btn btn--ghost btn--sm" data-fb-edit="${t.id}">Bearbeiten</button>` : '',
+    t.status === 'new' ? `<button type="button" class="btn btn--ghost btn--sm" data-fb-delete="${t.id}">Löschen</button>` : '',
+    `<button type="button" class="btn btn--ghost btn--sm btn--close" data-fb-close-ticket="${t.id}">Schließen</button>`,
+  ].join('');
+
+  return `<div class="ticket__actions">${buttons}</div>`;
+}
+
 function renderList() {
   const list = $('#fb-list');
-  $('#fb-count').textContent = String(tickets.length);
+  const open = tickets.filter((t) => !isClosed(t));
+  $('#fb-count').textContent = String(open.length);
 
   if (!tickets.length) {
     list.innerHTML = '<p class="empty">Noch kein Ticket eingereicht. Über den Tab „Melden“ geht es los.</p>';
@@ -261,9 +304,11 @@ function renderList() {
   }
 
   const seen = readSeen();
+  // Geschlossenes ans Ende, sonst bleibt es bei "neueste zuerst".
+  const rows = [...open, ...tickets.filter(isClosed)];
 
-  list.innerHTML = tickets.map((t) => `
-    <article class="ticket${isAnswered(t) && seen[t.id] !== t.updated_at ? ' ticket--fresh' : ''}">
+  list.innerHTML = rows.map((t) => `
+    <article class="ticket${isClosed(t) ? ' ticket--closed' : ''}${isAnswered(t) && seen[t.id] !== t.updated_at ? ' ticket--fresh' : ''}">
       <header class="ticket__head">
         ${kindBadge(t.kind)}
         <span class="ticket__title">${escapeHtml(t.title)}</span>
@@ -272,17 +317,15 @@ function renderList() {
       <p class="ticket__meta">${escapeHtml(metaLine(t))}</p>
       <p class="ticket__text">${escapeHtml(t.description)}</p>
       ${t.owner_note ? `<p class="ticket__note"><strong>Antwort:</strong> ${escapeHtml(t.owner_note)}</p>` : ''}
-      ${t.status === 'new' ? `
-        <div class="ticket__actions">
-          <button type="button" class="btn btn--ghost btn--sm" data-fb-edit="${t.id}">Bearbeiten</button>
-          <button type="button" class="btn btn--ghost btn--sm" data-fb-delete="${t.id}">Löschen</button>
-        </div>` : ''}
+      ${actionsHtml(t)}
     </article>`).join('');
 
   list.querySelectorAll('[data-fb-edit]')
     .forEach((b) => b.addEventListener('click', () => startEdit(b.dataset.fbEdit)));
   list.querySelectorAll('[data-fb-delete]')
     .forEach((b) => b.addEventListener('click', () => deleteTicket(b.dataset.fbDelete)));
+  list.querySelectorAll('[data-fb-close-ticket]')
+    .forEach((b) => b.addEventListener('click', () => closeTicket(b.dataset.fbCloseTicket)));
 }
 
 // -------------------------------------------------------------------- Daten --

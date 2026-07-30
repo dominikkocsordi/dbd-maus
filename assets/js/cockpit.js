@@ -3,14 +3,14 @@
   Board vor: eine Spalte je Status, Karten lassen sich per Drag & Drop
   weiterschieben, ein Klick öffnet die Detailansicht mit Antwortfeld.
 */
-import { supabase } from './supabase.js?v=19';
-import { initAuth } from './auth.js?v=19';
-import { isOwner, loadProfile } from './profile.js?v=19';
-import { escapeHtml, fmtDate, fmtDay, fmtNumber, toast } from './utils.js?v=19';
+import { supabase } from './supabase.js?v=20';
+import { initAuth } from './auth.js?v=20';
+import { isOwner, loadProfile } from './profile.js?v=20';
+import { escapeHtml, fmtDate, fmtDay, fmtNumber, toast } from './utils.js?v=20';
 import {
   KIND_GLYPHS, OPEN_STATUS, PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER,
-  kindBadge, pageLabel, statusBadge,
-} from './tickets-shared.js?v=19';
+  isClosed, kindBadge, pageLabel, statusBadge,
+} from './tickets-shared.js?v=20';
 
 const PRIORITY_RANK = { high: 0, normal: 1, low: 2 };
 
@@ -71,10 +71,15 @@ function renderKpis() {
   $('#kpi-new-hint').textContent = oldest ? `Ältestes vom ${fmtDay(oldest.created_at)}` : 'Nichts Unbearbeitetes';
 
   const days = averageDays();
-  $('#kpi-done').textContent = fmtNumber(done.length);
-  $('#kpi-done-hint').textContent = days === null
+  const closed = tickets.filter(isClosed).length;
+  const duration = days === null
     ? 'Noch nichts abgeschlossen'
     : `Ø ${days < 1 ? 'unter einem Tag' : `${Math.round(days)} Tage`} bis zum Abschluss`;
+
+  $('#kpi-done').textContent = fmtNumber(done.length);
+  $('#kpi-done-hint').textContent = closed
+    ? `${duration} · ${fmtNumber(closed)}× vom Melder geschlossen`
+    : duration;
 
   $('#kpi-people').textContent = fmtNumber(people.size);
   $('#kpi-people-hint').textContent = `${fmtNumber(tickets.length)} Tickets insgesamt`;
@@ -111,15 +116,20 @@ function renderBoard() {
 
   board.innerHTML = STATUS_ORDER.map((status) => {
     const cards = rows.filter((t) => t.status === status);
+    // In "Geschlossen" landet ein Ticket nur durch den Melder selbst.
+    const readonly = status === 'closed';
+    const empty = readonly ? 'Nichts geschlossen' : 'Karten hierher ziehen';
+
     return `
-      <section class="board__col board__col--${status}" data-status="${status}">
+      <section class="board__col board__col--${status}${readonly ? ' board__col--readonly' : ''}"
+               ${readonly ? '' : `data-status="${status}"`}>
         <header class="board__head">
           <span class="board__dot" aria-hidden="true"></span>
           <h2 class="board__title">${escapeHtml(STATUS_LABELS[status])}</h2>
           <span class="board__count">${fmtNumber(cards.length)}</span>
         </header>
         <div class="board__cards">
-          ${cards.length ? cards.map(cardMarkup).join('') : '<p class="board__empty">Karten hierher ziehen</p>'}
+          ${cards.length ? cards.map(cardMarkup).join('') : `<p class="board__empty">${empty}</p>`}
         </div>
       </section>`;
   }).join('');
@@ -134,7 +144,7 @@ function renderBoard() {
     card.addEventListener('dragend', () => card.classList.remove('is-dragging'));
   });
 
-  board.querySelectorAll('.board__col').forEach((col) => {
+  board.querySelectorAll('.board__col[data-status]').forEach((col) => {
     col.addEventListener('dragover', (event) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
@@ -192,6 +202,16 @@ const options = (map, selected) => Object.entries(map)
   .map(([value, label]) => `<option value="${value}"${value === selected ? ' selected' : ''}>${escapeHtml(label)}</option>`)
   .join('');
 
+/*
+  "Geschlossen" setzt der Melder selbst – im Cockpit steht es nur dann zur
+  Wahl, wenn das Ticket schon so dasteht (dann aber auch umkehrbar).
+*/
+function statusChoices(current) {
+  if (current === 'closed') return STATUS_LABELS;
+  const { closed: _closed, ...rest } = STATUS_LABELS;
+  return rest;
+}
+
 function openDetail(id) {
   const t = tickets.find((x) => x.id === id);
   if (!t) return;
@@ -206,7 +226,7 @@ function openDetail(id) {
     t.resolved_at ? `abgeschlossen ${fmtDate(t.resolved_at)}` : null,
   ].filter(Boolean).join(' · ');
   $('#detail-text').textContent = t.description;
-  $('#detail-status').innerHTML = options(STATUS_LABELS, t.status);
+  $('#detail-status').innerHTML = options(statusChoices(t.status), t.status);
   $('#detail-priority').innerHTML = options(PRIORITY_LABELS, t.priority);
   $('#detail-note').value = t.owner_note ?? '';
   detailHint('');

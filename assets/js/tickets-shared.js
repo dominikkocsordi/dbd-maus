@@ -1,5 +1,5 @@
 // Gemeinsame Begriffe und Bausteine für Feedback-Dock und Ticket-Cockpit.
-import { escapeHtml } from './utils.js?v=19';
+import { escapeHtml } from './utils.js?v=20';
 
 export const KIND_LABELS = { bug: 'Bug', feature: 'Wunsch' };
 export const KIND_GLYPHS = { bug: '&#128027;', feature: '&#128161;' };
@@ -10,11 +10,15 @@ export const STATUS_LABELS = {
   planned: 'Geplant',
   done: 'Erledigt',
   rejected: 'Abgelehnt',
+  closed: 'Geschlossen',
 };
 
 /** Reihenfolge der Spalten im Cockpit-Board. */
-export const STATUS_ORDER = ['new', 'in_progress', 'planned', 'done', 'rejected'];
+export const STATUS_ORDER = ['new', 'in_progress', 'planned', 'done', 'rejected', 'closed'];
 export const OPEN_STATUS = ['new', 'in_progress', 'planned'];
+
+/** Vom Melder endgültig geschlossen – danach ist nichts mehr zu tun. */
+export const isClosed = (ticket) => ticket.status === 'closed';
 
 export const PRIORITY_LABELS = { low: 'Niedrig', normal: 'Normal', high: 'Hoch' };
 

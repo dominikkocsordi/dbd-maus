@@ -1,9 +1,9 @@
 // Gemeinsamer Login-Gate für alle Seiten.
-import { supabase } from './supabase.js?v=19';
-import { mountFeedback, unmountFeedback } from './feedback.js?v=19';
-import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js?v=19';
-import { clearProfile, loadProfile } from './profile.js?v=19';
-import { toast } from './utils.js?v=19';
+import { supabase } from './supabase.js?v=20';
+import { mountFeedback, unmountFeedback } from './feedback.js?v=20';
+import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js?v=20';
+import { clearProfile, loadProfile } from './profile.js?v=20';
+import { toast } from './utils.js?v=20';
 
 const AUTH_MARKUP = /* html */ `
   <div class="auth-card">

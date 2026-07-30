@@ -1,5 +1,5 @@
 // Kleine Helfer für Formatierung, Toasts und Statistik-Berechnung.
-import { maxKills, streakMinKills } from './data.js?v=25';
+import { maxKills, streakMinKills } from './data.js?v=26';
 
 const nf = new Intl.NumberFormat('de-DE');
 const df = new Intl.DateTimeFormat('de-DE', {
@@ -32,6 +32,12 @@ export function parseNumber(raw) {
   const digits = String(raw ?? '').replace(/\D/g, '');
   return digits ? parseInt(digits, 10) : 0;
 }
+
+/**
+ * Farbstufe 0–4 für die Kill-Pille. Dadurch leuchtet ein 8K in 2v8 so
+ * kräftig wie ein 4K im normalen Spiel, ein 4K in 2v8 dagegen nur halb.
+ */
+export const killTier = (kills, mode) => Math.round(((kills ?? 0) / maxKills(mode)) * 4);
 
 export function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({

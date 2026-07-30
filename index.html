@@ -6,7 +6,7 @@
   <title>DBD Stats – Übersicht</title>
   <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=25">
+  <link rel="stylesheet" href="assets/css/style.css?v=26">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -65,29 +65,34 @@
     <section id="auth-view" class="auth-view"></section>
 
     <section id="app-view" class="app-view" hidden>
-      <div class="page-head">
-        <h1>Übersicht</h1>
-        <span class="page-head__meta" id="last-played"></span>
+      <div class="hero">
+        <span class="hero__eyebrow">Dead by Daylight</span>
+        <h1 class="hero__title">Übersicht</h1>
+        <span class="hero__meta" id="last-played"></span>
       </div>
 
       <section class="kpi-grid" aria-label="Statistik">
         <article class="kpi">
+          <span class="kpi__icon" aria-hidden="true">&#9678;</span>
           <span class="kpi__label">Matches</span>
           <strong class="kpi__value" id="kpi-total">–</strong>
           <span class="kpi__hint" id="kpi-split">–</span>
         </article>
         <article class="kpi kpi--killer">
-          <span class="kpi__label"><span class="icon" data-icon="killer"></span>Kill-Rate</span>
+          <span class="kpi__icon"><span class="icon" data-icon="killer"><i class="icon__fallback">&#128481;</i></span></span>
+          <span class="kpi__label">Kill-Rate</span>
           <strong class="kpi__value" id="kpi-killrate">–</strong>
           <span class="kpi__hint" id="kpi-kills">–</span>
         </article>
         <article class="kpi kpi--survivor">
-          <span class="kpi__label"><span class="icon" data-icon="survivor"></span>Escape-Rate</span>
+          <span class="kpi__icon"><span class="icon" data-icon="survivor"><i class="icon__fallback">&#127939;</i></span></span>
+          <span class="kpi__label">Escape-Rate</span>
           <strong class="kpi__value" id="kpi-escaperate">–</strong>
           <span class="kpi__hint" id="kpi-escapes">–</span>
         </article>
         <article class="kpi kpi--bp">
-          <span class="kpi__label"><span class="icon" data-icon="bp"></span>Blutpunkte</span>
+          <span class="kpi__icon"><span class="icon" data-icon="bp"><i class="icon__fallback">BP</i></span></span>
+          <span class="kpi__label">Blutpunkte</span>
           <strong class="kpi__value" id="kpi-bp">–</strong>
           <span class="kpi__hint" id="kpi-bp-avg">–</span>
         </article>
@@ -100,6 +105,9 @@
           </header>
 
           <form id="match-form" class="match-form" novalidate>
+            <div class="form-group">
+              <span class="form-group__title">Partie</span>
+
             <label class="field">
               <span class="field__label">Gamemode</span>
               <select id="f-mode" required></select>
@@ -118,6 +126,10 @@
                 </label>
               </div>
             </fieldset>
+            </div>
+
+            <div class="form-group">
+              <span class="form-group__title">Ergebnis</span>
 
             <div class="role-block" data-role-block="killer">
               <label class="field">
@@ -164,6 +176,10 @@
                 </div>
               </fieldset>
             </div>
+            </div>
+
+            <div class="form-group">
+              <span class="form-group__title">Ausbeute</span>
 
             <fieldset class="field bp-field">
               <legend class="field__label"><span class="icon" data-icon="bp"></span>Blutpunkte</legend>
@@ -185,6 +201,10 @@
                 <button type="button" class="chip chip--reset" data-bp="reset">Reset</button>
               </div>
             </fieldset>
+            </div>
+
+            <div class="form-group">
+              <span class="form-group__title">Ausrüstung</span>
 
             <label class="field" id="build-field">
               <span class="field__label">Build <em>optional</em></span>
@@ -192,12 +212,16 @@
               <span class="build-preview" id="f-build-preview"></span>
             </label>
 
-            <!-- Vier Plätze, die auch leer bleiben dürfen. -->
+            <!-- Vier Dropdowns, die auch leer bleiben dürfen. -->
             <fieldset class="field" id="perk-field">
               <legend class="field__label">Perks <em>optional</em></legend>
-              <div class="perk-slots" id="f-perks"></div>
+              <div class="perk-picks" id="f-perks"></div>
               <p class="field__hint" id="f-perks-hint"></p>
             </fieldset>
+            </div>
+
+            <div class="form-group">
+              <span class="form-group__title">Details</span>
 
             <label class="field">
               <span class="field__label">Zeitpunkt</span>
@@ -208,12 +232,14 @@
               <span class="field__label">Notiz</span>
               <input type="text" id="f-notes" maxlength="500" placeholder="optional">
             </label>
+            </div>
 
             <button type="submit" class="btn btn--primary btn--block" id="f-submit">Speichern</button>
             <button type="button" class="btn btn--ghost btn--block" id="f-cancel" hidden>Abbrechen</button>
           </form>
         </section>
 
+        <div class="stack">
         <section class="panel">
           <header class="panel__head">
             <h2>Letzte Matches</h2>
@@ -235,8 +261,8 @@
             </table>
           </div>
         </section>
-      </div>
 
+      <div class="panel-row">
       <section class="panel">
         <header class="panel__head panel__head--row">
           <h2>Serien</h2>
@@ -259,7 +285,7 @@
         <header class="panel__head">
           <h2>Verteilung</h2>
         </header>
-        <div class="split">
+        <div class="split split--tight">
           <div>
             <h3 class="subhead subhead--killer"><span class="icon" data-icon="killer"></span>Kills</h3>
             <div id="dist-kills" class="bars"></div>
@@ -270,35 +296,13 @@
           </div>
         </div>
       </section>
+      </div>
+      </div>
+      </div>
 
     </section>
   </main>
 
-  <!-- Perk-Auswahl für das Formular -->
-  <div class="drawer" id="perk-picker" hidden>
-    <div class="drawer__scrim" data-picker-close></div>
-
-    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="picker-title">
-      <header class="drawer__head">
-        <h2 class="drawer__title" id="picker-title">Perk wählen</h2>
-        <button type="button" class="icon-btn" data-picker-close aria-label="Schließen">&#10005;</button>
-      </header>
-
-      <div class="drawer__search">
-        <label class="sr-only" for="picker-search">Perk suchen</label>
-        <input type="text" id="picker-search" placeholder="Perk oder Charakter" autocomplete="off">
-      </div>
-
-      <div class="drawer__body">
-        <div class="perk-grid perk-grid--picker" id="picker-grid"></div>
-      </div>
-
-      <footer class="drawer__foot">
-        <button type="button" class="btn btn--ghost btn--block" id="picker-clear">Platz leeren</button>
-      </footer>
-    </aside>
-  </div>
-
-  <script type="module" src="assets/js/index.js?v=25"></script>
+  <script type="module" src="assets/js/index.js?v=26"></script>
 </body>
 </html>

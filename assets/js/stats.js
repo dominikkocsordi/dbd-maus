@@ -1,11 +1,11 @@
-import { supabase } from './supabase.js?v=25';
-import { initAuth } from './auth.js?v=25';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=25';
+import { supabase } from './supabase.js?v=26';
+import { initAuth } from './auth.js?v=26';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=26';
 import {
-  aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=25';
-import { characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=25';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=25';
+  aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
+} from './utils.js?v=26';
+import { characterCellHtml, iconHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=26';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=26';
 
 const PAGE_SIZE = 30;
 
@@ -352,7 +352,7 @@ function renderMatchList(filtered) {
 
   body.innerHTML = shown.map((m) => {
     const result = m.role === 'killer'
-      ? killMarksHtml(m.kills)
+      ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
       : outcomeIconHtml(m.escaped);
 
     return `

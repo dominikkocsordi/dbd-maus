@@ -1,15 +1,17 @@
-import { supabase } from './supabase.js?v=25';
-import { initAuth } from './auth.js?v=25';
-import { initPasskeyPanel } from './passkeys.js?v=25';
-import { avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=25';
-import { perkName } from './perks.js?v=25';
+import { supabase } from './supabase.js?v=26';
+import { initAuth } from './auth.js?v=26';
+import { initPasskeyPanel } from './passkeys.js?v=26';
+import {
+  avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
+} from './images.js?v=26';
+import { perkName } from './perks.js?v=26';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=25';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=25';
+} from './perk-picker.js?v=26';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=26';
 import {
-  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=25';
+  aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
+} from './utils.js?v=26';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -366,7 +368,7 @@ function renderRecent() {
 
   body.innerHTML = matches.slice(0, 15).map((m) => {
     const result = m.role === 'killer'
-      ? killMarksHtml(m.kills)
+      ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
       : outcomeIconHtml(m.escaped);
     const character = m.killer ?? m.survivor;
     const buildName = builds.find((b) => b.id === m.build_id)?.name;
@@ -377,7 +379,7 @@ function renderRecent() {
     ].filter(Boolean).join(' · ');
 
     return `
-      <tr>
+      <tr class="is-${m.role}">
         <td data-label="Datum">${fmtDate(m.played_at)}</td>
         <td data-label="Charakter">${characterCellHtml(m.role, character, labelFor(m.role, character), sub)}</td>
         <td data-label="Ergebnis">${result}</td>

@@ -1352,9 +1352,16 @@ option { background: var(--surface-2); color: var(--text); }
 
 .pill .icon { width: 1.1em; height: 1.1em; margin-right: 0.3em; }
 
-/* Ergebnis-Pill ohne Text: das Icon steht für sich. */
-.pill--icon { padding: 0.12rem 0.4rem; line-height: 1; }
-.pill--icon .icon { width: 1.25em; height: 1.25em; margin: 0; vertical-align: -0.25em; }
+/* Ergebnis eines Survivor-Matches: nur das Symbol, ohne Rahmen drumherum. */
+.outcome { display: inline-flex; align-items: center; line-height: 1; }
+.outcome .icon { width: 1.85rem; height: 1.85rem; margin: 0; vertical-align: middle; }
+.outcome .icon__fallback { font-size: 1.2rem; font-weight: 700; }
+.outcome--good { color: var(--good); }
+.outcome--bad { color: var(--bad); }
+
+/* Farbiger Schimmer, damit Entkommen und Tod auf einen Blick auseinandergehen. */
+.outcome--good .icon img { filter: drop-shadow(0 0 5px rgba(79, 203, 155, 0.5)); }
+.outcome--bad .icon img { filter: drop-shadow(0 0 5px rgba(242, 96, 122, 0.5)); }
 .bar__label .icon { width: 1.2em; height: 1.2em; }
 
 .tally { display: inline-flex; align-items: center; justify-content: flex-end; font-weight: 600; }

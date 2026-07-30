@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=21';
-import { initAuth } from './auth.js?v=21';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=21';
+import { supabase } from './supabase.js?v=22';
+import { initAuth } from './auth.js?v=22';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=22';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
-} from './utils.js?v=21';
-import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=21';
+} from './utils.js?v=22';
+import { characterCellHtml, iconHtml, mountIcons, outcomeIconHtml } from './images.js?v=22';
 
 const MATCH_LIST_LIMIT = 100;
 
@@ -280,15 +280,6 @@ function renderFacedKillers(filtered) {
     </tr>`).join('');
 }
 
-/* Als Survivor sagt das Icon alles – der Text daneben wäre nur Platz weg. */
-const outcomePill = (escaped) => {
-  const label = escaped ? 'Entkommen' : 'Gestorben';
-  // Der Haken bzw. das Kreuz springt ein, falls das Icon nicht lädt.
-  const icon = escaped ? iconHtml('escape', '\u2713') : iconHtml('sacrificed', '\u2715');
-  return `<span class="pill pill--icon ${escaped ? 'pill--good' : 'pill--bad'}" title="${label}">`
-    + `${icon}<span class="sr-only">${label}</span></span>`;
-};
-
 function renderMatchList(filtered) {
   const body = document.getElementById('match-body');
   const shown = filtered.slice(0, MATCH_LIST_LIMIT);
@@ -305,7 +296,7 @@ function renderMatchList(filtered) {
   body.innerHTML = shown.map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
-      : outcomePill(m.escaped);
+      : outcomeIconHtml(m.escaped);
 
     return `
       <tr>

@@ -3,14 +3,14 @@
   Board vor: eine Spalte je Status, Karten lassen sich per Drag & Drop
   weiterschieben, ein Klick öffnet die Detailansicht mit Antwortfeld.
 */
-import { supabase } from './supabase.js?v=21';
-import { initAuth } from './auth.js?v=21';
-import { isOwner, loadProfile } from './profile.js?v=21';
-import { escapeHtml, fmtDate, fmtDay, fmtNumber, toast } from './utils.js?v=21';
+import { supabase } from './supabase.js?v=22';
+import { initAuth } from './auth.js?v=22';
+import { isOwner, loadProfile } from './profile.js?v=22';
+import { escapeHtml, fmtDate, fmtDay, fmtNumber, toast } from './utils.js?v=22';
 import {
   KIND_GLYPHS, OPEN_STATUS, PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER,
   isClosed, kindBadge, pageLabel, statusBadge,
-} from './tickets-shared.js?v=21';
+} from './tickets-shared.js?v=22';
 
 const PRIORITY_RANK = { high: 0, normal: 1, low: 2 };
 

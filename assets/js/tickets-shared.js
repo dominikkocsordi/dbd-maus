@@ -1,5 +1,5 @@
 // Gemeinsame Begriffe und Bausteine für Feedback-Dock und Ticket-Cockpit.
-import { escapeHtml } from './utils.js?v=21';
+import { escapeHtml } from './utils.js?v=22';
 
 export const KIND_LABELS = { bug: 'Bug', feature: 'Wunsch' };
 export const KIND_GLYPHS = { bug: '&#128027;', feature: '&#128161;' };

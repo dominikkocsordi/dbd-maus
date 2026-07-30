@@ -1,9 +1,9 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=21';
-import { fileFor } from './data.js?v=21';
-import { escapeHtml } from './utils.js?v=21';
+import { SUPABASE_URL } from './config.js?v=22';
+import { fileFor } from './data.js?v=22';
+import { escapeHtml } from './utils.js?v=22';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -44,6 +44,18 @@ export function iconHtml(name, fallback = '') {
   const url = iconUrl(name);
   if (!url) return fallback ? `<span class="icon"><i class="icon__fallback">${escapeHtml(fallback)}</i></span>` : '';
   return `<span class="icon">${fallback ? `<i class="icon__fallback">${escapeHtml(fallback)}</i>` : ''}<img src="${escapeHtml(url)}" alt="" onerror="this.remove()"></span>`;
+}
+
+/**
+ * Ausgang eines Survivor-Matches: nur das Symbol, dafür groß und farbig
+ * hinterlegt. Der Haken bzw. das Kreuz springt ein, falls das Bild fehlt.
+ */
+export function outcomeIconHtml(escaped) {
+  const label = escaped ? 'Entkommen' : 'Gestorben';
+  const icon = escaped ? iconHtml('escape', '✓') : iconHtml('sacrificed', '✕');
+
+  return `<span class="outcome outcome--${escaped ? 'good' : 'bad'}" title="${label}">`
+    + `${icon}<span class="sr-only">${label}</span></span>`;
 }
 
 /**

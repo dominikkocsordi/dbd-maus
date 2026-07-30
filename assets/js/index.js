@@ -1,12 +1,12 @@
-import { supabase } from './supabase.js?v=21';
-import { initAuth } from './auth.js?v=21';
-import { initPasskeyPanel } from './passkeys.js?v=21';
-import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=21';
-import { perkName } from './perks.js?v=21';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=21';
+import { supabase } from './supabase.js?v=22';
+import { initAuth } from './auth.js?v=22';
+import { initPasskeyPanel } from './passkeys.js?v=22';
+import { avatarHtml, characterCellHtml, iconHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=22';
+import { perkName } from './perks.js?v=22';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=22';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=21';
+} from './utils.js?v=22';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -298,15 +298,6 @@ async function handleSubmit(event) {
 
 // ------------------------------------------------------------------ Render --
 
-/* Als Survivor sagt das Icon alles – der Text daneben wäre nur Platz weg. */
-const outcomePill = (escaped) => {
-  const label = escaped ? 'Entkommen' : 'Gestorben';
-  // Der Haken bzw. das Kreuz springt ein, falls das Icon nicht lädt.
-  const icon = escaped ? iconHtml('escape', '\u2713') : iconHtml('sacrificed', '\u2715');
-  return `<span class="pill pill--icon ${escaped ? 'pill--good' : 'pill--bad'}" title="${label}">`
-    + `${icon}<span class="sr-only">${label}</span></span>`;
-};
-
 function renderKpis() {
   const s = aggregate(matches);
 
@@ -342,7 +333,7 @@ function renderRecent() {
   body.innerHTML = matches.slice(0, 15).map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
-      : outcomePill(m.escaped);
+      : outcomeIconHtml(m.escaped);
     const character = m.killer ?? m.survivor;
     const buildName = builds.find((b) => b.id === m.build_id)?.name;
     const sub = [

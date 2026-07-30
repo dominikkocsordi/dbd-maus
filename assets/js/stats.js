@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=18';
-import { initAuth } from './auth.js?v=18';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=18';
+import { supabase } from './supabase.js?v=19';
+import { initAuth } from './auth.js?v=19';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=19';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=18';
-import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=18';
+} from './utils.js?v=19';
+import { characterCellHtml, iconHtml, mountIcons } from './images.js?v=19';
 
 const MATCH_LIST_LIMIT = 100;
 
@@ -145,8 +145,59 @@ function characterRows(filtered) {
     .sort((a, b) => b.matches - a.matches);
 }
 
+/*
+  Sortierung der Charakter-Tabelle. Leere Werte (etwa eine Quote ohne Matches)
+  rutschen mit -1 ans Ende, statt die Reihenfolge durcheinanderzubringen.
+*/
+const SORT_VALUES = {
+  character: (r) => labelFor(r.role, r.id),
+  matches: (r) => r.matches,
+  hits: (r) => (r.role === 'killer' ? r.stats.kills : r.stats.escapes),
+  quote: (r) => (r.role === 'killer' ? r.stats.killRate : r.stats.escapeRate) ?? -1,
+  streak: (r) => r.streak.current,
+  best: (r) => r.streak.best,
+  bp: (r) => r.stats.bloodpoints,
+  bpAvg: (r) => r.stats.bloodpointsAvg ?? -1,
+};
+
+let sort = { key: 'matches', dir: 'desc' };
+
+function sortRows(rows) {
+  const value = SORT_VALUES[sort.key] ?? SORT_VALUES.matches;
+  const factor = sort.dir === 'asc' ? 1 : -1;
+
+  return [...rows].sort((a, b) => {
+    const x = value(a);
+    const y = value(b);
+    const diff = typeof x === 'string' ? x.localeCompare(y, 'de') : x - y;
+    // Gleichstand: die häufiger gespielten Charaktere zuerst.
+    return diff !== 0 ? diff * factor : b.matches - a.matches;
+  });
+}
+
+function syncSortHeaders() {
+  document.querySelectorAll('#character-table .th-sort').forEach((btn) => {
+    const active = btn.dataset.sort === sort.key;
+    btn.classList.toggle('is-sorted', active);
+    btn.classList.toggle('is-asc', active && sort.dir === 'asc');
+    btn.closest('th').setAttribute('aria-sort', active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+  });
+
+  document.getElementById('ch-sort').value = sort.key;
+  document.getElementById('ch-sort-dir').innerHTML = sort.dir === 'asc' ? '&#9650;' : '&#9660;';
+}
+
+/** Dieselbe Spalte erneut = Richtung drehen, sonst sinnvolle Startrichtung. */
+function setSort(key) {
+  sort = sort.key === key
+    ? { key, dir: sort.dir === 'asc' ? 'desc' : 'asc' }
+    : { key, dir: key === 'character' ? 'asc' : 'desc' };
+  render();
+}
+
 function renderCharacterTable(rows) {
   const body = document.getElementById('character-body');
+  syncSortHeaders();
 
   if (!rows.length) {
     body.innerHTML = '<tr><td colspan="8" class="empty">Keine Matches für diesen Filter.</td></tr>';
@@ -229,6 +280,15 @@ function renderFacedKillers(filtered) {
     </tr>`).join('');
 }
 
+/* Als Survivor sagt das Icon alles – der Text daneben wäre nur Platz weg. */
+const outcomePill = (escaped) => {
+  const label = escaped ? 'Entkommen' : 'Gestorben';
+  // Der Haken bzw. das Kreuz springt ein, falls das Icon nicht lädt.
+  const icon = escaped ? iconHtml('escape', '\u2713') : iconHtml('sacrificed', '\u2715');
+  return `<span class="pill pill--icon ${escaped ? 'pill--good' : 'pill--bad'}" title="${label}">`
+    + `${icon}<span class="sr-only">${label}</span></span>`;
+};
+
 function renderMatchList(filtered) {
   const body = document.getElementById('match-body');
   const shown = filtered.slice(0, MATCH_LIST_LIMIT);
@@ -245,7 +305,7 @@ function renderMatchList(filtered) {
   body.innerHTML = shown.map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
-      : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${iconHtml(m.escaped ? 'escape' : 'sacrificed')}${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
+      : outcomePill(m.escaped);
 
     return `
       <tr>
@@ -269,7 +329,7 @@ function render() {
 
   document.getElementById('filter-summary').textContent = filterSummary(filtered);
   renderKpis(filtered);
-  renderCharacterTable(rows);
+  renderCharacterTable(sortRows(rows));
   renderFacedKillers(filtered);
   renderTopBars(rows);
   renderMatchList(filtered);
@@ -309,6 +369,19 @@ function initFilters() {
   els.role.addEventListener('change', () => { fillCharacterSelect(); render(); });
   els.range.addEventListener('change', () => { syncRangeFields(); render(); });
   [els.character, els.mode, els.from, els.to].forEach((el) => el.addEventListener('change', render));
+
+  document.querySelectorAll('#character-table .th-sort').forEach((btn) => {
+    btn.addEventListener('click', () => setSort(btn.dataset.sort));
+  });
+
+  document.getElementById('ch-sort').addEventListener('change', (event) => {
+    sort = { key: event.target.value, dir: sort.dir };
+    render();
+  });
+  document.getElementById('ch-sort-dir').addEventListener('click', () => {
+    sort = { key: sort.key, dir: sort.dir === 'asc' ? 'desc' : 'asc' };
+    render();
+  });
 
   els.reset.addEventListener('click', () => {
     els.role.value = 'all';

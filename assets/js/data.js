@@ -117,6 +117,13 @@ export const SURVIVORS = [
   { id: 'other_survivor', label: 'Anderer Survivor', file: 'empty.png' },
 ];
 
+/*
+  In diesen Modi gibt das Spiel die Perks vor (Chaos Shuffle würfelt sie, 2v8
+  kennt stattdessen Klassen) – ein eigener Build lässt sich dort nicht spielen.
+*/
+export const MODES_WITHOUT_BUILDS = ['2v8', 'chaos_shuffle'];
+export const supportsBuilds = (mode) => !MODES_WITHOUT_BUILDS.includes(mode);
+
 const toMap = (list) => Object.fromEntries(list.map((e) => [e.id, e.label]));
 const toFileMap = (list) => Object.fromEntries(list.map((e) => [e.id, e.file]).filter(([, f]) => f));
 

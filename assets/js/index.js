@@ -1,12 +1,12 @@
-import { supabase } from './supabase.js?v=18';
-import { initAuth } from './auth.js?v=18';
-import { initPasskeyPanel } from './passkeys.js?v=18';
-import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=18';
-import { perkName } from './perks.js?v=18';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=18';
+import { supabase } from './supabase.js?v=19';
+import { initAuth } from './auth.js?v=19';
+import { initPasskeyPanel } from './passkeys.js?v=19';
+import { avatarHtml, characterCellHtml, iconHtml, mountIcons, perkIconHtml } from './images.js?v=19';
+import { perkName } from './perks.js?v=19';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, supportsBuilds } from './data.js?v=19';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=18';
+} from './utils.js?v=19';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -53,6 +53,19 @@ function syncBuildSelect(keep = true) {
   select.value = matching.some((b) => b.id === previous) ? previous : '';
   select.disabled = matching.length === 0;
 
+  syncBuildField();
+}
+
+/*
+  Chaos Shuffle und 2v8 geben die Perks vor – dort verschwindet die
+  Build-Auswahl komplett, damit nichts Unpassendes am Match hängt.
+*/
+function syncBuildField() {
+  const allowed = supportsBuilds(document.getElementById('f-mode').value);
+  const select = document.getElementById('f-build');
+
+  document.getElementById('build-field').hidden = !allowed;
+  if (!allowed && select.value) select.value = '';
   syncBuildPreview();
 }
 
@@ -147,7 +160,7 @@ function buildPayload() {
     survivor: null,
     escaped: null,
     faced_killer: null,
-    build_id: document.getElementById('f-build').value || null,
+    build_id: supportsBuilds(mode) ? (document.getElementById('f-build').value || null) : null,
   };
 
   if (role === 'killer') {
@@ -223,7 +236,7 @@ function startEdit(id) {
 
   syncPortrait(match.role);
   document.getElementById('f-build').value = match.build_id ?? '';
-  syncBuildPreview();
+  syncBuildField();
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
   document.getElementById('f-notes').value = match.notes ?? '';
   setBloodpoints(match.bloodpoints ?? 0);
@@ -263,7 +276,14 @@ async function handleSubmit(event) {
 
 // ------------------------------------------------------------------ Render --
 
-const outcomeIcon = (escaped) => iconHtml(escaped ? 'escape' : 'sacrificed');
+/* Als Survivor sagt das Icon alles – der Text daneben wäre nur Platz weg. */
+const outcomePill = (escaped) => {
+  const label = escaped ? 'Entkommen' : 'Gestorben';
+  // Der Haken bzw. das Kreuz springt ein, falls das Icon nicht lädt.
+  const icon = escaped ? iconHtml('escape', '\u2713') : iconHtml('sacrificed', '\u2715');
+  return `<span class="pill pill--icon ${escaped ? 'pill--good' : 'pill--bad'}" title="${label}">`
+    + `${icon}<span class="sr-only">${label}</span></span>`;
+};
 
 function renderKpis() {
   const s = aggregate(matches);
@@ -300,7 +320,7 @@ function renderRecent() {
   body.innerHTML = matches.slice(0, 15).map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${m.kills}">${m.kills}K</span>`
-      : `<span class="pill ${m.escaped ? 'pill--good' : 'pill--bad'}">${outcomeIcon(m.escaped)}${m.escaped ? 'Entkommen' : 'Gestorben'}</span>`;
+      : outcomePill(m.escaped);
     const character = m.killer ?? m.survivor;
     const buildName = builds.find((b) => b.id === m.build_id)?.name;
     const sub = [
@@ -490,6 +510,7 @@ function initForm() {
     syncPortrait(field, role);
   }
 
+  document.getElementById('f-mode').addEventListener('change', syncBuildField);
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
   document.getElementById('f-build').addEventListener('change', syncBuildPreview);

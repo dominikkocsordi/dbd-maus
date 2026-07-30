@@ -1,9 +1,9 @@
-import { supabase } from './supabase.js?v=18';
-import { initAuth } from './auth.js?v=18';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=18';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=18';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=18';
-import { escapeHtml, fmtNumber, toast } from './utils.js?v=18';
+import { supabase } from './supabase.js?v=19';
+import { initAuth } from './auth.js?v=19';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=19';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=19';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=19';
+import { escapeHtml, fmtNumber, toast } from './utils.js?v=19';
 
 const MAX_PERKS = 4;
 
@@ -237,6 +237,52 @@ async function deleteBuild(id) {
   await loadBuilds();
 }
 
+/**
+ * Builds nach Charakter bündeln: erst die Killer, dann die Survivor, jeweils
+ * alphabetisch. Builds ohne Charakter landen am Ende ihrer Rolle.
+ */
+function buildGroups() {
+  const groups = new Map();
+
+  for (const b of builds) {
+    const key = `${b.role}|${b.character ?? ''}`;
+    if (!groups.has(key)) {
+      groups.set(key, { role: b.role, character: b.character ?? null, items: [] });
+    }
+    groups.get(key).items.push(b);
+  }
+
+  const label = (g) => (g.character ? labelFor(g.role, g.character) : '');
+
+  return [...groups.values()]
+    .map((g) => ({ ...g, items: [...g.items].sort((a, b) => a.name.localeCompare(b.name, 'de')) }))
+    .sort((a, b) => {
+      if (a.role !== b.role) return a.role === 'killer' ? -1 : 1;
+      if (!a.character !== !b.character) return a.character ? -1 : 1;   // ohne Charakter zuletzt
+      return label(a).localeCompare(label(b), 'de');
+    });
+}
+
+function buildCardHtml(b) {
+  const perks = b.perks ?? [];
+  return `
+    <article class="build-card build-card--${b.role}">
+      <header class="build-card__head">
+        <span class="build-card__text">
+          <span class="build-card__name">${escapeHtml(b.name)}</span>
+          <span class="build-card__meta">${fmtNumber(perks.length)} ${perks.length === 1 ? 'Perk' : 'Perks'}</span>
+        </span>
+        <span class="row-actions">
+          <button type="button" class="icon-btn" data-edit-build="${b.id}" title="Bearbeiten" aria-label="Build bearbeiten">&#9998;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-delete-build="${b.id}" title="Löschen" aria-label="Build löschen">&#10005;</button>
+        </span>
+      </header>
+      <div class="build-card__perks">
+        ${perks.map((f) => perkIconHtml(f, perkName(f))).join('')}
+      </div>
+    </article>`;
+}
+
 function renderBuilds() {
   const list = document.getElementById('build-list');
   document.getElementById('build-count').textContent = builds.length ? fmtNumber(builds.length) : '';
@@ -246,23 +292,20 @@ function renderBuilds() {
     return;
   }
 
-  list.innerHTML = builds.map((b) => `
-    <article class="build-card build-card--${b.role}">
-      <header class="build-card__head">
-        ${b.character ? avatarHtml(b.role, b.character, labelFor(b.role, b.character)) : ''}
-        <span class="build-card__text">
-          <span class="build-card__name">${escapeHtml(b.name)}</span>
-          <span class="build-card__meta">${b.role === 'killer' ? 'Killer' : 'Survivor'}${b.character ? ` · ${escapeHtml(labelFor(b.role, b.character))}` : ''}</span>
+  list.innerHTML = buildGroups().map((g) => `
+    <section class="build-group build-group--${g.role}">
+      <header class="build-group__head">
+        ${g.character
+          ? avatarHtml(g.role, g.character, labelFor(g.role, g.character))
+          : `<span class="avatar avatar--${g.role}"><span class="avatar__fallback">&#8211;</span></span>`}
+        <span class="build-group__text">
+          <span class="build-group__name">${escapeHtml(g.character ? labelFor(g.role, g.character) : 'Ohne Charakter')}</span>
+          <span class="build-group__role">${g.role === 'killer' ? 'Killer' : 'Survivor'}</span>
         </span>
-        <span class="row-actions">
-          <button type="button" class="icon-btn" data-edit-build="${b.id}" title="Bearbeiten" aria-label="Build bearbeiten">&#9998;</button>
-          <button type="button" class="icon-btn icon-btn--danger" data-delete-build="${b.id}" title="Löschen" aria-label="Build löschen">&#10005;</button>
-        </span>
+        <span class="build-group__count">${fmtNumber(g.items.length)}</span>
       </header>
-      <div class="build-card__perks">
-        ${(b.perks ?? []).map((f) => perkIconHtml(f, perkName(f))).join('')}
-      </div>
-    </article>`).join('');
+      <div class="build-list">${g.items.map(buildCardHtml).join('')}</div>
+    </section>`).join('');
 
   list.querySelectorAll('[data-edit-build]').forEach((btn) => {
     btn.addEventListener('click', () => startEditBuild(btn.dataset.editBuild));

@@ -930,8 +930,16 @@ option { background: var(--surface-2); color: var(--text); }
   border-radius: 12px;
 }
 
-/* Bis zu neun Stufen (2v8): feste Fünferreihen statt ungleich breiter Umbrüche. */
-.segmented--kills { display: grid; grid-template-columns: repeat(5, 1fr); }
+/*
+  Kill-Auswahl: bis zu neun Stufen (2v8) in festen Reihen. Vier Spalten,
+  damit in jede Schaltfläche vier Totenköpfe nebeneinander passen.
+*/
+.segmented--kills { display: grid; grid-template-columns: repeat(4, 1fr); }
+.segmented--kills .segmented__opt > span { padding: 0.45rem 0.2rem; min-height: 2.1rem; }
+.segmented--kills .kills { max-width: none; justify-content: center; gap: 0.12rem; }
+.segmented--kills .kills .icon { width: 0.95rem; height: 0.95rem; filter: none; }
+.segmented--kills .kills .icon__fallback { font-size: 0.8rem; }
+.segmented--kills .kills--none { color: inherit; }
 
 .segmented__opt { flex: 1 1 auto; position: relative; cursor: pointer; min-width: 0; }
 .segmented__opt input { position: absolute; opacity: 0; pointer-events: none; }

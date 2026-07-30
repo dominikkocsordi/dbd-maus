@@ -1,12 +1,12 @@
-import { supabase } from './supabase.js?v=23';
-import { initAuth } from './auth.js?v=23';
-import { initPasskeyPanel } from './passkeys.js?v=23';
-import { avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=23';
-import { perkName } from './perks.js?v=23';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=23';
+import { supabase } from './supabase.js?v=24';
+import { initAuth } from './auth.js?v=24';
+import { initPasskeyPanel } from './passkeys.js?v=24';
+import { avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=24';
+import { perkName } from './perks.js?v=24';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor, maxKills, supportsBuilds } from './data.js?v=24';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, parseNumber, toast,
-} from './utils.js?v=23';
+} from './utils.js?v=24';
 
 const BP_MAX = 2000000;
 const SLIDER_MAX = 1000000;
@@ -67,9 +67,10 @@ function syncKillsOptions() {
 
   const previous = Number(container.querySelector('input:checked')?.value ?? 0);
   container.dataset.max = String(max);
+  // Ein Totenkopf je Kill statt "3K"; ohne Kill bleibt der Gedankenstrich.
   container.innerHTML = Array.from({ length: max + 1 }, (_, k) => `
     <label class="segmented__opt">
-      <input type="radio" name="kills" value="${k}"><span>${k}K</span>
+      <input type="radio" name="kills" value="${k}"><span>${killMarksHtml(k)}</span>
     </label>`).join('');
 
   container.querySelector(`input[value="${Math.min(previous, max)}"]`).checked = true;

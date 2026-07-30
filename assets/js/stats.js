@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=23';
-import { initAuth } from './auth.js?v=23';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=23';
+import { supabase } from './supabase.js?v=24';
+import { initAuth } from './auth.js?v=24';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=24';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, toast,
-} from './utils.js?v=23';
-import { characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml } from './images.js?v=23';
+} from './utils.js?v=24';
+import { characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml } from './images.js?v=24';
 
 const PAGE_SIZE = 30;
 

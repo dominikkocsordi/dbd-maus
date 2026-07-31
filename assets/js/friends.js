@@ -3,10 +3,10 @@
   Geteilt werden nur die Summen aus friend_stats() – einzelne Matches, Notizen
   und Builds bleiben privat.
 */
-import { supabase } from './supabase.js?v=32';
-import { initAuth } from './auth.js?v=32';
-import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=32';
-import { createSorter } from './table-sort.js?v=32';
+import { supabase } from './supabase.js?v=33';
+import { initAuth } from './auth.js?v=33';
+import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=33';
+import { createSorter } from './table-sort.js?v=33';
 
 /** Womit sich vergleichen lässt; `value` liefert die Zahl, `format` den Text. */
 const METRICS = [

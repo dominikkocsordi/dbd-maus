@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=32';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=33';
 
 export const PERK_BUCKET = 'perks';
 
@@ -246,7 +246,7 @@ export const PERKS = [
   { file: 'ReactiveHealing.png', name: "Reactive Healing", role: 'survivor', owner: 'ada_wong' },
   { file: 'Reassurance.png', name: "Reassurance", role: 'survivor', owner: 'rebecca_chambers' },
   { file: 'RedHerring.png', name: "Red Herring", role: 'survivor', owner: 'zarina_kassir' },
-  { file: 'RememberMe.png', name: "Remember Me", role: 'killer', owner: 'nightmare' },
+  { file: 'iconPerks_RememberMe.png', name: "Remember Me", role: 'killer', owner: 'nightmare' },
   { file: 'RepressedAlliance.png', name: "Repressed Alliance", role: 'survivor', owner: 'cheryl_mason' },
   { file: 'ResidualManifest.png', name: "Residual Manifest", role: 'survivor', owner: 'haddie_kaur' },
   { file: 'Resilience.png', name: "Resilience", role: 'survivor', general: true },

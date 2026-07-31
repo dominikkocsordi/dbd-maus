@@ -6,7 +6,7 @@
   <title>DBD Stats – Freunde</title>
   <meta name="description" content="Freunde über den Freundescode hinzufügen und Kennzahlen vergleichen.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=31">
+  <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -146,19 +146,19 @@
               <span class="panel__meta" id="table-meta"></span>
             </header>
             <div class="table-wrap">
-              <table class="table" id="compare-table">
+              <table class="table table--sortable" id="compare-table">
                 <thead>
                   <tr>
-                    <th>Wer</th>
-                    <th class="num">Matches</th>
-                    <th class="num">Kill-Rate</th>
-                    <th class="num">Escape-Rate</th>
-                    <th class="num">Kills</th>
-                    <th class="num">Escapes</th>
-                    <th class="num">Alle Kills</th>
-                    <th class="num">BP</th>
-                    <th class="num">Ø BP</th>
-                    <th>Zuletzt</th>
+                    <th><button type="button" class="th-sort" data-sort="name">Wer</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="matches">Matches</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="killrate">Kill-Rate</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="escaperate">Escape-Rate</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="kills">Kills</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="escapes">Escapes</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="merciless">Alle Kills</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="bp">BP</button></th>
+                    <th class="num"><button type="button" class="th-sort" data-sort="bpavg">Ø BP</button></th>
+                    <th><button type="button" class="th-sort" data-sort="last">Zuletzt</button></th>
                     <th class="num"></th>
                   </tr>
                 </thead>
@@ -172,6 +172,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/friends.js?v=31"></script>
+  <script type="module" src="assets/js/friends.js?v=32"></script>
 </body>
 </html>

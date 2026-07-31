@@ -7,7 +7,7 @@
   <meta name="description" content="Ticket-Cockpit der Besitzerrolle: alle Bugs und Wünsche auf einem Board.">
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=31">
+  <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 <body data-feedback="off">
   <div class="glow" aria-hidden="true"></div>
@@ -149,14 +149,14 @@
             <span class="panel__meta" id="list-count"></span>
           </header>
           <div class="table-wrap">
-            <table class="table">
+            <table class="table table--sortable" id="list-table">
               <thead>
                 <tr>
-                  <th>Ticket</th>
-                  <th>Melder</th>
-                  <th>Priorität</th>
-                  <th>Status</th>
-                  <th>Gemeldet</th>
+                  <th><button type="button" class="th-sort" data-sort="title">Ticket</button></th>
+                  <th><button type="button" class="th-sort" data-sort="reporter">Melder</button></th>
+                  <th><button type="button" class="th-sort" data-sort="priority">Priorität</button></th>
+                  <th><button type="button" class="th-sort" data-sort="status">Status</button></th>
+                  <th><button type="button" class="th-sort" data-sort="created">Gemeldet</button></th>
                 </tr>
               </thead>
               <tbody id="list-body"></tbody>
@@ -207,6 +207,6 @@
     </aside>
   </div>
 
-  <script type="module" src="assets/js/cockpit.js?v=31"></script>
+  <script type="module" src="assets/js/cockpit.js?v=32"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=31';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=32';
 
 export const PERK_BUCKET = 'perks';
 

@@ -6,7 +6,7 @@
   <title>DBD Stats – Übersicht</title>
   <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=31">
+  <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -247,13 +247,13 @@
             <h2>Letzte Matches</h2>
           </header>
           <div class="table-wrap">
-            <table class="table" id="recent-table">
+            <table class="table table--sortable" id="recent-table">
               <thead>
                 <tr>
-                  <th>Datum</th>
-                  <th>Charakter</th>
-                  <th>Ergebnis</th>
-                  <th class="num">BP</th>
+                  <th><button type="button" class="th-sort" data-sort="date">Datum</button></th>
+                  <th><button type="button" class="th-sort" data-sort="character">Charakter</button></th>
+                  <th><button type="button" class="th-sort" data-sort="result">Ergebnis</button></th>
+                  <th class="num"><button type="button" class="th-sort" data-sort="bp">BP</button></th>
                   <th class="num"></th>
                 </tr>
               </thead>
@@ -303,6 +303,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/index.js?v=31"></script>
+  <script type="module" src="assets/js/index.js?v=32"></script>
 </body>
 </html>

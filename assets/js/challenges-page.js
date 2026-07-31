@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=31';
-import { initAuth } from './auth.js?v=31';
-import { CHALLENGES } from './challenges.js?v=31';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=31';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=31';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=31';
-import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=31';
+import { supabase } from './supabase.js?v=32';
+import { initAuth } from './auth.js?v=32';
+import { CHALLENGES } from './challenges.js?v=32';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=32';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=32';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=32';
+import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=32';
 
 const PERKS_PER_BUILD = 4;
 

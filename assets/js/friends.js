@@ -3,9 +3,10 @@
   Geteilt werden nur die Summen aus friend_stats() – einzelne Matches, Notizen
   und Builds bleiben privat.
 */
-import { supabase } from './supabase.js?v=31';
-import { initAuth } from './auth.js?v=31';
-import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=31';
+import { supabase } from './supabase.js?v=32';
+import { initAuth } from './auth.js?v=32';
+import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=32';
+import { createSorter } from './table-sort.js?v=32';
 
 /** Womit sich vergleichen lässt; `value` liefert die Zahl, `format` den Text. */
 const METRICS = [
@@ -221,6 +222,20 @@ function renderBars() {
     </div>`).join('');
 }
 
+/* Wonach sich die Vergleichstabelle sortieren lässt. */
+const COMPARE_VALUES = {
+  name: (r) => personName(r),
+  last: (r) => (r.last_played ? new Date(r.last_played).getTime() : null),
+  ...Object.fromEntries(METRICS.map((m) => [m.key, m.value])),
+};
+
+const compareSorter = createSorter({
+  table: '#compare-table',
+  values: COMPARE_VALUES,
+  initial: 'matches',
+  onChange: () => renderTable(),
+});
+
 function renderTable() {
   const panel = $('#table-panel');
   panel.hidden = rows.length < 2;
@@ -244,8 +259,7 @@ function renderTable() {
   const order = ['matches', 'killrate', 'escaperate', 'kills', 'escapes', 'merciless', 'bp', 'bpavg']
     .map((key) => METRICS.find((m) => m.key === key));
 
-  $('#compare-body').innerHTML = [...rows]
-    .sort((a, b) => Number(b.is_self) - Number(a.is_self) || b.matches_total - a.matches_total)
+  $('#compare-body').innerHTML = compareSorter.apply(rows)
     .map((row) => `
       <tr${row.is_self ? ' class="is-self"' : ''}>
         <td data-label="Wer">

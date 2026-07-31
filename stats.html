@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=31">
+  <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -148,23 +148,7 @@
       <section class="panel">
         <header class="panel__head panel__head--row">
           <h2>Nach Charakter</h2>
-          <!-- Auf dem Handy sind die Spaltenköpfe ausgeblendet – deshalb hier
-               zusätzlich zur Klick-Sortierung eine Auswahl. -->
-          <div class="sort-control">
-            <label class="sr-only" for="ch-sort">Sortieren nach</label>
-            <select id="ch-sort">
-              <option value="character">Charakter</option>
-              <option value="matches" selected>Matches</option>
-              <option value="hits">Kills / Escapes</option>
-              <option value="quote">Quote</option>
-              <option value="streak">Serie</option>
-              <option value="best">Beste Serie</option>
-              <option value="bp">Blutpunkte</option>
-              <option value="bpAvg">Ø Blutpunkte</option>
-            </select>
-            <button type="button" class="btn btn--ghost btn--sm" id="ch-sort-dir"
-                    title="Sortierrichtung wechseln" aria-label="Sortierrichtung wechseln">&#9660;</button>
-          </div>
+          <span class="panel__meta">Spaltenkopf antippen zum Sortieren</span>
         </header>
         <div class="table-wrap">
           <table class="table table--sortable" id="character-table">
@@ -194,14 +178,15 @@
           <span class="panel__meta" id="perk-count"></span>
         </header>
         <div class="table-wrap">
-          <table class="table">
+          <table class="table table--sortable" id="perk-table">
             <thead>
               <tr>
-                <th>Perk</th>
-                <th class="num">Matches</th>
-                <th class="num">Kills / Escapes</th>
-                <th class="num">Quote</th>
-                <th class="num">Ø BP</th>
+                <th><button type="button" class="th-sort" data-sort="perk">Perk</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="matches">Matches</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="pickrate">Pick-Rate</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="hits">Kills / Escapes</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="quote">Quote</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="bpAvg">Ø BP</button></th>
               </tr>
             </thead>
             <tbody id="perk-body"></tbody>
@@ -214,15 +199,15 @@
           <h2>Gegen Killer</h2>
         </header>
         <div class="table-wrap">
-          <table class="table">
+          <table class="table table--sortable" id="faced-table">
             <thead>
               <tr>
-                <th>Killer</th>
-                <th class="num">Matches</th>
-                <th class="num">Entkommen</th>
-                <th class="num">Gestorben</th>
-                <th class="num">Escape-Rate</th>
-                <th class="num">Ø BP</th>
+                <th><button type="button" class="th-sort" data-sort="killer">Killer</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="matches">Matches</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="escapes">Entkommen</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="deaths">Gestorben</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="rate">Escape-Rate</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="bpAvg">Ø BP</button></th>
               </tr>
             </thead>
             <tbody id="faced-body"></tbody>
@@ -243,14 +228,14 @@
           <span class="panel__meta" id="match-count"></span>
         </header>
         <div class="table-wrap">
-          <table class="table">
+          <table class="table table--sortable" id="match-table">
             <thead>
               <tr>
-                <th>Datum</th>
-                <th>Charakter</th>
-                <th>Gamemode</th>
-                <th>Ergebnis</th>
-                <th class="num">BP</th>
+                <th><button type="button" class="th-sort" data-sort="date">Datum</button></th>
+                <th><button type="button" class="th-sort" data-sort="character">Charakter</button></th>
+                <th><button type="button" class="th-sort" data-sort="mode">Gamemode</button></th>
+                <th><button type="button" class="th-sort" data-sort="result">Ergebnis</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="bp">BP</button></th>
                 <th>Notiz</th>
                 <th class="num"></th>
               </tr>
@@ -273,6 +258,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=31"></script>
+  <script type="module" src="assets/js/stats.js?v=32"></script>
 </body>
 </html>

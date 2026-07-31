@@ -1,17 +1,18 @@
-import { supabase } from './supabase.js?v=31';
-import { initAuth } from './auth.js?v=31';
-import { initPasskeyPanel } from './passkeys.js?v=31';
+import { supabase } from './supabase.js?v=32';
+import { initAuth } from './auth.js?v=32';
+import { initPasskeyPanel } from './passkeys.js?v=32';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=31';
-import { perkName } from './perks.js?v=31';
+} from './images.js?v=32';
+import { perkName } from './perks.js?v=32';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=31';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=31';
+} from './perk-picker.js?v=32';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=32';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=31';
+} from './utils.js?v=32';
+import { createSorter } from './table-sort.js?v=32';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -359,6 +360,22 @@ function renderKpis() {
     : '';
 }
 
+/* Sortierung der kleinen Liste – sie umfasst immer nur die jüngsten Matches. */
+const RECENT_VALUES = {
+  date: (m) => new Date(m.played_at ?? 0).getTime(),
+  character: (m) => labelFor(m.role, m.killer ?? m.survivor),
+  // Ein gemeinsames Maß für beide Rollen: Anteil des Erfolgs am Möglichen.
+  result: (m) => (m.role === 'killer' ? (m.kills ?? 0) / maxKills(m.game_mode) : Number(Boolean(m.escaped))),
+  bp: (m) => m.bloodpoints,
+};
+
+const recentSorter = createSorter({
+  table: '#recent-table',
+  values: RECENT_VALUES,
+  initial: 'date',
+  onChange: () => renderRecent(),
+});
+
 function renderRecent() {
   const body = document.getElementById('recent-body');
 
@@ -367,7 +384,7 @@ function renderRecent() {
     return;
   }
 
-  body.innerHTML = matches.slice(0, RECENT_LIMIT).map((m) => {
+  body.innerHTML = recentSorter.apply(matches.slice(0, RECENT_LIMIT)).map((m) => {
     const result = m.role === 'killer'
       ? `<span class="pill pill--k${killTier(m.kills, m.game_mode)}">${m.kills}K</span>`
       : outcomeIconHtml(m.escaped);

@@ -3,14 +3,15 @@
   Board vor: eine Spalte je Status, Karten lassen sich per Drag & Drop
   weiterschieben, ein Klick öffnet die Detailansicht mit Antwortfeld.
 */
-import { supabase } from './supabase.js?v=31';
-import { initAuth } from './auth.js?v=31';
-import { isOwner, loadProfile } from './profile.js?v=31';
-import { escapeHtml, fmtDate, fmtDay, fmtNumber, toast } from './utils.js?v=31';
+import { supabase } from './supabase.js?v=32';
+import { initAuth } from './auth.js?v=32';
+import { isOwner, loadProfile } from './profile.js?v=32';
+import { escapeHtml, fmtDate, fmtDay, fmtNumber, toast } from './utils.js?v=32';
 import {
   KIND_GLYPHS, OPEN_STATUS, PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER,
   isClosed, kindBadge, pageLabel, statusBadge,
-} from './tickets-shared.js?v=31';
+} from './tickets-shared.js?v=32';
+import { createSorter } from './table-sort.js?v=32';
 
 const PRIORITY_RANK = { high: 0, normal: 1, low: 2 };
 
@@ -161,8 +162,25 @@ function renderBoard() {
 
 // ------------------------------------------------------------------ Liste --
 
+/* Sortierung der Listenansicht; Gleichstände behalten die Board-Reihenfolge. */
+const LIST_VALUES = {
+  title: (t) => t.title ?? '',
+  reporter: (t) => emailOf(t),
+  priority: (t) => PRIORITY_RANK[t.priority] ?? 1,
+  status: (t) => STATUS_ORDER.indexOf(t.status),
+  created: (t) => new Date(t.created_at ?? 0).getTime(),
+};
+
+const listSorter = createSorter({
+  table: '#list-table',
+  values: LIST_VALUES,
+  initial: 'priority',
+  dir: 'asc',
+  onChange: () => renderList(),
+});
+
 function renderList() {
-  const rows = sortForBoard(filtered());
+  const rows = listSorter.apply(sortForBoard(filtered()));
   $('#list-count').textContent = `${fmtNumber(rows.length)} von ${fmtNumber(tickets.length)}`;
 
   const body = $('#list-body');

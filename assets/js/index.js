@@ -1,17 +1,17 @@
-import { supabase } from './supabase.js?v=30';
-import { initAuth } from './auth.js?v=30';
-import { initPasskeyPanel } from './passkeys.js?v=30';
+import { supabase } from './supabase.js?v=31';
+import { initAuth } from './auth.js?v=31';
+import { initPasskeyPanel } from './passkeys.js?v=31';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=30';
-import { perkName } from './perks.js?v=30';
+} from './images.js?v=31';
+import { perkName } from './perks.js?v=31';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=30';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=30';
+} from './perk-picker.js?v=31';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=31';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=30';
+} from './utils.js?v=31';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -464,24 +464,25 @@ function renderStreaks() {
 
   for (const role of ['killer', 'survivor']) {
     const container = document.getElementById(`streak-${role}`);
+    // Nur laufende Serien: wer sie reisst, verschwindet aus der Liste.
     const rows = byCharacter(scoped, role)
-      .filter((entry) => entry.streak.best > 0)
+      .filter((entry) => entry.streak.current > 0)
       .sort((a, b) => b.streak.current - a.streak.current || b.streak.best - a.streak.best)
       .slice(0, 8);
 
     if (!rows.length) {
-      container.innerHTML = '<p class="empty">Keine Serie</p>';
+      container.innerHTML = '<p class="empty">Keine laufende Serie</p>';
       continue;
     }
 
     container.innerHTML = rows.map(({ id, streak }) => `
-      <article class="streak-card${streak.current > 0 ? ' streak-card--hot' : ''}">
+      <article class="streak-card streak-card--hot">
         ${avatarHtml(role, id, labelFor(role, id), 'avatar--xl')}
         <div class="streak-card__body">
           <span class="streak-card__name">${escapeHtml(labelFor(role, id))}</span>
           <span class="streak-card__meta">Beste ${fmtNumber(streak.best)}</span>
         </div>
-        <span class="streak-card__value">${streak.current > 0 ? `&#128293;${fmtNumber(streak.current)}` : '0'}</span>
+        <span class="streak-card__value">&#128293;${fmtNumber(streak.current)}</span>
       </article>`).join('');
   }
 }

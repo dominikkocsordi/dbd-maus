@@ -3,9 +3,9 @@
   Geteilt werden nur die Summen aus friend_stats() – einzelne Matches, Notizen
   und Builds bleiben privat.
 */
-import { supabase } from './supabase.js?v=30';
-import { initAuth } from './auth.js?v=30';
-import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=30';
+import { supabase } from './supabase.js?v=31';
+import { initAuth } from './auth.js?v=31';
+import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=31';
 
 /** Womit sich vergleichen lässt; `value` liefert die Zahl, `format` den Text. */
 const METRICS = [

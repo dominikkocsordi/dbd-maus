@@ -1,11 +1,11 @@
-import { supabase } from './supabase.js?v=29';
-import { initAuth } from './auth.js?v=29';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=29';
+import { supabase } from './supabase.js?v=30';
+import { initAuth } from './auth.js?v=30';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, labelFor } from './data.js?v=30';
 import {
   aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
-} from './utils.js?v=29';
-import { characterCellHtml, iconHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=29';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=29';
+} from './utils.js?v=30';
+import { characterCellHtml, iconHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=30';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=30';
 
 const PAGE_SIZE = 30;
 

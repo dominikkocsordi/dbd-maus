@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Freunde</title>
+  <meta name="description" content="Freunde über den Freundescode hinzufügen und Kennzahlen vergleichen.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css?v=30">
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html">Übersicht</a>
+      <a href="stats.html">Statistik</a>
+      <a href="perks.html">Perks</a>
+      <a href="challenges.html">Challenges</a>
+      <a href="friends.html" class="is-active">Freunde</a>
+      <a href="cockpit.html" class="is-owner" data-owner-only hidden>&#9670; Cockpit</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+  <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;   // nur wenn wirklich nichts da ist
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;          // fehlende Bilder sind egal
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view" hidden>
+      <div class="hero">
+        <span class="hero__eyebrow">Gemeinsam tracken</span>
+        <h1 class="hero__title">Freunde</h1>
+        <span class="hero__meta" id="friends-meta"></span>
+      </div>
+
+      <div class="columns">
+        <div class="stack">
+          <!-- Eigener Code und Anzeigename -->
+          <section class="panel">
+            <header class="panel__head">
+              <h2>Dein Freundescode</h2>
+            </header>
+
+            <div class="code-box">
+              <span class="code-box__value" id="my-code">–&nbsp;–&nbsp;–</span>
+              <button type="button" class="btn btn--ghost btn--sm" id="copy-code">Kopieren</button>
+            </div>
+            <p class="field__hint">Gib den Code weiter, damit dich jemand hinzufügen kann.</p>
+
+            <label class="field">
+              <span class="field__label">Anzeigename <em>optional</em></span>
+              <span class="select-row">
+                <input type="text" id="display-name" maxlength="24" placeholder="Wie du im Vergleich heißt">
+                <button type="button" class="btn btn--ghost btn--sm" id="save-name">Speichern</button>
+              </span>
+            </label>
+            <p class="form-hint" id="name-hint"></p>
+          </section>
+
+          <!-- Freund hinzufügen -->
+          <section class="panel">
+            <header class="panel__head">
+              <h2>Freund hinzufügen</h2>
+            </header>
+
+            <form id="add-form" novalidate>
+              <label class="field">
+                <span class="field__label">Freundescode</span>
+                <input type="text" id="friend-code" maxlength="10" placeholder="z. B. 3F9A7C21"
+                       autocomplete="off" spellcheck="false">
+              </label>
+              <button type="submit" class="btn btn--primary btn--block" id="add-submit">Anfrage senden</button>
+              <p class="form-hint" id="add-hint"></p>
+            </form>
+          </section>
+
+          <!-- Offene Anfragen -->
+          <section class="panel" id="request-panel" hidden>
+            <header class="panel__head panel__head--row">
+              <h2>Anfragen</h2>
+              <span class="panel__meta" id="request-count"></span>
+            </header>
+            <div id="request-list" class="friend-list"></div>
+          </section>
+        </div>
+
+        <div class="stack">
+          <!-- Vergleich -->
+          <section class="panel">
+            <header class="panel__head panel__head--row">
+              <h2>Vergleich</h2>
+              <div class="sort-control">
+                <label class="sr-only" for="metric">Kennzahl</label>
+                <select id="metric"></select>
+              </div>
+            </header>
+
+            <div id="compare-bars" class="bars"></div>
+            <p class="empty" id="compare-empty" hidden>
+              Noch keine Freunde – teile deinen Code oder trage links einen ein.
+            </p>
+          </section>
+
+          <section class="panel" id="table-panel" hidden>
+            <header class="panel__head panel__head--row">
+              <h2>Alle Kennzahlen</h2>
+              <span class="panel__meta" id="table-meta"></span>
+            </header>
+            <div class="table-wrap">
+              <table class="table" id="compare-table">
+                <thead>
+                  <tr>
+                    <th>Wer</th>
+                    <th class="num">Matches</th>
+                    <th class="num">Kill-Rate</th>
+                    <th class="num">Escape-Rate</th>
+                    <th class="num">Kills</th>
+                    <th class="num">Escapes</th>
+                    <th class="num">Alle Kills</th>
+                    <th class="num">BP</th>
+                    <th class="num">Ø BP</th>
+                    <th>Zuletzt</th>
+                    <th class="num"></th>
+                  </tr>
+                </thead>
+                <tbody id="compare-body"></tbody>
+              </table>
+            </div>
+            <p class="field__hint">Der beste Wert je Spalte ist hervorgehoben.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/friends.js?v=30"></script>
+</body>
+</html>

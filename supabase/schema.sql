@@ -468,3 +468,291 @@ from public.matches m
 group by m.user_id;
 
 grant select on public.my_stats to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 10) Freunde: Code, Freundschaften und geteilte Kennzahlen
+--
+--     Geteilt werden ausschließlich die Summen aus friend_stats() – die
+--     einzelnen Matches samt Notizen bleiben privat.
+-- ---------------------------------------------------------------------------
+alter table public.profiles add column if not exists friend_code text;
+alter table public.profiles add column if not exists display_name text
+  check (display_name is null or char_length(trim(display_name)) between 2 and 24);
+
+create unique index if not exists profiles_friend_code_idx on public.profiles (friend_code);
+
+comment on column public.profiles.friend_code  is 'Achtstelliger Code zum Hinzufügen als Freund';
+comment on column public.profiles.display_name is 'Optionaler Name für den Freundesvergleich';
+
+-- Acht Hex-Stellen: keine Verwechslung zwischen O/0 oder I/1 möglich.
+create or replace function public.profiles_set_friend_code()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  while new.friend_code is null loop
+    new.friend_code := upper(substr(md5(gen_random_uuid()::text), 1, 8));
+    if exists (select 1 from public.profiles p where p.friend_code = new.friend_code) then
+      new.friend_code := null;
+    end if;
+  end loop;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_friend_code on public.profiles;
+create trigger profiles_friend_code
+  before insert on public.profiles
+  for each row execute function public.profiles_set_friend_code();
+
+-- Bestehende Profile nachträglich mit einem Code versehen
+do $$
+declare
+  target uuid;
+  code text;
+begin
+  for target in select user_id from public.profiles where friend_code is null loop
+    loop
+      code := upper(substr(md5(gen_random_uuid()::text), 1, 8));
+      exit when not exists (select 1 from public.profiles p where p.friend_code = code);
+    end loop;
+    update public.profiles set friend_code = code where user_id = target;
+  end loop;
+end;
+$$;
+
+/*
+  Den eigenen Anzeigenamen darf jeder setzen; die Rolle bleibt der
+  Besitzerrolle vorbehalten (sonst könnte sich jeder selbst befördern).
+*/
+drop policy if exists "profiles_update_self" on public.profiles;
+create policy "profiles_update_self" on public.profiles for update
+  to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create or replace function public.profiles_guard_role()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.role is distinct from old.role and not public.is_owner() then
+    raise exception 'Die Rolle ändert nur die Besitzerrolle.';
+  end if;
+  if new.friend_code is distinct from old.friend_code then
+    raise exception 'Der Freundescode bleibt, wie er ist.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_guard_role on public.profiles;
+create trigger profiles_guard_role
+  before update on public.profiles
+  for each row execute function public.profiles_guard_role();
+
+-- ---------------------------------------------------------------------------
+create table if not exists public.friendships (
+  id           uuid primary key default gen_random_uuid(),
+  requester    uuid not null references auth.users (id) on delete cascade,
+  addressee    uuid not null references auth.users (id) on delete cascade,
+  status       text not null default 'pending' check (status in ('pending', 'accepted')),
+  created_at   timestamptz not null default now(),
+  responded_at timestamptz,
+  constraint friendships_not_self check (requester <> addressee)
+);
+
+comment on table public.friendships is 'Freundschaftsanfragen und bestätigte Freundschaften';
+
+-- Ein Paar nur einmal, egal wer angefragt hat
+create unique index if not exists friendships_pair_idx on public.friendships
+  (least(requester, addressee), greatest(requester, addressee));
+
+create index if not exists friendships_addressee_idx on public.friendships (addressee, status);
+
+alter table public.friendships enable row level security;
+
+drop policy if exists "friendships_select" on public.friendships;
+create policy "friendships_select" on public.friendships for select
+  to authenticated using (auth.uid() in (requester, addressee));
+
+-- Anfragen laufen über add_friend(); direkt einfügen darf man nur für sich selbst.
+drop policy if exists "friendships_insert" on public.friendships;
+create policy "friendships_insert" on public.friendships for insert
+  to authenticated with check (auth.uid() = requester and status = 'pending');
+
+-- Annehmen darf nur, wer gefragt wurde
+drop policy if exists "friendships_accept" on public.friendships;
+create policy "friendships_accept" on public.friendships for update
+  to authenticated
+  using (auth.uid() = addressee and status = 'pending')
+  with check (auth.uid() = addressee and status = 'accepted');
+
+-- Ablehnen, zurückziehen und entfreunden ist dasselbe: die Zeile fällt weg.
+drop policy if exists "friendships_delete" on public.friendships;
+create policy "friendships_delete" on public.friendships for delete
+  to authenticated using (auth.uid() in (requester, addressee));
+
+create or replace function public.friendships_touch()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.status = 'accepted' and old.status is distinct from 'accepted' then
+    new.responded_at = now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists friendships_touch on public.friendships;
+create trigger friendships_touch
+  before update on public.friendships
+  for each row execute function public.friendships_touch();
+
+/*
+  Hinzufügen per Code. Läuft als security definer, weil der Code sonst auf
+  fremde Profilzeilen zugreifen müsste. Rückgabe ist ein kurzer Status, den
+  die App in eine Meldung übersetzt.
+*/
+create or replace function public.add_friend(code text)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  wanted   text := upper(regexp_replace(coalesce(code, ''), '[^0-9A-Za-z]', '', 'g'));
+  target   uuid;
+  existing public.friendships%rowtype;
+begin
+  if auth.uid() is null then return 'unauthorized'; end if;
+  if length(wanted) <> 8 then return 'unknown'; end if;
+
+  select p.user_id into target from public.profiles p where p.friend_code = wanted;
+  if target is null then return 'unknown'; end if;
+  if target = auth.uid() then return 'self'; end if;
+
+  select * into existing from public.friendships f
+   where least(f.requester, f.addressee) = least(auth.uid(), target)
+     and greatest(f.requester, f.addressee) = greatest(auth.uid(), target);
+
+  if found then
+    if existing.status = 'accepted' then return 'already'; end if;
+    -- Die Gegenseite hat schon angefragt: dann ist das hier die Zusage.
+    if existing.addressee = auth.uid() then
+      update public.friendships
+         set status = 'accepted', responded_at = now()
+       where id = existing.id;
+      return 'accepted';
+    end if;
+    return 'pending';
+  end if;
+
+  insert into public.friendships (requester, addressee) values (auth.uid(), target);
+  return 'requested';
+end;
+$$;
+
+grant execute on function public.add_friend(text) to authenticated;
+
+/*
+  Offene Anfragen in beide Richtungen, mit Namen der Gegenseite.
+*/
+create or replace function public.friend_requests()
+returns table (
+  request_id   uuid,
+  direction    text,
+  other_id     uuid,
+  other_name   text,
+  other_email  text,
+  asked_at     timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    f.id,
+    case when f.requester = auth.uid() then 'out' else 'in' end,
+    p.user_id,
+    p.display_name,
+    p.email,
+    f.created_at
+  from public.friendships f
+  join public.profiles p
+    on p.user_id = case when f.requester = auth.uid() then f.addressee else f.requester end
+  where f.status = 'pending'
+    and auth.uid() in (f.requester, f.addressee)
+  order by f.created_at desc;
+$$;
+
+grant execute on function public.friend_requests() to authenticated;
+
+/*
+  Kennzahlen für den Vergleich: die eigenen und die aller bestätigten Freunde.
+  Nur Summen – einzelne Matches, Notizen und Builds bleiben privat.
+*/
+create or replace function public.friend_stats()
+returns table (
+  person_id        uuid,
+  link_id          uuid,
+  person_name      text,
+  person_email     text,
+  person_code      text,
+  is_self          boolean,
+  matches_total    bigint,
+  killer_total     bigint,
+  survivor_total   bigint,
+  kills_total      bigint,
+  kill_slots       bigint,
+  merciless_total  bigint,
+  escapes_total    bigint,
+  bloodpoints_total bigint,
+  last_played      timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with circle as (
+    select auth.uid() as person, null::uuid as link
+    union all
+    select case when f.requester = auth.uid() then f.addressee else f.requester end, f.id
+      from public.friendships f
+     where f.status = 'accepted'
+       and auth.uid() in (f.requester, f.addressee)
+  )
+  select
+    c.person,
+    c.link,
+    p.display_name,
+    p.email,
+    case when c.person = auth.uid() then p.friend_code end,
+    c.person = auth.uid(),
+    count(m.id),
+    count(m.id) filter (where m.role = 'killer'),
+    count(m.id) filter (where m.role = 'survivor'),
+    coalesce(sum(m.kills), 0),
+    coalesce(sum(case when m.role = 'killer' and m.game_mode = '2v8' then 8
+                      when m.role = 'killer' then 4 else 0 end), 0),
+    count(m.id) filter (
+      where m.role = 'killer'
+        and m.kills = case when m.game_mode = '2v8' then 8 else 4 end
+    ),
+    count(m.id) filter (where m.role = 'survivor' and m.escaped),
+    coalesce(sum(m.bloodpoints), 0),
+    max(m.played_at)
+  from circle c
+  join public.profiles p on p.user_id = c.person
+  left join public.matches m on m.user_id = c.person
+  group by c.person, c.link, p.display_name, p.email, p.friend_code;
+$$;
+
+grant execute on function public.friend_stats() to authenticated;

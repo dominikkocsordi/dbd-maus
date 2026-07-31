@@ -4,22 +4,32 @@
   allgemeinen und zuletzt der Rest. Schon belegte Perks sind in den anderen
   Plätzen ausgegraut. Alles bleibt optional – leer heißt einfach "nichts".
 */
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=27';
-import { perkIconHtml } from './images.js?v=27';
-import { escapeHtml } from './utils.js?v=27';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=28';
+import { perkIconHtml } from './images.js?v=28';
+import { escapeHtml } from './utils.js?v=28';
 
 const SLOT_COUNT = 4;
 
 let slots = Array(SLOT_COUNT).fill(null);
 let role = 'killer';
 let character = null;
+let term = '';
 let notify = () => {};
 
 const container = () => document.getElementById('f-perks');
 
-/** Perks der aktuellen Rolle, gebündelt für die <optgroup>-Blöcke. */
-function groupedPerks() {
-  const list = PERKS.filter((p) => p.role === role);
+/** Perks der aktuellen Rolle, gefiltert und gebündelt für die <optgroup>-Blöcke. */
+function groupedPerks(chosen) {
+  const needle = term.trim().toLowerCase();
+
+  const list = PERKS.filter((p) => {
+    if (p.role !== role) return false;
+    // Der gewählte Perk bleibt immer im Menü, sonst wäre er beim Filtern weg.
+    if (!needle || p.file === chosen) return true;
+
+    const owner = (perkOwnerLabel(p) ?? '').toLowerCase();
+    return p.name.toLowerCase().includes(needle) || owner.includes(needle);
+  });
   const byName = (a, b) => a.name.localeCompare(b.name, 'de');
 
   const own = character ? list.filter((p) => p.owner === character).sort(byName) : [];
@@ -36,8 +46,11 @@ function groupedPerks() {
 function optionsHtml(index) {
   const chosen = slots[index];
 
+  const groups = groupedPerks(chosen);
+  if (!groups.length) return '<option value="">Kein Perk passt zur Suche</option>';
+
   return `<option value="">Perk ${index + 1} wählen …</option>`
-    + groupedPerks().map(({ label, perks }) => `
+    + groups.map(({ label, perks }) => `
       <optgroup label="${escapeHtml(label)}">
         ${perks.map((p) => {
     // In einem anderen Platz belegte Perks lassen sich nicht doppelt wählen.
@@ -87,6 +100,13 @@ function render() {
 
 export function initPerkPicker(onChange = () => {}) {
   notify = onChange;
+
+  const search = document.getElementById('f-perk-search');
+  search.addEventListener('input', () => {
+    term = search.value;
+    render();
+  });
+
   render();
 }
 
@@ -118,5 +138,9 @@ export function setPerkCharacter(id) {
 
 export function clearPerks() {
   slots = Array(SLOT_COUNT).fill(null);
+  term = '';
+
+  const search = document.getElementById('f-perk-search');
+  if (search) search.value = '';
   render();
 }

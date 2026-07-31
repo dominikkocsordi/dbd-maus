@@ -445,6 +445,7 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
 .perk-card__meta--open { color: rgba(242, 96, 122, 0.75); }
 
 /* ------------------------------------------------------ Perks am Match -- */
+.perk-search { margin-bottom: 0.45rem; font-size: 0.86rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
 .perk-picks { display: grid; gap: 0.4rem; }
 
 .perk-pick {
@@ -1055,6 +1056,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="datetime-local"],
+input[type="search"],
 select {
   width: 100%;
   padding: 0.65rem 0.8rem;

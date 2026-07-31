@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=27';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=28';
 
 export const PERK_BUCKET = 'perks';
 
@@ -180,7 +180,6 @@ export const PERKS = [
   { file: 'IronGrasp.png', name: "Iron Grasp", role: 'killer', general: true },
   { file: 'IronMaiden.png', name: "Iron Maiden", role: 'killer', owner: 'legion' },
   { file: 'IronWill.png', name: "Iron Will", role: 'survivor', owner: 'jake_park' },
-  { file: 'Surge.png', name: "Jolt", role: 'killer', owner: 'demogorgon' },
   { file: 'Kindred.png', name: "Kindred", role: 'survivor', general: true },
   { file: 'KnockOut.png', name: "Knock Out", role: 'killer', owner: 'cannibal' },
   { file: 'LanguidTouch.png', name: "Languid Touch", role: 'killer', owner: 'lich' },
@@ -197,6 +196,7 @@ export const PERKS = [
   { file: 'LowProfile.png', name: "Low Profile", role: 'survivor', owner: 'ada_wong' },
   { file: 'LuckyBreak.png', name: "Lucky Break", role: 'survivor', owner: 'yui_kimura' },
   { file: 'LuckyStar.png', name: "Lucky Star", role: 'survivor', owner: 'ellen_ripley' },
+  { file: 'IconPerks_MachineLearning.png', name: "Machine Learning", role: 'killer', owner: 'singularity' },
   { file: 'MadGrit.png', name: "Mad Grit", role: 'killer', owner: 'legion' },
   { file: 'IconPerks_madeForThis.png', name: "Made for This", role: 'survivor', owner: 'gabriel_soma' },
   { file: 'MakeYourChoice.png', name: "Make Your Choice", role: 'killer', owner: 'pig' },
@@ -293,6 +293,7 @@ export const PERKS = [
   { file: 'StrengthInShadows.png', name: "Strength in Shadows", role: 'survivor', owner: 'sable_ward' },
   { file: 'Stridor.png', name: "Stridor", role: 'killer', owner: 'nurse' },
   { file: 'SuperiorAnatomy.png', name: "Superior Anatomy", role: 'killer', owner: 'mastermind' },
+  { file: 'Surge.png', name: "Surge", role: 'killer', owner: 'demogorgon' },
   { file: 'Surveillance.png', name: "Surveillance", role: 'killer', owner: 'pig' },
   { file: 'TeamworkCollectiveStealth.png', name: "Teamwork: Collective Stealth", role: 'survivor', owner: 'renato_lyra' },
   { file: 'TeamworkFullCircuit.png', name: "Teamwork: Full Circuit", role: 'survivor', owner: 'dustin' },

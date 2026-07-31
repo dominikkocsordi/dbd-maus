@@ -1,17 +1,17 @@
-import { supabase } from './supabase.js?v=28';
-import { initAuth } from './auth.js?v=28';
-import { initPasskeyPanel } from './passkeys.js?v=28';
+import { supabase } from './supabase.js?v=29';
+import { initAuth } from './auth.js?v=29';
+import { initPasskeyPanel } from './passkeys.js?v=29';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=28';
-import { perkName } from './perks.js?v=28';
+} from './images.js?v=29';
+import { perkName } from './perks.js?v=29';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=28';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=28';
+} from './perk-picker.js?v=29';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=29';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=28';
+} from './utils.js?v=29';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -95,16 +95,16 @@ function syncBuildField() {
   syncBuildPreview();
 }
 
-/*
-  In 2v8 gibt es keine Perks, nur Klassen – dort fällt die Auswahl weg. Chaos
-  Shuffle würfelt zwar, aber was man bekommen hat, lässt sich festhalten.
-*/
 /** Perk-Auswahl kennt den gewählten Charakter und sortiert danach vor. */
 function syncPerkCharacter() {
   const role = currentRole();
   setPerkCharacter(document.getElementById(`f-${role}`).value);
 }
 
+/*
+  In 2v8 gibt es keine Perks, nur Klassen – dort fällt die Auswahl weg. Chaos
+  Shuffle würfelt zwar, aber was man bekommen hat, lässt sich festhalten.
+*/
 function syncPerkField() {
   const allowed = hasPerks(document.getElementById('f-mode').value);
   document.getElementById('perk-field').hidden = !allowed;

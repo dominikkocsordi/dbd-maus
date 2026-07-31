@@ -445,14 +445,13 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
 .perk-card__meta--open { color: rgba(242, 96, 122, 0.75); }
 
 /* ------------------------------------------------------ Perks am Match -- */
-.perk-search { margin-bottom: 0.45rem; font-size: 0.86rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
-.perk-picks { display: grid; gap: 0.4rem; }
+.perk-picks { display: grid; gap: 0.5rem; }
 
 .perk-pick {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.3rem 0.35rem 0.3rem 0.3rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.35rem;
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -469,16 +468,24 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
   background: rgba(255, 255, 255, 0.02);
 }
 
+.perk-pick__fields { flex: 1; min-width: 0; display: grid; gap: 0.3rem; }
+
+.perk-pick__search {
+  padding: 0.32rem 0.55rem;
+  font-size: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.perk-pick__search::-webkit-search-cancel-button { filter: invert(0.6); }
+
 .perk-pick__select {
-  flex: 1;
-  min-width: 0;
-  padding: 0.4rem 2rem 0.4rem 0.5rem;
+  padding: 0.38rem 2rem 0.38rem 0.55rem;
   font-size: 0.86rem;
   background-color: transparent;
   border-color: transparent;
 }
 
-.perk-pick__select:focus { box-shadow: none; border-color: transparent; }
+.perk-pick__select:focus { box-shadow: none; border-color: rgba(255, 93, 99, 0.35); }
 .perk-pick .icon-btn { width: 26px; height: 26px; flex: none; }
 
 .field__hint { min-height: 1rem; margin: 0.4rem 0 0; font-size: 0.75rem; color: var(--muted); }

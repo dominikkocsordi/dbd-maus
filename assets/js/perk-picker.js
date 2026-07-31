@@ -4,22 +4,22 @@
   allgemeinen und zuletzt der Rest. Schon belegte Perks sind in den anderen
   Plätzen ausgegraut. Alles bleibt optional – leer heißt einfach "nichts".
 */
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=28';
-import { perkIconHtml } from './images.js?v=28';
-import { escapeHtml } from './utils.js?v=28';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=29';
+import { perkIconHtml } from './images.js?v=29';
+import { escapeHtml } from './utils.js?v=29';
 
 const SLOT_COUNT = 4;
 
 let slots = Array(SLOT_COUNT).fill(null);
+let terms = Array(SLOT_COUNT).fill('');
 let role = 'killer';
 let character = null;
-let term = '';
 let notify = () => {};
 
 const container = () => document.getElementById('f-perks');
 
 /** Perks der aktuellen Rolle, gefiltert und gebündelt für die <optgroup>-Blöcke. */
-function groupedPerks(chosen) {
+function groupedPerks(chosen, term) {
   const needle = term.trim().toLowerCase();
 
   const list = PERKS.filter((p) => {
@@ -45,8 +45,7 @@ function groupedPerks(chosen) {
 
 function optionsHtml(index) {
   const chosen = slots[index];
-
-  const groups = groupedPerks(chosen);
+  const groups = groupedPerks(chosen, terms[index]);
   if (!groups.length) return '<option value="">Kein Perk passt zur Suche</option>';
 
   return `<option value="">Perk ${index + 1} wählen …</option>`
@@ -65,22 +64,39 @@ function render() {
   const root = container();
 
   root.innerHTML = slots.map((file, index) => `
-    <span class="perk-pick${file ? ' is-filled' : ''}">
+    <div class="perk-pick${file ? ' is-filled' : ''}">
       ${file
     ? perkIconHtml(file, perkName(file))
     : '<span class="perk-icon perk-icon--empty" aria-hidden="true"></span>'}
-      <select class="perk-pick__select" data-slot="${index}" aria-label="Perk ${index + 1}">
-        ${optionsHtml(index)}
-      </select>
+      <div class="perk-pick__fields">
+        <label class="sr-only" for="f-perk-search-${index}">Perk ${index + 1} suchen</label>
+        <input type="search" class="perk-pick__search" id="f-perk-search-${index}" data-search="${index}"
+               value="${escapeHtml(terms[index])}" placeholder="Suchen …" autocomplete="off">
+        <select class="perk-pick__select" data-slot="${index}" aria-label="Perk ${index + 1}">
+          ${optionsHtml(index)}
+        </select>
+      </div>
       ${file ? `<button type="button" class="icon-btn icon-btn--danger" data-clear="${index}"
                         title="Perk entfernen" aria-label="${escapeHtml(perkName(file))} entfernen">&#10005;</button>` : ''}
-    </span>`).join('');
+    </div>`).join('');
 
   root.querySelectorAll('[data-slot]').forEach((select) => {
     select.addEventListener('change', () => {
       slots[Number(select.dataset.slot)] = select.value || null;
       render();
       notify();
+    });
+  });
+
+  /*
+    Beim Tippen wird nur die Liste des eigenen Platzes neu aufgebaut – ein
+    kompletter Neuaufbau würde den Fokus aus dem Suchfeld werfen.
+  */
+  root.querySelectorAll('[data-search]').forEach((input) => {
+    input.addEventListener('input', () => {
+      const index = Number(input.dataset.search);
+      terms[index] = input.value;
+      root.querySelector(`[data-slot="${index}"]`).innerHTML = optionsHtml(index);
     });
   });
 
@@ -100,13 +116,6 @@ function render() {
 
 export function initPerkPicker(onChange = () => {}) {
   notify = onChange;
-
-  const search = document.getElementById('f-perk-search');
-  search.addEventListener('input', () => {
-    term = search.value;
-    render();
-  });
-
   render();
 }
 
@@ -138,9 +147,6 @@ export function setPerkCharacter(id) {
 
 export function clearPerks() {
   slots = Array(SLOT_COUNT).fill(null);
-  term = '';
-
-  const search = document.getElementById('f-perk-search');
-  if (search) search.value = '';
+  terms = Array(SLOT_COUNT).fill('');
   render();
 }

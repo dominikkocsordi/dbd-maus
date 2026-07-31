@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=28';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=29';
 
 export const PERK_BUCKET = 'perks';
 
@@ -196,7 +196,7 @@ export const PERKS = [
   { file: 'LowProfile.png', name: "Low Profile", role: 'survivor', owner: 'ada_wong' },
   { file: 'LuckyBreak.png', name: "Lucky Break", role: 'survivor', owner: 'yui_kimura' },
   { file: 'LuckyStar.png', name: "Lucky Star", role: 'survivor', owner: 'ellen_ripley' },
-  { file: 'IconPerks_MachineLearning.png', name: "Machine Learning", role: 'killer', owner: 'singularity' },
+  { file: 'IconPerks_SelfAware.png', name: "Machine Learning", role: 'killer', owner: 'singularity' },
   { file: 'MadGrit.png', name: "Mad Grit", role: 'killer', owner: 'legion' },
   { file: 'IconPerks_madeForThis.png', name: "Made for This", role: 'survivor', owner: 'gabriel_soma' },
   { file: 'MakeYourChoice.png', name: "Make Your Choice", role: 'killer', owner: 'pig' },
@@ -266,7 +266,7 @@ export const PERKS = [
   { file: 'secondWind.png', name: "Second Wind", role: 'survivor', owner: 'steve_harrington' },
   { file: 'SecretProject.png', name: "Secret Project", role: 'killer', owner: 'first' },
   { file: 'SelfCare.png', name: "Self Care", role: 'survivor', owner: 'claudette_morel' },
-  { file: 'IconPerks_SelfAware.png', name: "Self-Aware", role: 'survivor', general: true },
+  { file: 'SelfAware.png', name: "Self-Aware", role: 'survivor', general: true },
   { file: 'Self-Preservation.png', name: "Self-Preservation", role: 'survivor', owner: 'yun_jin_lee' },
   { file: 'SepticTouch.png', name: "Septic Touch", role: 'killer', owner: 'dredge' },
   { file: 'Shadowborn.png', name: "Shadowborn", role: 'killer', owner: 'wraith' },

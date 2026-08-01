@@ -8,7 +8,7 @@
   Dieselbe Rechnung liefert damit für jedes Level von 1 bis 100 genau ein
   Wappen – ohne Tabelle mit hundert Einträgen.
 */
-import { escapeHtml } from './utils.js?v=36';
+import { escapeHtml } from './utils.js?v=37';
 
 export const MAX_PRESTIGE = 100;
 
@@ -61,10 +61,18 @@ export function crestHtml(level, modifier = '') {
   const extra = modifier ? ` ${modifier}` : '';
   const title = n ? `Prestige ${n} – ${crestLabel(n)}` : 'Noch kein Prestige';
 
+  /*
+    Aufbau von außen nach innen: gezackter Kranz, dunkler Rahmen, Metallring,
+    farbige Platte, Zahl – dazu der kleine Dorn unten am Rahmen.
+  */
+  const layers = '<span class="crest__thorns"></span>'
+    + '<span class="crest__frame"></span>'
+    + '<span class="crest__ring"></span>'
+    + '<span class="crest__plate"></span>';
+
   if (!n) {
     return `<span class="crest crest--empty${extra}" title="${escapeHtml(title)}" aria-hidden="true">
-      <span class="crest__frame"></span><span class="crest__plate"></span>
-      <span class="crest__num">–</span>
+      ${layers}<span class="crest__num">–</span>
     </span>`;
   }
 
@@ -73,8 +81,8 @@ export function crestHtml(level, modifier = '') {
 
   return `<span class="crest crest--${tier.key} crest--${milestone.shape}${extra}"
                 title="${escapeHtml(title)}" aria-hidden="true">
-    <span class="crest__frame"></span>
-    <span class="crest__plate"></span>
+    ${layers}
     <span class="crest__num">${n}</span>
+    <span class="crest__spike"></span>
   </span>`;
 }

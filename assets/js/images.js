@@ -1,9 +1,9 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=36';
-import { fileFor } from './data.js?v=36';
-import { escapeHtml } from './utils.js?v=36';
+import { SUPABASE_URL } from './config.js?v=37';
+import { fileFor } from './data.js?v=37';
+import { escapeHtml } from './utils.js?v=37';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -27,6 +27,7 @@ export function perkIconHtml(file, name, modifier = '') {
 
 /** Icons aus dem Bucket "icons" – Schlüssel entspricht dem data-icon-Attribut. */
 export const ICONS = {
+  logo: 'dbd_logo.jpg',
   bp: 'bp_icon.png',
   killer: 'killer_icon.png',
   survivor: 'survivor_icon.png',

@@ -80,7 +80,10 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
   text-transform: uppercase;
 }
 
+/* Logo aus dem Bucket; ohne Bild bleibt das Sonnensymbol stehen. */
 .topbar__glyph { color: var(--killer); font-size: 1.1rem; }
+.topbar__glyph.icon { width: 1.9rem; height: 1.9rem; margin-right: 0; }
+.topbar__glyph.icon img { border-radius: 7px; object-fit: cover; }
 
 .topbar__nav {
   display: flex;
@@ -1402,6 +1405,8 @@ option { background: var(--surface-2); color: var(--text); }
 
 .auth-card__brand { text-align: center; margin-bottom: 1.4rem; }
 .auth-card__glyph { display: block; font-size: 2rem; color: var(--killer); }
+.auth-card__glyph.icon { display: inline-flex; width: 3.2rem; height: 3.2rem; margin: 0 auto 0.2rem; }
+.auth-card__glyph.icon img { border-radius: 12px; object-fit: cover; }
 .auth-card__brand h1 { margin: 0.35rem 0 0.2rem; font-size: 1.35rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .auth-card__brand p { margin: 0; color: var(--muted); font-size: 0.86rem; }
 
@@ -1716,9 +1721,13 @@ option { background: var(--surface-2); color: var(--text); }
 
 /* ---------------------------------------------------------- Prestige-Wappen -- */
 /*
-  Ein Wappen besteht aus drei Lagen: dunkler Rahmen, farbige Platte, Zahl.
-  Die Form kommt über clip-path, die Farbe über zwei Variablen – so bleibt es
-  bei fünf Farb- und fünf Formklassen für alle hundert Stufen.
+  Ein Wappen liegt in Schichten übereinander: ein gezackter Kranz ganz außen,
+  darauf der dunkle Rahmen, ein Metallring, die farbige Platte und die Zahl.
+  Der Kranz ist dieselbe Form, nur gedreht – aus einem Sechseck über einem
+  Sechseck wird so ein Zwölfzack, ohne eigenes Bild.
+
+  Form kommt über clip-path, Farbe über zwei Variablen: fünf Farb- und fünf
+  Formklassen decken alle hundert Stufen ab.
 */
 .crest {
   position: relative;
@@ -1728,97 +1737,196 @@ option { background: var(--surface-2); color: var(--text); }
   width: var(--crest-size, 58px);
   height: var(--crest-size, 58px);
   line-height: 1;
+  /* Zacken und Dorn ragen über den Kasten hinaus – dafür Luft reservieren. */
+  margin: calc(var(--crest-size, 58px) * 0.07) 0 calc(var(--crest-size, 58px) * 0.09);
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.65));
 }
 
 .crest--sm { --crest-size: 42px; }
 .crest--lg { --crest-size: 92px; }
 .crest--xl { --crest-size: 132px; }
 
+.crest__thorns,
 .crest__frame,
+.crest__ring,
 .crest__plate { position: absolute; }
+
+/* Der gedrehte Zwilling der Form – gibt dem Wappen seine Zacken. */
+.crest__thorns {
+  inset: -13%;
+  background: radial-gradient(closest-side, #090a0d 52%, #2f323c 88%, #43464f);
+  transform: rotate(var(--crest-turn, 0deg));
+}
 
 .crest__frame {
   inset: 0;
-  background: linear-gradient(180deg, #3b3d48, #0e0f14 70%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 7px 18px -9px rgba(0, 0, 0, 0.95);
+  background: linear-gradient(170deg, #3d404b, #16171d 55%, #0c0d11);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Metallring zwischen Rahmen und Platte – die glänzende Fassung. */
+.crest__ring {
+  inset: 7%;
+  background: linear-gradient(150deg,
+    var(--crest-ring-hi, #e8c479) 4%, var(--crest-ring-lo, #6d4f1b) 34%,
+    var(--crest-ring-hi, #e8c479) 52%, #241a09 78%, var(--crest-ring-lo, #6d4f1b));
 }
 
 .crest__plate {
-  inset: 13%;
+  inset: 19%;
   background: var(--crest-plate, linear-gradient(160deg, #2c2f38, #1b1d24));
   box-shadow:
-    inset 0 0 0 2px var(--crest-rim, rgba(255, 255, 255, 0.1)),
-    inset 0 -40% 30% -22% rgba(0, 0, 0, 0.6),
-    inset 0 30% 26% -20% rgba(255, 255, 255, 0.3);
+    inset 0 0 0 1px rgba(0, 0, 0, 0.55),
+    inset 0 -45% 30% -22% rgba(0, 0, 0, 0.6);
 }
 
-/* Feine Sprünge im Stein, damit die Platte nicht wie ein Aufkleber wirkt. */
+/* Lichtkante oben, damit die Platte gewölbt wirkt. */
+.crest__plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(70% 42% at 40% 8%, rgba(255, 255, 255, 0.3), transparent 72%);
+}
+
+/* Feine Sprünge im Stein – ohne sie wirkt die Platte wie ein Aufkleber. */
 .crest__plate::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.35;
+  opacity: 0.4;
   background:
-    linear-gradient(115deg, transparent 46%, rgba(0, 0, 0, 0.55) 47%, transparent 48.5%),
-    linear-gradient(28deg, transparent 62%, rgba(0, 0, 0, 0.4) 63%, transparent 64%);
+    linear-gradient(112deg, transparent 44%, rgba(0, 0, 0, 0.5) 45%, transparent 46.5%),
+    linear-gradient(24deg, transparent 60%, rgba(0, 0, 0, 0.38) 61%, transparent 62%),
+    linear-gradient(78deg, transparent 71%, rgba(0, 0, 0, 0.3) 72%, transparent 73%);
+}
+
+/*
+  Kleiner Dorn unter dem Wappen, wie an den Vorlagen: immer messingfarben,
+  unabhängig von der Farbstufe.
+*/
+.crest__spike {
+  position: absolute;
+  bottom: -4%;
+  left: 50%;
+  width: 17%;
+  height: 17%;
+  transform: translateX(-50%) rotate(45deg);
+  background: linear-gradient(135deg, #ffc978, #d2801f 45%, #6d3a08);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65);
+  border-radius: 1px;
 }
 
 .crest__num {
   position: relative;
   font-weight: 800;
-  font-size: calc(var(--crest-size, 58px) * 0.4);
+  font-size: calc(var(--crest-size, 58px) * 0.38);
   color: #fff;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 3px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 0 3px rgba(0, 0, 0, 0.95);
 }
 
-/* Formen */
+/* --- Formen. --crest-turn dreht den Zackenkranz auf halbe Ecke. --- */
 .crest--circle .crest__frame,
+.crest--circle .crest__ring,
 .crest--circle .crest__plate,
+.crest--empty .crest__thorns,
 .crest--empty .crest__frame,
+.crest--empty .crest__ring,
 .crest--empty .crest__plate { border-radius: 50%; }
 
+/* Der runde Kranz bekommt seine Zacken über ein Zackenrad. */
+.crest--circle .crest__thorns {
+  clip-path: polygon(
+    50% 0, 61% 8%, 74% 4%, 79% 16%, 92% 18%, 91% 31%, 100% 40%, 94% 50%,
+    100% 60%, 91% 69%, 92% 82%, 79% 84%, 74% 96%, 61% 92%, 50% 100%, 39% 92%,
+    26% 96%, 21% 84%, 8% 82%, 9% 69%, 0 60%, 6% 50%, 0 40%, 9% 31%, 8% 18%,
+    21% 16%, 26% 4%, 39% 8%);
+}
+
+.crest--diamond { --crest-turn: 45deg; }
+.crest--diamond .crest__thorns,
 .crest--diamond .crest__frame,
+.crest--diamond .crest__ring,
 .crest--diamond .crest__plate { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
 .crest--diamond .crest__num { font-size: calc(var(--crest-size, 58px) * 0.3); }
-.crest--diamond .crest__plate { inset: 9%; }
+.crest--diamond .crest__ring { inset: 3%; }
+.crest--diamond .crest__plate { inset: 13%; }
+.crest--diamond .crest__spike { bottom: -8%; }
 
+.crest--hex { --crest-turn: 30deg; }
+.crest--hex .crest__thorns,
 .crest--hex .crest__frame,
+.crest--hex .crest__ring,
 .crest--hex .crest__plate { clip-path: polygon(50% 0, 96% 26%, 96% 74%, 50% 100%, 4% 74%, 4% 26%); }
 .crest--hex .crest__num { font-size: calc(var(--crest-size, 58px) * 0.34); }
 
+.crest--octa { --crest-turn: 22.5deg; }
+.crest--octa .crest__thorns,
 .crest--octa .crest__frame,
+.crest--octa .crest__ring,
 .crest--octa .crest__plate {
   clip-path: polygon(31% 0, 69% 0, 100% 31%, 100% 69%, 69% 100%, 31% 100%, 0 69%, 0 31%);
 }
-.crest--octa .crest__num { font-size: calc(var(--crest-size, 58px) * 0.36); }
+.crest--octa .crest__num { font-size: calc(var(--crest-size, 58px) * 0.35); }
 
+.crest--apex { --crest-turn: 24deg; }
+.crest--apex .crest__thorns,
 .crest--apex .crest__frame,
+.crest--apex .crest__ring,
 .crest--apex .crest__plate {
-  clip-path: polygon(50% 0, 82% 10%, 100% 38%, 92% 74%, 62% 100%, 30% 97%, 4% 70%, 6% 30%);
+  clip-path: polygon(50% 0, 79% 9%, 97% 33%, 97% 67%, 79% 91%, 50% 100%, 21% 91%, 3% 67%, 3% 33%, 21% 9%);
 }
-.crest--apex .crest__num { font-size: calc(var(--crest-size, 58px) * 0.34); }
+.crest--apex .crest__num { font-size: calc(var(--crest-size, 58px) * 0.33); }
 
-/* Farbstufen – jede gilt für fünf Level */
-.crest--stone   { --crest-plate: linear-gradient(160deg, #8d8574, #4a4740 55%, #2f2d29); --crest-rim: rgba(219, 208, 182, 0.45); }
-.crest--bronze  { --crest-plate: linear-gradient(160deg, #e58c3c, #8d4517 55%, #542608); --crest-rim: rgba(255, 186, 124, 0.5); }
-.crest--silver  { --crest-plate: linear-gradient(160deg, #dae2ea, #7e8994 55%, #4b535b); --crest-rim: rgba(240, 246, 252, 0.55); }
-.crest--gold    { --crest-plate: linear-gradient(160deg, #ffdc85, #e0a52c 45%, #86590c); --crest-rim: rgba(255, 231, 163, 0.6); }
-.crest--crimson { --crest-plate: linear-gradient(160deg, #ff6f75, #c02029 50%, #6d0f17); --crest-rim: rgba(255, 152, 158, 0.55); }
+/* --- Farbstufen: Platte plus passender Metallring --- */
+.crest--stone {
+  --crest-plate: linear-gradient(160deg, #9a9078, #4d4941 52%, #2c2a26);
+  --crest-ring-hi: #d9c9a2;
+  --crest-ring-lo: #6d6047;
+}
+.crest--bronze {
+  --crest-plate: linear-gradient(160deg, #f0913c, #92460f 52%, #4e2306);
+  --crest-ring-hi: #ffc07a;
+  --crest-ring-lo: #8a4a12;
+}
+.crest--silver {
+  --crest-plate: linear-gradient(160deg, #e4ecf3, #7d8894 52%, #454d55);
+  --crest-ring-hi: #f4f8fc;
+  --crest-ring-lo: #6b7681;
+}
+.crest--gold {
+  --crest-plate: linear-gradient(160deg, #ffe08c, #e3a726 45%, #7d5309);
+  --crest-ring-hi: #ffeaa8;
+  --crest-ring-lo: #94670e;
+}
+.crest--crimson {
+  --crest-plate: linear-gradient(160deg, #ff777d, #c11f28 50%, #640d14);
+  --crest-ring-hi: #ffb0b4;
+  --crest-ring-lo: #8e2029;
+}
 
+.crest--empty {
+  --crest-plate: linear-gradient(160deg, #2c2f38, #191b21);
+  --crest-ring-hi: #3a3d47;
+  --crest-ring-lo: #1d1f25;
+  filter: none;
+}
 .crest--empty .crest__num { color: var(--muted); text-shadow: none; }
-.crest--empty .crest__plate::after { opacity: 0.15; }
+.crest--empty .crest__plate::before,
+.crest--empty .crest__plate::after { opacity: 0.12; }
 
 /* Prestige 100 – das einzige Wappen, das leuchtet. */
 .crest--apex {
-  --crest-plate: radial-gradient(120% 100% at 50% 25%, #ff8a90, #d3202c 55%, #6b0b13);
-  --crest-rim: rgba(255, 176, 180, 0.75);
+  --crest-plate: radial-gradient(115% 95% at 48% 22%, #ff9298, #d3202c 52%, #5d0910);
+  --crest-ring-hi: #ffd0a8;
+  --crest-ring-lo: #a33017;
 }
-.crest--apex .crest__frame { background: linear-gradient(180deg, #4a1119, #12060a 70%); }
-.crest--apex .crest__plate { animation: crest-glow 3.2s ease-in-out infinite; }
+.crest--apex .crest__thorns { background: linear-gradient(165deg, #451016, #0d0507 65%); }
+.crest--apex .crest__frame { background: linear-gradient(170deg, #5c1a22, #1a080b 55%, #0b0405); }
+.crest--apex .crest__ring { animation: crest-glow 3.2s ease-in-out infinite; }
 
 @keyframes crest-glow {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 60, 80, 0.45)); }
-  50%      { filter: drop-shadow(0 0 16px rgba(255, 80, 100, 0.85)); }
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 60, 80, 0.5)); }
+  50%      { filter: drop-shadow(0 0 15px rgba(255, 90, 110, 0.9)); }
 }
 
 /* ---------------------------------------------------------------- Prestige -- */
@@ -1904,7 +2012,7 @@ option { background: var(--surface-2); color: var(--text); }
 .pcard:focus-visible { outline: 2px solid var(--survivor); outline-offset: 2px; }
 
 .pcard__portrait { position: relative; display: inline-flex; }
-.pcard__crest { position: absolute; right: -12px; bottom: -10px; }
+.pcard__crest { position: absolute; right: -15px; bottom: -14px; }
 
 .pcard__name { font-weight: 600; font-size: 0.92rem; }
 .pcard__tier { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }

@@ -1,14 +1,15 @@
 // Gemeinsamer Login-Gate für alle Seiten.
-import { supabase } from './supabase.js?v=36';
-import { mountFeedback, unmountFeedback } from './feedback.js?v=36';
-import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js?v=36';
-import { clearProfile, loadProfile } from './profile.js?v=36';
-import { toast } from './utils.js?v=36';
+import { supabase } from './supabase.js?v=37';
+import { mountFeedback, unmountFeedback } from './feedback.js?v=37';
+import { passkeyErrorMessage, passkeysSupported, signInWithPasskey } from './passkeys.js?v=37';
+import { mountIcons } from './images.js?v=37';
+import { clearProfile, loadProfile } from './profile.js?v=37';
+import { toast } from './utils.js?v=37';
 
 const AUTH_MARKUP = /* html */ `
   <div class="auth-card">
     <div class="auth-card__brand">
-      <span class="auth-card__glyph">&#9788;</span>
+      <span class="auth-card__glyph icon" data-icon="logo"><i class="icon__fallback">&#9788;</i></span>
       <h1>DBD Stats</h1>
       <p>Melde dich an, um deine Trials zu tracken.</p>
     </div>
@@ -135,6 +136,10 @@ export async function initAuth({ onLogin, onLogout } = {}) {
   authView.innerHTML = AUTH_MARKUP;
   wireAuthForm();
   wirePasskeyLogin();
+
+  // Das Logo hängt in jeder Kopfzeile – hier eingehängt, damit es auch auf
+  // Seiten erscheint, die selbst kein mountIcons() aufrufen.
+  mountIcons();
 
   document.querySelectorAll('[data-logout]').forEach((btn) => {
     btn.addEventListener('click', async () => {

@@ -1836,6 +1836,7 @@ option { background: var(--surface-2); color: var(--text); }
   box-shadow: var(--shadow);
 }
 
+.summit__peak { display: grid; justify-items: center; gap: 0.5rem; }
 .summit__body { flex: 1; min-width: 0; }
 
 .summit__eyebrow {
@@ -1872,32 +1873,6 @@ option { background: var(--surface-2); color: var(--text); }
   background: linear-gradient(90deg, #8d8574, #e58c3c 28%, #dae2ea 52%, #ffdc85 76%, #ff5d63);
   transition: width 0.4s ease;
 }
-
-/* Meilensteine */
-.milestones { display: grid; gap: 0.75rem; }
-
-.milestone {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(80px, 190px) auto;
-  align-items: center;
-  gap: 0.9rem;
-}
-
-/* Noch nicht erreicht: das Wappen steht nur als Ausblick da. */
-.milestone--open .milestone__crest { opacity: 0.4; filter: grayscale(0.65); }
-
-.milestone__text { display: grid; gap: 0.15rem; min-width: 0; }
-.milestone__label { font-weight: 600; font-size: 0.92rem; }
-.milestone__range { font-size: 0.76rem; color: var(--muted); }
-
-.milestone__track { height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
-.milestone__fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 93, 99, 0.75), var(--gold));
-}
-.milestone__value { min-width: 2.5ch; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* Charakterraster */
 .pgrid {
@@ -2087,15 +2062,6 @@ option { background: var(--surface-2); color: var(--text); }
   /* Prestige: Wappen und Balken untereinander statt nebeneinander. */
   .summit { flex-direction: column; align-items: flex-start; }
   .summit__body { width: 100%; }
-  .milestone {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: "crest text value" "track track track";
-    row-gap: 0.5rem;
-  }
-  .milestone__crest { grid-area: crest; }
-  .milestone__text { grid-area: text; }
-  .milestone__value { grid-area: value; }
-  .milestone__track { grid-area: track; }
   .pgrid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 0.6rem; }
 
   /* Ohne Zeigegerät gibt es kein Ziehen: das Board stapelt sich, der Status

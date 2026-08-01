@@ -1,18 +1,18 @@
-import { supabase } from './supabase.js?v=34';
-import { initAuth } from './auth.js?v=34';
-import { initPasskeyPanel } from './passkeys.js?v=34';
+import { supabase } from './supabase.js?v=35';
+import { initAuth } from './auth.js?v=35';
+import { initPasskeyPanel } from './passkeys.js?v=35';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=34';
-import { perkName } from './perks.js?v=34';
+} from './images.js?v=35';
+import { perkName } from './perks.js?v=35';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=34';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=34';
+} from './perk-picker.js?v=35';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=35';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=34';
-import { createSorter } from './table-sort.js?v=34';
+} from './utils.js?v=35';
+import { createSorter } from './table-sort.js?v=35';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;

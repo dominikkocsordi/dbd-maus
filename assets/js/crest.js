@@ -8,7 +8,7 @@
   Dieselbe Rechnung liefert damit für jedes Level von 1 bis 100 genau ein
   Wappen – ohne Tabelle mit hundert Einträgen.
 */
-import { escapeHtml } from './utils.js?v=34';
+import { escapeHtml } from './utils.js?v=35';
 
 export const MAX_PRESTIGE = 100;
 
@@ -23,11 +23,11 @@ export const TIERS = [
 
 /** Formstufen. `from`/`to` sind einschließlich gemeint. */
 export const MILESTONES = [
-  { key: 'seal', shape: 'circle', from: 1, to: 25, label: 'Meilenstein 1', hint: 'Rundes Siegel' },
-  { key: 'shard', shape: 'diamond', from: 26, to: 50, label: 'Meilenstein 2', hint: 'Geschliffene Raute' },
-  { key: 'core', shape: 'hex', from: 51, to: 75, label: 'Meilenstein 3', hint: 'Sechseckiger Kern' },
-  { key: 'bulwark', shape: 'octa', from: 76, to: 99, label: 'Meilenstein 4', hint: 'Achteckiges Bollwerk' },
-  { key: 'apex', shape: 'apex', from: 100, to: 100, label: 'Vollendet', hint: 'Prestige 100' },
+  { key: 'seal', shape: 'circle', from: 1, to: 25, label: 'Meilenstein 1' },
+  { key: 'shard', shape: 'diamond', from: 26, to: 50, label: 'Meilenstein 2' },
+  { key: 'core', shape: 'hex', from: 51, to: 75, label: 'Meilenstein 3' },
+  { key: 'bulwark', shape: 'octa', from: 76, to: 99, label: 'Meilenstein 4' },
+  { key: 'apex', shape: 'apex', from: 100, to: 100, label: 'Vollendet' },
 ];
 
 const clamp = (level) => Math.min(MAX_PRESTIGE, Math.max(0, Math.round(Number(level) || 0)));
@@ -44,12 +44,12 @@ export function crestMilestone(level) {
   return MILESTONES.find((m) => n >= m.from && n <= m.to) ?? null;
 }
 
-/** Kurzbeschreibung fürs Auge: "Gold · Sechseckiger Kern". */
+/** Kurzbeschreibung fürs Auge: die Farbstufe, bei 100 "Vollendet". */
 export function crestLabel(level) {
   const n = clamp(level);
   if (!n) return 'Noch kein Prestige';
   if (n === MAX_PRESTIGE) return 'Vollendet';
-  return `${crestTier(n).label} · ${crestMilestone(n).hint}`;
+  return crestTier(n).label;
 }
 
 /**

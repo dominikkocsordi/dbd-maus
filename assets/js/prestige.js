@@ -3,12 +3,12 @@
   Gespeichert wird eine Zeile je Charakter, angezeigt wird das Wappen aus
   crest.js – Farbe alle fünf Stufen, Form alle 25.
 */
-import { supabase } from './supabase.js?v=34';
-import { initAuth } from './auth.js?v=34';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=34';
-import { MAX_PRESTIGE, MILESTONES, TIERS, crestHtml, crestLabel, crestMilestone } from './crest.js?v=34';
-import { avatarHtml, mountIcons } from './images.js?v=34';
-import { escapeHtml, fmtNumber, fmtPercent, toast } from './utils.js?v=34';
+import { supabase } from './supabase.js?v=35';
+import { initAuth } from './auth.js?v=35';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=35';
+import { MAX_PRESTIGE, MILESTONES, TIERS, crestHtml, crestLabel, crestMilestone } from './crest.js?v=35';
+import { avatarHtml, mountIcons } from './images.js?v=35';
+import { escapeHtml, fmtNumber, fmtPercent, toast } from './utils.js?v=35';
 
 let currentUser = null;
 let levels = new Map();       // "killer:trapper" -> Stufe
@@ -83,31 +83,6 @@ function renderSummary() {
   $('#kpi-max-hint').textContent = total.maxed
     ? `${total.maxed === 1 ? 'Charakter' : 'Charaktere'} auf Prestige 100`
     : 'Noch niemand auf 100';
-}
-
-/** Je Formstufe: wie viele Charaktere sind mindestens so weit. */
-function renderMilestones() {
-  const all = roster();
-
-  $('#milestones').innerHTML = MILESTONES.map((m) => {
-    const reached = all.filter((c) => c.level >= m.from).length;
-    const percent = all.length ? (reached / all.length) * 100 : 0;
-
-    // Gezeigt wird der eigene Höchststand innerhalb dieser Formstufe – solange
-    // noch keiner so weit ist, steht die Spitze der Stufe als Ausblick da.
-    const own = all.reduce((top, c) => (c.level >= m.from && c.level <= m.to && c.level > top ? c.level : top), 0);
-
-    return `
-      <article class="milestone${own ? '' : ' milestone--open'}">
-        <span class="milestone__crest">${crestHtml(own || m.to)}</span>
-        <span class="milestone__text">
-          <span class="milestone__label">${escapeHtml(m.label)}</span>
-          <span class="milestone__range">${m.from === m.to ? `Stufe ${m.from}` : `Stufe ${m.from}–${m.to}`} · ${escapeHtml(m.hint)}</span>
-        </span>
-        <span class="milestone__track"><span class="milestone__fill" style="width:${percent}%"></span></span>
-        <span class="milestone__value">${fmtNumber(reached)}</span>
-      </article>`;
-  }).join('');
 }
 
 /** Alle Wappen einmal durchdekliniert, als Legende zum System. */
@@ -187,7 +162,6 @@ function renderGrid() {
 
 function render() {
   renderSummary();
-  renderMilestones();
   renderGrid();
 }
 

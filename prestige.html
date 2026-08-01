@@ -6,7 +6,7 @@
   <title>DBD Stats – Prestige</title>
   <meta name="description" content="Prestige-Stufen aller Killer und Survivor im Blick, von 0 bis 100.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=34">
+  <link rel="stylesheet" href="assets/css/style.css?v=35">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -75,7 +75,10 @@
 
       <!-- Gesamtbild: was ist geschafft, was fehlt noch. -->
       <section class="summit">
-        <div class="summit__crest" id="summit-crest"></div>
+        <div class="summit__peak">
+          <span class="summit__eyebrow">Höchste Prestige-Stufe</span>
+          <div class="summit__crest" id="summit-crest"></div>
+        </div>
         <div class="summit__body">
           <span class="summit__eyebrow">Gesamtfortschritt</span>
           <strong class="summit__value" id="summit-value">–</strong>
@@ -107,15 +110,6 @@
           <strong class="kpi__value" id="kpi-max">–</strong>
           <span class="kpi__hint" id="kpi-max-hint">–</span>
         </article>
-      </section>
-
-      <!-- Wie viele Charaktere haben welche Formstufe erreicht. -->
-      <section class="panel">
-        <header class="panel__head panel__head--row">
-          <h2>Meilensteine</h2>
-          <span class="panel__meta">Wie weit die Sammlung insgesamt steht</span>
-        </header>
-        <div class="milestones" id="milestones"></div>
       </section>
 
       <section class="panel">
@@ -209,6 +203,6 @@
     </aside>
   </div>
 
-  <script type="module" src="assets/js/prestige.js?v=34"></script>
+  <script type="module" src="assets/js/prestige.js?v=35"></script>
 </body>
 </html>

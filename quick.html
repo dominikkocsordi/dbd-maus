@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Schnelleintrag</title>
+  <meta name="description" content="Ein Match in wenigen Klicks eintragen, direkt nach der Runde.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css?v=40">
+</head>
+<body class="quick-body" data-feedback="off">
+  <main>
+  <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view app-view--quick" hidden>
+      <!-- Kopfzeile: Zustand der Verbindung und Weg zur vollen Seite. -->
+      <header class="quick-head">
+        <span class="quick-head__title">
+          <span class="topbar__glyph icon" data-icon="logo"><i class="icon__fallback">&#9788;</i></span>
+          Schnelleintrag
+        </span>
+        <span class="quick-head__spacer"></span>
+        <span class="quick-status" id="queue-status" hidden></span>
+        <a class="icon-btn" href="index.html" target="_blank" rel="noopener"
+           title="Volle Übersicht öffnen" aria-label="Volle Übersicht öffnen">&#9974;</a>
+      </header>
+
+      <form id="quick-form" class="quick-form" novalidate>
+        <div class="quick-row">
+          <fieldset class="field">
+            <legend class="field__label">Rolle</legend>
+            <div class="segmented" role="radiogroup" aria-label="Rolle">
+              <label class="segmented__opt">
+                <input type="radio" name="role" value="killer" checked>
+                <span><span class="icon" data-icon="killer"><i class="icon__fallback">&#128481;</i></span>Killer</span>
+              </label>
+              <label class="segmented__opt">
+                <input type="radio" name="role" value="survivor">
+                <span><span class="icon" data-icon="survivor"><i class="icon__fallback">&#127939;</i></span>Survivor</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span class="field__label">Gamemode</span>
+            <select id="q-mode" required></select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label" id="q-character-label">Killer</span>
+          <span class="select-row">
+            <select id="q-character"></select>
+            <span class="portrait" id="q-portrait"></span>
+          </span>
+        </label>
+
+        <!-- Killer: Kills als Totenköpfe -->
+        <fieldset class="field" data-role-block="killer">
+          <legend class="field__label">Kills</legend>
+          <div class="segmented segmented--kills" id="q-kills" role="radiogroup" aria-label="Kills"></div>
+        </fieldset>
+
+        <!-- Survivor: Ausgang und Gegner -->
+        <div data-role-block="survivor" hidden>
+          <fieldset class="field">
+            <legend class="field__label">Ausgang</legend>
+            <div class="segmented" role="radiogroup" aria-label="Ausgang">
+              <label class="segmented__opt">
+                <input type="radio" name="escaped" value="true" checked>
+                <span><span class="icon" data-icon="escape"><i class="icon__fallback">&#10003;</i></span>Entkommen</span>
+              </label>
+              <label class="segmented__opt">
+                <input type="radio" name="escaped" value="false">
+                <span><span class="icon" data-icon="sacrificed"><i class="icon__fallback">&#10005;</i></span>Gestorben</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span class="field__label">Gegner <em>optional</em></span>
+            <select id="q-faced-killer"></select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Blutpunkte</span>
+          <input type="text" id="q-bp" inputmode="numeric" autocomplete="off" placeholder="0">
+        </label>
+        <div class="quick-chips">
+          <button type="button" class="chip" data-bp="10000">+10k</button>
+          <button type="button" class="chip" data-bp="25000">+25k</button>
+          <button type="button" class="chip" data-bp="50000">+50k</button>
+          <button type="button" class="chip chip--reset" data-bp="reset">0</button>
+        </div>
+
+        <!-- Perks: übernimmt beim Start die zuletzt gespielten. -->
+        <fieldset class="field" id="perk-field">
+          <legend class="field__label">
+            Perks <em>optional</em>
+            <button type="button" class="linkish" id="q-perks-clear">leeren</button>
+          </legend>
+          <div class="perk-picks perk-picks--quick" id="f-perks"></div>
+          <p class="field__hint" id="f-perks-hint"></p>
+        </fieldset>
+
+        <label class="field">
+          <span class="field__label">Notiz <em>optional</em></span>
+          <input type="text" id="q-notes" maxlength="280" autocomplete="off" placeholder="nur wenn nötig">
+        </label>
+
+        <button type="submit" class="btn btn--primary btn--block" id="q-save">Runde eintragen</button>
+        <p class="form-hint" id="q-hint"></p>
+      </form>
+
+      <!-- Was zuletzt hier eingetragen wurde, als Kontrolle. -->
+      <section class="quick-recent" id="q-recent" hidden>
+        <span class="quick-recent__label">Zuletzt eingetragen</span>
+        <ul class="quick-recent__list" id="q-recent-list"></ul>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/quick.js?v=40"></script>
+</body>
+</html>

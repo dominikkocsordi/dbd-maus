@@ -1,0 +1,14 @@
+{
+  "name": "dbd-quick-desktop",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Windows-Fenster für den Schnelleintrag",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "icons": "tauri icon"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

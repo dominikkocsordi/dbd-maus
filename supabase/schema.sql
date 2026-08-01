@@ -470,7 +470,72 @@ group by m.user_id;
 grant select on public.my_stats to authenticated;
 
 -- ---------------------------------------------------------------------------
--- 10) Freunde: Code, Freundschaften und geteilte Kennzahlen
+-- 10) Prestige: Stufe 0 bis 100 je Charakter
+-- ---------------------------------------------------------------------------
+/*
+  Eine Zeile je Benutzer und Charakter. Charaktere ohne Eintrag stehen
+  schlicht auf 0 – deshalb wird nichts vorbefüllt, die Seite ergänzt die
+  fehlenden Namen aus data.js selbst.
+*/
+create table if not exists public.prestige (
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  role       text not null check (role in ('killer', 'survivor')),
+  character  text not null check (char_length(character) between 1 and 60),
+  level      smallint not null default 0 check (level between 0 and 100),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  primary key (user_id, role, character)
+);
+
+comment on table  public.prestige       is 'Prestige-Stufe je Charakter und Benutzer';
+comment on column public.prestige.level is 'Stufe 0 bis 100; 0 entspricht "noch nicht begonnen"';
+
+alter table public.prestige enable row level security;
+
+drop policy if exists "prestige_select_own" on public.prestige;
+create policy "prestige_select_own" on public.prestige for select
+  to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "prestige_insert_own" on public.prestige;
+create policy "prestige_insert_own" on public.prestige for insert
+  to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "prestige_update_own" on public.prestige;
+create policy "prestige_update_own" on public.prestige for update
+  to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "prestige_delete_own" on public.prestige;
+create policy "prestige_delete_own" on public.prestige for delete
+  to authenticated using (auth.uid() = user_id);
+
+drop trigger if exists prestige_set_updated_at on public.prestige;
+create trigger prestige_set_updated_at
+  before update on public.prestige
+  for each row execute function public.set_updated_at();
+
+create or replace function public.prestige_set_user_id()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.user_id is null then
+    new.user_id = auth.uid();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists prestige_set_user_id on public.prestige;
+create trigger prestige_set_user_id
+  before insert on public.prestige
+  for each row execute function public.prestige_set_user_id();
+
+-- ---------------------------------------------------------------------------
+-- 11) Freunde: Code, Freundschaften und geteilte Kennzahlen
 --
 --     Geteilt werden ausschließlich die Summen aus friend_stats() – die
 --     einzelnen Matches samt Notizen bleiben privat.
@@ -698,6 +763,9 @@ grant execute on function public.friend_requests() to authenticated;
   Kennzahlen für den Vergleich: die eigenen und die aller bestätigten Freunde.
   Nur Summen – einzelne Matches, Notizen und Builds bleiben privat.
 */
+-- Der Rückgabetyp wächst mit; darum erst weg, dann neu.
+drop function if exists public.friend_stats();
+
 create or replace function public.friend_stats()
 returns table (
   person_id        uuid,
@@ -714,7 +782,11 @@ returns table (
   merciless_total  bigint,
   escapes_total    bigint,
   bloodpoints_total bigint,
-  last_played      timestamptz
+  last_played      timestamptz,
+  prestige_total   bigint,
+  prestige_max     bigint,
+  prestige_maxed   bigint,
+  prestige_started bigint
 )
 language sql
 stable
@@ -748,7 +820,13 @@ as $$
     ),
     count(m.id) filter (where m.role = 'survivor' and m.escaped),
     coalesce(sum(m.bloodpoints), 0),
-    max(m.played_at)
+    max(m.played_at),
+    -- Prestige hängt am Charakter, nicht am Match: als eigene Abfrage je
+    -- Person, sonst würde der Join die Match-Summen vervielfachen.
+    (select coalesce(sum(pr.level), 0)::bigint from public.prestige pr where pr.user_id = c.person),
+    (select coalesce(max(pr.level), 0)::bigint from public.prestige pr where pr.user_id = c.person),
+    (select count(*) from public.prestige pr where pr.user_id = c.person and pr.level = 100),
+    (select count(*) from public.prestige pr where pr.user_id = c.person and pr.level > 0)
   from circle c
   join public.profiles p on p.user_id = c.person
   left join public.matches m on m.user_id = c.person
@@ -756,68 +834,3 @@ as $$
 $$;
 
 grant execute on function public.friend_stats() to authenticated;
-
--- ---------------------------------------------------------------------------
--- 11) Prestige: Stufe 0 bis 100 je Charakter
--- ---------------------------------------------------------------------------
-/*
-  Eine Zeile je Benutzer und Charakter. Charaktere ohne Eintrag stehen
-  schlicht auf 0 – deshalb wird nichts vorbefüllt, die Seite ergänzt die
-  fehlenden Namen aus data.js selbst.
-*/
-create table if not exists public.prestige (
-  user_id    uuid not null references auth.users (id) on delete cascade,
-  role       text not null check (role in ('killer', 'survivor')),
-  character  text not null check (char_length(character) between 1 and 60),
-  level      smallint not null default 0 check (level between 0 and 100),
-
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-
-  primary key (user_id, role, character)
-);
-
-comment on table  public.prestige       is 'Prestige-Stufe je Charakter und Benutzer';
-comment on column public.prestige.level is 'Stufe 0 bis 100; 0 entspricht "noch nicht begonnen"';
-
-alter table public.prestige enable row level security;
-
-drop policy if exists "prestige_select_own" on public.prestige;
-create policy "prestige_select_own" on public.prestige for select
-  to authenticated using (auth.uid() = user_id);
-
-drop policy if exists "prestige_insert_own" on public.prestige;
-create policy "prestige_insert_own" on public.prestige for insert
-  to authenticated with check (auth.uid() = user_id);
-
-drop policy if exists "prestige_update_own" on public.prestige;
-create policy "prestige_update_own" on public.prestige for update
-  to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-drop policy if exists "prestige_delete_own" on public.prestige;
-create policy "prestige_delete_own" on public.prestige for delete
-  to authenticated using (auth.uid() = user_id);
-
-drop trigger if exists prestige_set_updated_at on public.prestige;
-create trigger prestige_set_updated_at
-  before update on public.prestige
-  for each row execute function public.set_updated_at();
-
-create or replace function public.prestige_set_user_id()
-returns trigger
-language plpgsql
-security invoker
-set search_path = ''
-as $$
-begin
-  if new.user_id is null then
-    new.user_id = auth.uid();
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists prestige_set_user_id on public.prestige;
-create trigger prestige_set_user_id
-  before insert on public.prestige
-  for each row execute function public.prestige_set_user_id();

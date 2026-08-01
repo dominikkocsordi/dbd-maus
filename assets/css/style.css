@@ -1669,7 +1669,7 @@ option { background: var(--surface-2); color: var(--text); }
 .bar__fill--k2 { background: linear-gradient(90deg, #e5a463, #93602c); }
 .bar__fill--k3 { background: linear-gradient(90deg, #ef7d54, #96351c); }
 .bar__fill--k4 { background: linear-gradient(90deg, #ff5d63, #b21f28); }
-.bar__value { font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; color: var(--text); }
+.bar__value { display: inline-flex; align-items: center; gap: 0.4rem; justify-content: flex-end; font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; color: var(--text); }
 
 /* ---------------------------------------------------------------- Filter -- */
 .filters { padding-bottom: 1.15rem; }
@@ -1873,6 +1873,9 @@ option { background: var(--surface-2); color: var(--text); }
   background: linear-gradient(90deg, #8d8574, #e58c3c 28%, #dae2ea 52%, #ffdc85 76%, #ff5d63);
   transition: width 0.4s ease;
 }
+
+/* Wappen mit Zahl daneben, etwa im Freundesvergleich. */
+.crest-cell { display: inline-flex; align-items: center; gap: 0.45rem; justify-content: flex-end; }
 
 /* Charakterraster */
 .pgrid {

@@ -3,10 +3,11 @@
   Geteilt werden nur die Summen aus friend_stats() – einzelne Matches, Notizen
   und Builds bleiben privat.
 */
-import { supabase } from './supabase.js?v=35';
-import { initAuth } from './auth.js?v=35';
-import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=35';
-import { createSorter } from './table-sort.js?v=35';
+import { supabase } from './supabase.js?v=36';
+import { initAuth } from './auth.js?v=36';
+import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=36';
+import { createSorter } from './table-sort.js?v=36';
+import { crestHtml } from './crest.js?v=36';
 
 /** Womit sich vergleichen lässt; `value` liefert die Zahl, `format` den Text. */
 const METRICS = [
@@ -33,6 +34,9 @@ const METRICS = [
     value: (r) => (r.matches_total ? r.bloodpoints_total / r.matches_total : null),
     format: fmtNumber,
   },
+  { key: 'prestige', label: 'Prestige gesamt', value: (r) => r.prestige_total ?? null, format: fmtNumber },
+  { key: 'prestigemax', label: 'Höchste Prestige-Stufe', value: (r) => r.prestige_max ?? null, format: fmtNumber },
+  { key: 'prestigemaxed', label: 'Charaktere auf Prestige 100', value: (r) => r.prestige_maxed ?? null, format: fmtNumber },
 ];
 
 const ADD_MESSAGES = {
@@ -211,6 +215,9 @@ function renderBars() {
 
   const max = Math.max(1, ...scored.map((s) => s.value ?? 0));
 
+  // Bei der höchsten Stufe steht das Wappen mit im Balken.
+  const withCrest = metric.key === 'prestigemax';
+
   container.innerHTML = scored.map(({ row, value }) => `
     <div class="bar">
       <span class="bar__label${row.is_self ? ' bar__label--self' : ''}">${escapeHtml(personName(row))}</span>
@@ -218,7 +225,9 @@ function renderBars() {
         <span class="bar__fill ${row.is_self ? 'bar__fill--survivor' : 'bar__fill--killer'}"
               style="width:${((value ?? 0) / max) * 100}%"></span>
       </span>
-      <span class="bar__value">${value === null ? '–' : metric.format(value)}</span>
+      <span class="bar__value">${withCrest
+        ? `${crestHtml(value ?? 0, 'crest--sm')}<span class="sr-only">${value === null ? '–' : metric.format(value)}</span>`
+        : (value === null ? '–' : metric.format(value))}</span>
     </div>`).join('');
 }
 
@@ -256,7 +265,19 @@ function renderTable() {
       + `${value === null ? '–' : metric.format(value)}</td>`;
   };
 
-  const order = ['matches', 'killrate', 'escaperate', 'kills', 'escapes', 'merciless', 'bp', 'bpavg']
+  // Die höchste Stufe zeigt ihr Wappen – eine Zahl allein sagt wenig.
+  const topLevel = METRICS.find((m) => m.key === 'prestigemax');
+  const bestLevel = best.get('prestigemax');
+  const crestCell = (row) => {
+    const value = topLevel.value(row);
+    const leads = value !== null && value > 0 && value === bestLevel;
+    // Die Zahl steht schon im Wappen – daneben nur noch für Vorleseprogramme.
+    return `<td data-label="Höchste Stufe" class="num${leads ? ' is-best' : ''}">`
+      + `<span class="crest-cell">${crestHtml(value ?? 0, 'crest--sm')}`
+      + `<span class="sr-only">${value === null ? 'keine Angabe' : `Prestige ${fmtNumber(value)}`}</span></span></td>`;
+  };
+
+  const order = ['matches', 'killrate', 'escaperate', 'kills', 'escapes', 'merciless', 'bp', 'bpavg', 'prestige', 'prestigemaxed']
     .map((key) => METRICS.find((m) => m.key === key));
 
   $('#compare-body').innerHTML = compareSorter.apply(rows)
@@ -269,6 +290,7 @@ function renderTable() {
           </span>
         </td>
         ${order.map((m) => cell(m, row)).join('')}
+        ${crestCell(row)}
         <td data-label="Zuletzt">${escapeHtml(row.last_played ? fmtDate(row.last_played) : '–')}</td>
         <td data-label="Aktion" class="num">
           ${row.link_id ? `<span class="row-actions">

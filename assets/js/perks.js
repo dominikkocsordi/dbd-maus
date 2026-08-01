@@ -7,13 +7,12 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=37';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=38';
 
 export const PERK_BUCKET = 'perks';
 
 /** Charaktere, die (noch) nicht in den Dropdowns stehen, aber Perks besitzen. */
 const EXTRA_OWNER_LABELS = {
-  cenobite: 'Pinhead',
   orela_rose: 'Orela',
 };
 

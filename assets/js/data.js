@@ -37,6 +37,7 @@ export const KILLERS = [
   { id: 'twins', label: 'Twins', file: 'K22_TheTwins_Portrait.png' },
   { id: 'trickster', label: 'Trickster', file: 'K23_TheTrickster_Portrait.png' },
   { id: 'nemesis', label: 'Nemesis', file: 'K24_TheNemesis_Portrait.png' },
+  { id: 'cenobite', label: 'Pinhead', file: 'K25_TheCenobite_Portrait.jpg' },
   { id: 'artist', label: 'Artist', file: 'K26_TheArtist_Portrait.png' },
   { id: 'onryo', label: 'Onryo', file: 'K27_TheOnryo_Portrait.png' },
   { id: 'dredge', label: 'Dredge', file: 'K28_TheDredge_Portrait.png' },
@@ -55,8 +56,6 @@ export const KILLERS = [
   { id: 'krasue', label: 'Krasue', file: 'T_UI_K41_TheKrasue_Portrait.png' },
   { id: 'first', label: 'First', file: 'T_UI_K42_TheFirst_Portrait.png' },
   { id: 'jason', label: 'Jason', file: 'T_UI_K43_TheSlasher_Portrait.png' },
-  // Portrait vorhanden (K25_TheCenobite_Portrait.png), Eintrag auf Wunsch aktivierbar:
-  // { id: 'cenobite', label: 'Pinhead', file: 'K25_TheCenobite_Portrait.png' },
   { id: 'other_killer', label: 'Anderer Killer', file: 'empty.png' },
 ];
 

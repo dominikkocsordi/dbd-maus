@@ -7,7 +7,7 @@
   <meta name="description" content="Ticket-Cockpit der Besitzerrolle: alle Bugs und Wünsche auf einem Board.">
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=33">
+  <link rel="stylesheet" href="assets/css/style.css?v=34">
 </head>
 <body data-feedback="off">
   <div class="glow" aria-hidden="true"></div>
@@ -20,13 +20,15 @@
     <nav class="topbar__nav">
       <a href="index.html">Übersicht</a>
       <a href="stats.html">Statistik</a>
+      <a href="prestige.html">Prestige</a>
       <a href="perks.html">Perks</a>
       <a href="challenges.html">Challenges</a>
       <a href="friends.html">Freunde</a>
-      <a href="cockpit.html" class="is-owner is-active" data-owner-only hidden>&#9670; Cockpit</a>
     </nav>
     <div class="topbar__user" data-auth-only hidden>
       <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn icon-btn--owner is-active" href="cockpit.html" data-owner-only hidden
+         title="Ticket-Cockpit" aria-label="Ticket-Cockpit">&#9670;</a>
       <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
       <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
     </div>
@@ -207,6 +209,6 @@
     </aside>
   </div>
 
-  <script type="module" src="assets/js/cockpit.js?v=33"></script>
+  <script type="module" src="assets/js/cockpit.js?v=34"></script>
 </body>
 </html>

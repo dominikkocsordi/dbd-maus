@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBD Stats – Prestige</title>
+  <meta name="description" content="Prestige-Stufen aller Killer und Survivor im Blick, von 0 bis 100.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
+  <link rel="stylesheet" href="assets/css/style.css?v=34">
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <span class="topbar__glyph">&#9788;</span>
+      <span>DBD&nbsp;Stats</span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="index.html">Übersicht</a>
+      <a href="stats.html">Statistik</a>
+      <a href="prestige.html" class="is-active">Prestige</a>
+      <a href="perks.html">Perks</a>
+      <a href="challenges.html">Challenges</a>
+      <a href="friends.html">Freunde</a>
+    </nav>
+    <div class="topbar__user" data-auth-only hidden>
+      <span class="topbar__email" data-user-email></span>
+      <a class="icon-btn icon-btn--owner" href="cockpit.html" data-owner-only hidden
+         title="Ticket-Cockpit" aria-label="Ticket-Cockpit">&#9670;</a>
+      <a class="icon-btn" href="settings.html" title="Einstellungen" aria-label="Einstellungen">&#9881;</a>
+      <button type="button" class="btn btn--ghost btn--sm" data-logout>Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+  <div id="boot-error" class="boot-error" hidden></div>
+
+  <!-- Kein Modul: läuft auch dann, wenn der Import der App scheitert, damit
+       statt einer leeren Seite eine Meldung erscheint. -->
+  <script>
+    (function () {
+      function rendered() {
+        var auth = document.getElementById('auth-view');
+        var app = document.getElementById('app-view');
+        return (auth && auth.children.length > 0) || (app && !app.hidden);
+      }
+      function show(detail) {
+        var box = document.getElementById('boot-error');
+        if (!box || !box.hidden || rendered()) return;   // nur wenn wirklich nichts da ist
+        box.hidden = false;
+        box.innerHTML = '<strong>Die App konnte nicht geladen werden.</strong>'
+          + '<span>Meist hilft vollständiges Neuladen (Strg+F5 bzw. Cmd+Shift+R).</span>'
+          + '<code></code>';
+        box.querySelector('code').textContent = detail || '';
+      }
+      window.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG') return;          // fehlende Portraits sind egal
+        show(e.message || (el && el.src ? 'Nicht ladbar: ' + el.src : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        show(e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+      });
+    })();
+  </script>
+
+    <section id="auth-view" class="auth-view"></section>
+
+    <section id="app-view" class="app-view" hidden>
+      <div class="page-head">
+        <h1>Prestige</h1>
+        <span class="page-head__meta" id="page-meta"></span>
+      </div>
+
+      <!-- Gesamtbild: was ist geschafft, was fehlt noch. -->
+      <section class="summit">
+        <div class="summit__crest" id="summit-crest"></div>
+        <div class="summit__body">
+          <span class="summit__eyebrow">Gesamtfortschritt</span>
+          <strong class="summit__value" id="summit-value">–</strong>
+          <span class="summit__hint" id="summit-hint">–</span>
+          <div class="summit__track">
+            <span class="summit__fill" id="summit-fill" style="width:0%"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="kpi-grid">
+        <article class="kpi">
+          <span class="kpi__label">Stufen gesammelt</span>
+          <strong class="kpi__value" id="kpi-sum">–</strong>
+          <span class="kpi__hint" id="kpi-sum-hint">–</span>
+        </article>
+        <article class="kpi kpi--killer">
+          <span class="kpi__label"><span class="icon" data-icon="killer"></span>Killer</span>
+          <strong class="kpi__value" id="kpi-killer">–</strong>
+          <span class="kpi__hint" id="kpi-killer-hint">–</span>
+        </article>
+        <article class="kpi kpi--survivor">
+          <span class="kpi__label"><span class="icon" data-icon="survivor"></span>Survivor</span>
+          <strong class="kpi__value" id="kpi-survivor">–</strong>
+          <span class="kpi__hint" id="kpi-survivor-hint">–</span>
+        </article>
+        <article class="kpi kpi--bp">
+          <span class="kpi__label">Vollendet</span>
+          <strong class="kpi__value" id="kpi-max">–</strong>
+          <span class="kpi__hint" id="kpi-max-hint">–</span>
+        </article>
+      </section>
+
+      <!-- Wie viele Charaktere haben welche Formstufe erreicht. -->
+      <section class="panel">
+        <header class="panel__head panel__head--row">
+          <h2>Meilensteine</h2>
+          <span class="panel__meta">Wie weit die Sammlung insgesamt steht</span>
+        </header>
+        <div class="milestones" id="milestones"></div>
+      </section>
+
+      <section class="panel">
+        <header class="panel__head panel__head--row">
+          <h2>Charaktere</h2>
+          <span class="panel__meta" id="grid-count"></span>
+        </header>
+
+        <div class="filters__grid filters__grid--prestige">
+          <label class="field">
+            <span class="field__label">Rolle</span>
+            <select id="fl-role">
+              <option value="killer">Killer</option>
+              <option value="survivor">Survivor</option>
+              <option value="all">Alle</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Sortierung</span>
+            <select id="fl-sort">
+              <option value="level">Höchstes Prestige</option>
+              <option value="level-asc">Niedrigstes Prestige</option>
+              <option value="name">Name A–Z</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Anzeigen</span>
+            <select id="fl-scope">
+              <option value="all">Alle Charaktere</option>
+              <option value="started">Nur begonnene</option>
+              <option value="open">Nur offene</option>
+              <option value="max">Nur Prestige 100</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Suche</span>
+            <input type="search" id="fl-search" placeholder="Charakter" autocomplete="off">
+          </label>
+        </div>
+
+        <div class="pgrid" id="grid"></div>
+        <p class="empty" id="grid-empty" hidden>Kein Charakter passt zu dieser Auswahl.</p>
+      </section>
+
+      <!-- Die Wappen einmal komplett, als Legende zum System. -->
+      <section class="panel">
+        <header class="panel__head panel__head--row">
+          <h2>Wappen-System</h2>
+          <span class="panel__meta">Farbe wechselt alle 5 Stufen, Form alle 25</span>
+        </header>
+        <div id="legend" class="legend"></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Level eines Charakters setzen -->
+  <div class="drawer" id="editor" hidden>
+    <div class="drawer__scrim" data-close></div>
+
+    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="ed-title">
+      <header class="drawer__head">
+        <h2 class="drawer__title" id="ed-title">Charakter</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Schließen">&#10005;</button>
+      </header>
+
+      <div class="drawer__body">
+        <div class="editor">
+          <div class="editor__crest" id="ed-crest"></div>
+          <span class="editor__tier" id="ed-tier"></span>
+
+          <div class="stepper">
+            <button type="button" class="icon-btn" id="ed-minus" aria-label="Eine Stufe zurück">&#8722;</button>
+            <input type="number" id="ed-number" min="0" max="100" step="1" inputmode="numeric" aria-label="Prestige-Stufe">
+            <button type="button" class="icon-btn" id="ed-plus" aria-label="Eine Stufe weiter">&#43;</button>
+          </div>
+
+          <input type="range" class="bp-slider crest-slider" id="ed-range" min="0" max="100" step="1"
+                 aria-label="Prestige-Stufe schieben">
+
+          <div class="quick" id="ed-quick"></div>
+          <p class="editor__next" id="ed-next"></p>
+        </div>
+      </div>
+
+      <footer class="drawer__foot">
+        <div class="drawer__actions">
+          <button type="button" class="btn btn--primary" id="ed-save">Speichern</button>
+          <button type="button" class="btn btn--ghost" data-close>Abbrechen</button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+
+  <script type="module" src="assets/js/prestige.js?v=34"></script>
+</body>
+</html>

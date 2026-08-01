@@ -902,10 +902,6 @@ body.has-drawer { overflow: hidden; }
 .prio--low { opacity: 0.7; }
 
 /* --------------------------------------------------------------- Cockpit -- */
-.topbar__nav a.is-owner { color: var(--gold); }
-.topbar__nav a.is-owner:hover { color: #ffd79a; }
-.topbar__nav a.is-owner.is-active { color: #fff; background: linear-gradient(135deg, rgba(242, 182, 92, 0.28), rgba(242, 182, 92, 0.1)); }
-
 .page-head--cockpit { align-items: center; justify-content: flex-start; margin-bottom: 1rem; }
 .page-head--cockpit .page-head__meta { margin-left: auto; }
 
@@ -1713,6 +1709,280 @@ option { background: var(--surface-2); color: var(--text); }
 
 .icon-btn.is-active { color: var(--text); background: var(--surface-3); border-color: var(--line-strong); }
 
+/* Cockpit-Zugang: steckt neben dem Zahnrad statt in der Navigation. */
+.icon-btn--owner { color: var(--gold); }
+.icon-btn--owner:hover { color: #ffd79a; background: rgba(242, 182, 92, 0.14); border-color: rgba(242, 182, 92, 0.35); }
+.icon-btn--owner.is-active { color: #fff; background: rgba(242, 182, 92, 0.22); border-color: rgba(242, 182, 92, 0.45); }
+
+/* ---------------------------------------------------------- Prestige-Wappen -- */
+/*
+  Ein Wappen besteht aus drei Lagen: dunkler Rahmen, farbige Platte, Zahl.
+  Die Form kommt über clip-path, die Farbe über zwei Variablen – so bleibt es
+  bei fünf Farb- und fünf Formklassen für alle hundert Stufen.
+*/
+.crest {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--crest-size, 58px);
+  height: var(--crest-size, 58px);
+  line-height: 1;
+}
+
+.crest--sm { --crest-size: 42px; }
+.crest--lg { --crest-size: 92px; }
+.crest--xl { --crest-size: 132px; }
+
+.crest__frame,
+.crest__plate { position: absolute; }
+
+.crest__frame {
+  inset: 0;
+  background: linear-gradient(180deg, #3b3d48, #0e0f14 70%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 7px 18px -9px rgba(0, 0, 0, 0.95);
+}
+
+.crest__plate {
+  inset: 13%;
+  background: var(--crest-plate, linear-gradient(160deg, #2c2f38, #1b1d24));
+  box-shadow:
+    inset 0 0 0 2px var(--crest-rim, rgba(255, 255, 255, 0.1)),
+    inset 0 -40% 30% -22% rgba(0, 0, 0, 0.6),
+    inset 0 30% 26% -20% rgba(255, 255, 255, 0.3);
+}
+
+/* Feine Sprünge im Stein, damit die Platte nicht wie ein Aufkleber wirkt. */
+.crest__plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(0, 0, 0, 0.55) 47%, transparent 48.5%),
+    linear-gradient(28deg, transparent 62%, rgba(0, 0, 0, 0.4) 63%, transparent 64%);
+}
+
+.crest__num {
+  position: relative;
+  font-weight: 800;
+  font-size: calc(var(--crest-size, 58px) * 0.4);
+  color: #fff;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Formen */
+.crest--circle .crest__frame,
+.crest--circle .crest__plate,
+.crest--empty .crest__frame,
+.crest--empty .crest__plate { border-radius: 50%; }
+
+.crest--diamond .crest__frame,
+.crest--diamond .crest__plate { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.crest--diamond .crest__num { font-size: calc(var(--crest-size, 58px) * 0.3); }
+.crest--diamond .crest__plate { inset: 9%; }
+
+.crest--hex .crest__frame,
+.crest--hex .crest__plate { clip-path: polygon(50% 0, 96% 26%, 96% 74%, 50% 100%, 4% 74%, 4% 26%); }
+.crest--hex .crest__num { font-size: calc(var(--crest-size, 58px) * 0.34); }
+
+.crest--octa .crest__frame,
+.crest--octa .crest__plate {
+  clip-path: polygon(31% 0, 69% 0, 100% 31%, 100% 69%, 69% 100%, 31% 100%, 0 69%, 0 31%);
+}
+.crest--octa .crest__num { font-size: calc(var(--crest-size, 58px) * 0.36); }
+
+.crest--apex .crest__frame,
+.crest--apex .crest__plate {
+  clip-path: polygon(50% 0, 82% 10%, 100% 38%, 92% 74%, 62% 100%, 30% 97%, 4% 70%, 6% 30%);
+}
+.crest--apex .crest__num { font-size: calc(var(--crest-size, 58px) * 0.34); }
+
+/* Farbstufen – jede gilt für fünf Level */
+.crest--stone   { --crest-plate: linear-gradient(160deg, #8d8574, #4a4740 55%, #2f2d29); --crest-rim: rgba(219, 208, 182, 0.45); }
+.crest--bronze  { --crest-plate: linear-gradient(160deg, #e58c3c, #8d4517 55%, #542608); --crest-rim: rgba(255, 186, 124, 0.5); }
+.crest--silver  { --crest-plate: linear-gradient(160deg, #dae2ea, #7e8994 55%, #4b535b); --crest-rim: rgba(240, 246, 252, 0.55); }
+.crest--gold    { --crest-plate: linear-gradient(160deg, #ffdc85, #e0a52c 45%, #86590c); --crest-rim: rgba(255, 231, 163, 0.6); }
+.crest--crimson { --crest-plate: linear-gradient(160deg, #ff6f75, #c02029 50%, #6d0f17); --crest-rim: rgba(255, 152, 158, 0.55); }
+
+.crest--empty .crest__num { color: var(--muted); text-shadow: none; }
+.crest--empty .crest__plate::after { opacity: 0.15; }
+
+/* Prestige 100 – das einzige Wappen, das leuchtet. */
+.crest--apex {
+  --crest-plate: radial-gradient(120% 100% at 50% 25%, #ff8a90, #d3202c 55%, #6b0b13);
+  --crest-rim: rgba(255, 176, 180, 0.75);
+}
+.crest--apex .crest__frame { background: linear-gradient(180deg, #4a1119, #12060a 70%); }
+.crest--apex .crest__plate { animation: crest-glow 3.2s ease-in-out infinite; }
+
+@keyframes crest-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 60, 80, 0.45)); }
+  50%      { filter: drop-shadow(0 0 16px rgba(255, 80, 100, 0.85)); }
+}
+
+/* ---------------------------------------------------------------- Prestige -- */
+.summit {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.9rem, 3vw, 2rem);
+  margin-bottom: 1.2rem;
+  padding: clamp(0.9rem, 3vw, 1.6rem);
+  background:
+    linear-gradient(120deg, rgba(255, 93, 99, 0.12), rgba(89, 180, 240, 0.06) 55%, transparent),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+
+.summit__body { flex: 1; min-width: 0; }
+
+.summit__eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.summit__value {
+  display: block;
+  margin: 0.1rem 0 0.15rem;
+  font-size: clamp(1.9rem, 6vw, 2.9rem);
+  letter-spacing: -0.035em;
+}
+
+.summit__hint { font-size: 0.85rem; color: var(--muted); }
+
+.summit__track {
+  margin-top: 0.8rem;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+/* Der Balken läuft durch dieselbe Farbleiter wie die Wappen. */
+.summit__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8d8574, #e58c3c 28%, #dae2ea 52%, #ffdc85 76%, #ff5d63);
+  transition: width 0.4s ease;
+}
+
+/* Meilensteine */
+.milestones { display: grid; gap: 0.75rem; }
+
+.milestone {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(80px, 190px) auto;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+/* Noch nicht erreicht: das Wappen steht nur als Ausblick da. */
+.milestone--open .milestone__crest { opacity: 0.4; filter: grayscale(0.65); }
+
+.milestone__text { display: grid; gap: 0.15rem; min-width: 0; }
+.milestone__label { font-weight: 600; font-size: 0.92rem; }
+.milestone__range { font-size: 0.76rem; color: var(--muted); }
+
+.milestone__track { height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.milestone__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 93, 99, 0.75), var(--gold));
+}
+.milestone__value { min-width: 2.5ch; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Charakterraster */
+.pgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.pcard {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 1rem 0.7rem 0.85rem;
+  font: inherit;
+  color: var(--text);
+  text-align: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.pcard:hover { transform: translateY(-2px); border-color: var(--line-strong); background: var(--surface-3); }
+.pcard:focus-visible { outline: 2px solid var(--survivor); outline-offset: 2px; }
+
+.pcard__portrait { position: relative; display: inline-flex; }
+.pcard__crest { position: absolute; right: -12px; bottom: -10px; }
+
+.pcard__name { font-weight: 600; font-size: 0.92rem; }
+.pcard__tier { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+.pcard__track { width: 100%; height: 4px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.pcard__fill { display: block; height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+.pcard__fill--none { background: transparent; }
+.pcard__fill--circle { background: linear-gradient(90deg, #6f6a5e, #c8722f); }
+.pcard__fill--diamond { background: linear-gradient(90deg, #c8722f, #b9c3cc); }
+.pcard__fill--hex { background: linear-gradient(90deg, #b9c3cc, #f0b93f); }
+.pcard__fill--octa { background: linear-gradient(90deg, #f0b93f, #e0373f); }
+.pcard__fill--apex { background: linear-gradient(90deg, #e0373f, #ff9aa0); }
+
+.pcard--max {
+  border-color: rgba(255, 93, 99, 0.4);
+  box-shadow: 0 14px 34px -24px rgba(255, 60, 80, 0.95);
+}
+
+/* Legende: alle Wappen einmal durchdekliniert */
+.legend { display: grid; gap: 1.2rem; }
+.legend__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.3rem 0.8rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--line);
+}
+.legend__label { font-weight: 600; font-size: 0.9rem; }
+.legend__range { font-size: 0.76rem; color: var(--muted); }
+.legend__crests { display: flex; flex-wrap: wrap; gap: 1rem; }
+.legend__item { display: grid; justify-items: center; gap: 0.35rem; }
+.legend__caption { font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+/* Stufe setzen */
+.editor { display: grid; justify-items: center; gap: 1rem; }
+.editor__tier { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.editor__next { margin: 0; font-size: 0.82rem; color: var(--muted); text-align: center; }
+
+.stepper { display: flex; align-items: center; gap: 0.6rem; }
+.stepper .icon-btn { width: 36px; height: 36px; font-size: 1.2rem; border-color: var(--line); }
+.stepper input {
+  width: 5.5rem;
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.crest-slider { width: 100%; }
+.quick { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
+.quick .chip { flex: 0 0 auto; min-width: 3.1rem; }
+.chip.is-active { color: #fff; background: rgba(242, 182, 92, 0.34); border-color: rgba(242, 182, 92, 0.55); }
+
 /* ------------------------------------------------------------ Ladefehler -- */
 .boot-error {
   display: grid;
@@ -1813,6 +2083,20 @@ option { background: var(--surface-2); color: var(--text); }
 
   .bar { grid-template-columns: minmax(80px, 130px) 1fr auto; }
   .page-head { flex-wrap: wrap; gap: 0.35rem 0.75rem; }
+
+  /* Prestige: Wappen und Balken untereinander statt nebeneinander. */
+  .summit { flex-direction: column; align-items: flex-start; }
+  .summit__body { width: 100%; }
+  .milestone {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "crest text value" "track track track";
+    row-gap: 0.5rem;
+  }
+  .milestone__crest { grid-area: crest; }
+  .milestone__text { grid-area: text; }
+  .milestone__value { grid-area: value; }
+  .milestone__track { grid-area: track; }
+  .pgrid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 0.6rem; }
 
   /* Ohne Zeigegerät gibt es kein Ziehen: das Board stapelt sich, der Status
      wird in der Detailansicht umgestellt. */

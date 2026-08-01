@@ -1,5 +1,5 @@
 // Kleine Helfer für Formatierung, Toasts und Statistik-Berechnung.
-import { maxKills, streakMinKills } from './data.js?v=33';
+import { maxKills, streakMinKills } from './data.js?v=34';
 
 const nf = new Intl.NumberFormat('de-DE');
 const df = new Intl.DateTimeFormat('de-DE', {

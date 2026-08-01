@@ -1,5 +1,5 @@
 // Gemeinsame Begriffe und Bausteine für Feedback-Dock und Ticket-Cockpit.
-import { escapeHtml } from './utils.js?v=33';
+import { escapeHtml } from './utils.js?v=34';
 
 export const KIND_LABELS = { bug: 'Bug', feature: 'Wunsch' };
 export const KIND_GLYPHS = { bug: '&#128027;', feature: '&#128161;' };
@@ -25,6 +25,7 @@ export const PRIORITY_LABELS = { low: 'Niedrig', normal: 'Normal', high: 'Hoch' 
 export const PAGE_LABELS = {
   index: 'Übersicht',
   stats: 'Statistik',
+  prestige: 'Prestige',
   perks: 'Perks & Builds',
   challenges: 'Challenges',
   settings: 'Einstellungen',

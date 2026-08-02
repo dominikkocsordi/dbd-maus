@@ -9,9 +9,9 @@
 // Survivor war, die drei anderen und den Killer. Das Modul rechnet nur um und
 // spricht selbst weder mit Behaviour noch mit Supabase.
 
-import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=55';
-import { PERKS } from './perks.js?v=55';
-import { cleanAddons } from './loadout.js?v=55';
+import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=56';
+import { PERKS } from './perks.js?v=56';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=56';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -224,6 +224,19 @@ function convert(entry) {
   const addons = cleanAddons((loadout.addOns ?? []).map((addon) => addon?.id));
   if (addons.length) payload.addons = addons;
 
+  /*
+    Nebenbei lernt der Import den Katalog dazu: Der Tracker nennt zu jedem Teil
+    Namen und Bildpfad. Die Add-ons bekommen die Gruppe der Power bzw. des Items,
+    mit dem sie gespielt wurden – so stehen sie beim Eintragen von Hand später an
+    der richtigen Stelle.
+  */
+  const group = loadoutEntry('item', payload.item)?.group ?? payload.item ?? null;
+  const catalog = [
+    learnable('item', loadout.power, role, { group, killer: role === 'killer' ? payload.killer : null }),
+    learnable('offering', loadout.offering, role, {}),
+    ...(loadout.addOns ?? []).map((addon) => learnable('addon', addon, role, { group })),
+  ].filter(Boolean);
+
   if (hasPerks(mode)) {
     const played = (stat.characterLoadout?.perks ?? [])
       .map((perk) => findPerk(role, perk))
@@ -238,11 +251,29 @@ function convert(entry) {
   return {
     payload,
     warnings,
+    catalog,
     source: {
       rawMode,
       characterName: stat.characterName?.name ?? null,
       status: stat.playerStatus?.name ?? null,
     },
+  };
+}
+
+/**
+ * Ein Teil aus dem Tracker als Katalogeintrag – oder null, wenn Name oder ID
+ * fehlen. `image.path` zeigt auf Behaviours Asset-Server und dient als Bild,
+ * solange im eigenen Bucket nichts liegt.
+ */
+function learnable(kind, part, role, extra) {
+  if (!part?.id || !part?.name) return null;
+  return {
+    kind,
+    id: part.id,
+    name: part.name,
+    role,
+    path: part.image?.path ?? null,
+    ...extra,
   };
 }
 
@@ -279,12 +310,14 @@ export function extractEntries(raw) {
 
 /**
  * Wandelt die Tracker-Antwort in Import-Zeilen um. Reihenfolge: neueste zuerst.
- * Rückgabe: { rows, failed } – `failed` sammelt Einträge, die nichts hergeben.
+ * Rückgabe: { rows, failed, catalog } – `failed` sammelt Einträge, die nichts
+ * hergeben, `catalog` die dabei gelernte Ausrüstung (je ID einmal).
  */
 export function parseMatchHistory(raw) {
   const entries = extractEntries(raw);
   const rows = [];
   const failed = [];
+  const catalog = new Map();
 
   for (const entry of entries) {
     const result = convert(entry);
@@ -293,10 +326,11 @@ export function parseMatchHistory(raw) {
       continue;
     }
     rows.push(result);
+    for (const part of result.catalog) catalog.set(`${part.kind}:${part.id}`, part);
   }
 
   rows.sort((a, b) => new Date(b.payload.played_at) - new Date(a.payload.played_at));
-  return { rows, failed };
+  return { rows, failed, catalog: [...catalog.values()] };
 }
 
 /** Perks als reihenfolgeunabhängiger Schlüssel, oder null wenn keine da sind. */

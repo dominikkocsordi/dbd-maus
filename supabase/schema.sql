@@ -859,3 +859,54 @@ as $$
 $$;
 
 grant execute on function public.friend_stats() to authenticated;
+
+
+-- ============================================================================
+--  Ausrüstung, die der Import gelernt hat
+--
+--  Der offizielle Tracker liefert zu jedem Item, Add-on und jeder Opfergabe
+--  nicht nur die Spiel-ID, sondern auch den Namen und den Pfad zum Symbol.
+--  Was der Katalog in assets/js/loadout.js noch nicht kennt, landet hier –
+--  sonst stünde nach jedem Neuladen wieder "K25 Power 16" statt "Frank's Heart".
+--
+--  Einspielen: Dashboard -> SQL Editor -> New query -> Run
+-- ============================================================================
+
+create table if not exists public.loadout_catalog (
+  user_id    uuid        not null references auth.users on delete cascade,
+  kind       text        not null,
+  id         text        not null,
+  name       text        not null,
+  role       text        not null,
+  path       text,
+  grp        text,                                   -- "group" ist in SQL belegt
+  killer     text,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, kind, id)
+);
+
+alter table public.loadout_catalog drop constraint if exists loadout_catalog_kind_check;
+alter table public.loadout_catalog add constraint loadout_catalog_kind_check
+  check (kind in ('item', 'offering', 'addon'));
+
+alter table public.loadout_catalog drop constraint if exists loadout_catalog_role_check;
+alter table public.loadout_catalog add constraint loadout_catalog_role_check
+  check (role in ('killer', 'survivor'));
+
+alter table public.loadout_catalog enable row level security;
+
+drop policy if exists "loadout_catalog_select_own" on public.loadout_catalog;
+create policy "loadout_catalog_select_own" on public.loadout_catalog for select
+  to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "loadout_catalog_insert_own" on public.loadout_catalog;
+create policy "loadout_catalog_insert_own" on public.loadout_catalog for insert
+  to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "loadout_catalog_update_own" on public.loadout_catalog;
+create policy "loadout_catalog_update_own" on public.loadout_catalog for update
+  to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "loadout_catalog_delete_own" on public.loadout_catalog;
+create policy "loadout_catalog_delete_own" on public.loadout_catalog for delete
+  to authenticated using (auth.uid() = user_id);

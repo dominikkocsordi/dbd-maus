@@ -2,19 +2,21 @@
 // Fenster, in das die Daten eingefügt werden. Von dort aus geprüft, in der
 // Vorschau bestätigt und als Matches gespeichert.
 
-import { supabase } from './supabase.js?v=55';
+import { supabase } from './supabase.js?v=56';
 import {
   avatarHtml, killMarksHtml, loadoutIconHtml, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=55';
-import { loadoutName } from './loadout.js?v=55';
-import { perkName } from './perks.js?v=55';
-import { gameModeLabel, labelFor } from './data.js?v=55';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=55';
-import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=55';
+} from './images.js?v=56';
+import { learnLoadout, loadoutEntry, loadoutName } from './loadout.js?v=56';
+import { saveLoadoutCatalog } from './loadout-catalog.js?v=56';
+import { perkName } from './perks.js?v=56';
+import { gameModeLabel, labelFor } from './data.js?v=56';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=56';
+import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=56';
 
 let currentUser = null;
 let onImported = null;
 let rows = [];
+let learned = [];
 
 const el = (id) => document.getElementById(id);
 
@@ -35,7 +37,7 @@ async function mountBookmarklet() {
   const link = el('import-bookmarklet');
 
   try {
-    const res = await fetch('assets/js/tracker-bookmarklet.js?v=55');
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=56');
     if (!res.ok) throw new Error(String(res.status));
     link.href = `javascript:${encodeURIComponent(await res.text())}`;
     link.removeAttribute('aria-disabled');
@@ -190,6 +192,12 @@ async function analyse() {
     const oldest = parsed.rows[parsed.rows.length - 1].payload.played_at;
     const [existing, builds] = await Promise.all([loadExisting(oldest, newest), loadBuilds()]);
 
+    // Namen und Symbole aus dem Tracker gelten sofort, damit schon die Vorschau
+    // "Frank's Heart" zeigt und nicht "K25 Power 16".
+    learned = parsed.catalog;
+    const fresh = learned.filter((part) => !loadoutEntry(part.kind, part.id)).length;
+    learnLoadout(learned);
+
     rows = markDuplicates(attachBuilds(parsed.rows, builds), existing);
 
     renderPreview();
@@ -200,12 +208,14 @@ async function analyse() {
       `${rows.length} Matches gelesen`,
       withBuild ? `${withBuild} einem Build zugeordnet` : null,
       duplicates ? `${duplicates} davon schon vorhanden` : null,
+      fresh ? `${fresh} Teile Ausrüstung dazugelernt` : null,
       parsed.failed.length ? `${parsed.failed.length} übersprungen` : null,
     ].filter(Boolean).join(' · ');
 
     hint(`${summary}. Die Auswahl lässt sich vor dem Übernehmen anpassen.`);
   } catch (error) {
     rows = [];
+    learned = [];
     renderPreview();
     hint(error.message, 'error');
   } finally {
@@ -234,7 +244,12 @@ async function save() {
     return;
   }
 
+  // Erst nach dem Speichern der Matches: sonst merkt sich die App Ausrüstung
+  // aus einem Import, der gar nicht übernommen wurde.
+  await saveLoadoutCatalog(learned, currentUser.id);
+
   rows = [];
+  learned = [];
   el('import-input').value = '';
   renderPreview();
   hint('');

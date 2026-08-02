@@ -1,23 +1,24 @@
-import { supabase } from './supabase.js?v=55';
-import { initAuth } from './auth.js?v=55';
-import { initPasskeyPanel } from './passkeys.js?v=55';
+import { supabase } from './supabase.js?v=56';
+import { initAuth } from './auth.js?v=56';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=56';
+import { initPasskeyPanel } from './passkeys.js?v=56';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=55';
-import { perkName } from './perks.js?v=55';
+} from './images.js?v=56';
+import { perkName } from './perks.js?v=56';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=55';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=55';
+} from './perk-picker.js?v=56';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=56';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=55';
+} from './loadout.js?v=56';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=55';
-import { createSorter } from './table-sort.js?v=55';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=55';
+} from './utils.js?v=56';
+import { createSorter } from './table-sort.js?v=56';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=56';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -713,7 +714,8 @@ mountIcons();
 initAuth({
   onLogin: (user) => {
     currentUser = user;
-    loadBuilds().then(loadMatches);
+    // Erst die gelernte Ausrüstung, dann rendern – sonst stünde kurz die ID da.
+    loadLoadoutCatalog().then(loadBuilds).then(loadMatches);
     initPasskeyPanel();
     // Nach dem Import die Übersicht neu laden, damit die Runden sofort zählen.
     initTrackerImport(user, loadMatches);

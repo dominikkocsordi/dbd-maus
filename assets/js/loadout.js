@@ -245,8 +245,42 @@ const INDEXES = {
   addon: index(ADDONS),
 };
 
+/*
+  Dazugelerntes. Der offizielle Tracker liefert zu jedem Teil nicht nur die ID,
+  sondern auch seinen Namen und den Pfad zum Bild – der Import merkt sich beides
+  (siehe loadout-catalog.js). Damit steht statt "K25 Power 16" der echte Name da,
+  auch für alles, was oben noch nicht von Hand eingetragen ist.
+
+  Der handgepflegte Katalog hat Vorrang: dort stehen die deutschen Feinheiten und
+  die Bilder aus dem eigenen Bucket.
+*/
+const LEARNED = { item: new Map(), offering: new Map(), addon: new Map() };
+
+/**
+ * Einträge aus dem Tracker übernehmen. Erwartet Objekte mit `kind`, `id`,
+ * `name`, `role` und optional `path`, `group`, `killer`.
+ */
+export function learnLoadout(entries) {
+  for (const entry of entries ?? []) {
+    const store = LEARNED[entry.kind];
+    if (!store || !entry.id || !entry.name) continue;
+
+    // Was der Tracker schon einmal geliefert hat, bleibt stehen – neuere
+    // Angaben ergänzen nur, was noch fehlt (z. B. die Gruppe).
+    store.set(entry.id, { ...store.get(entry.id), ...entry });
+  }
+}
+
+/** Alles zu einer Art: erst der Katalog, dann das Dazugelernte. */
+function allOf(kind) {
+  const base = kind === 'item' ? ITEMS : kind === 'offering' ? OFFERINGS : ADDONS;
+  const extra = [...LEARNED[kind].values()].filter((entry) => !INDEXES[kind].has(entry.id));
+  return [...base, ...extra];
+}
+
 /** Katalogeintrag zu einer ID, oder null. `kind` ist item | offering | addon. */
-export const loadoutEntry = (kind, id) => (id ? INDEXES[kind]?.get(id) ?? null : null);
+export const loadoutEntry = (kind, id) =>
+  (id ? INDEXES[kind]?.get(id) ?? LEARNED[kind]?.get(id) ?? null : null);
 
 /**
  * Dateiname des Bildes im Bucket. Ohne Eintrag im Katalog gibt es keinen –
@@ -262,8 +296,7 @@ export function loadoutName(kind, id) {
 
 /** Einträge einer Rolle, alphabetisch – für die Auswahlfelder. */
 export function loadoutList(kind, role) {
-  const list = kind === 'item' ? ITEMS : kind === 'offering' ? OFFERINGS : ADDONS;
-  return list
+  return allOf(kind)
     .filter((entry) => entry.role === role)
     .map((entry) => ({ id: entry.id, label: entry.name, group: entry.group }))
     .sort((a, b) => a.label.localeCompare(b.label, 'de'));
@@ -288,7 +321,7 @@ export function addonsForItem(role, itemId) {
 /** Power eines Killers, sofern im Katalog hinterlegt – sonst null. */
 export function powerForKiller(killerId) {
   if (!killerId) return null;
-  return ITEMS.find((entry) => entry.killer === killerId)?.id ?? null;
+  return allOf('item').find((entry) => entry.killer === killerId)?.id ?? null;
 }
 
 /** Bis zu zwei Add-ons pro Match, doppelte und leere fliegen raus. */

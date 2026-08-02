@@ -1,10 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=55';
-import { fileFor } from './data.js?v=55';
-import { loadoutEntry } from './loadout.js?v=55';
-import { escapeHtml } from './utils.js?v=55';
+import { SUPABASE_URL } from './config.js?v=56';
+import { fileFor } from './data.js?v=56';
+import { loadoutEntry } from './loadout.js?v=56';
+import { escapeHtml } from './utils.js?v=56';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -40,18 +40,30 @@ export const LOADOUT_BUCKETS = {
   offering: 'offerings',
 };
 
+/*
+  Behaviours eigener Asset-Server – von dort holt auch die offizielle
+  Tracker-Seite ihre Symbole. Der Import merkt sich zu jedem Teil den Pfad
+  (z. B. "add-ons/Addon_K25Power_16.png"), damit etwas zu sehen ist, solange
+  das Bild noch nicht im eigenen Bucket liegt.
+*/
+export const TRACKER_ASSETS = 'https://assets.live.bhvraccount.com';
+
 export function loadoutImageUrl(kind, id) {
   const entry = loadoutEntry(kind, id);
-  if (!entry?.file) return null;
+  if (!entry) return null;
 
-  // Item und Power stehen im selben Katalog, ihre Bilder aber in getrennten
-  // Buckets – der Killer bringt eine Power mit, der Survivor ein Item.
-  const bucket = kind === 'item' && entry.role === 'killer'
-    ? LOADOUT_BUCKETS.power
-    : LOADOUT_BUCKETS[kind];
+  if (entry.file) {
+    // Item und Power stehen im selben Katalog, ihre Bilder aber in getrennten
+    // Buckets – der Killer bringt eine Power mit, der Survivor ein Item.
+    const bucket = kind === 'item' && entry.role === 'killer'
+      ? LOADOUT_BUCKETS.power
+      : LOADOUT_BUCKETS[kind];
 
-  if (!bucket) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(entry.file)}`;
+    if (bucket) return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(entry.file)}`;
+  }
+
+  // Der eigene Bucket geht vor; erst wenn dort nichts hinterlegt ist, der Tracker.
+  return entry.path ? `${TRACKER_ASSETS}/${entry.path.split('/').map(encodeURIComponent).join('/')}` : null;
 }
 
 /** Kachel für ein Item, Add-on oder eine Opfergabe – gleiche Optik wie die Perks. */

@@ -1,19 +1,21 @@
-import { supabase } from './supabase.js?v=42';
-import { initAuth } from './auth.js?v=42';
-import { initPasskeyPanel } from './passkeys.js?v=42';
+import { supabase } from './supabase.js?v=43';
+import { initAuth } from './auth.js?v=43';
+import { initPasskeyPanel } from './passkeys.js?v=43';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=42';
-import { perkName } from './perks.js?v=42';
+} from './images.js?v=43';
+import { perkName } from './perks.js?v=43';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=42';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=42';
-import { addonsForItem, cleanAddons, loadoutList, loadoutName } from './loadout.js?v=42';
+} from './perk-picker.js?v=43';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=43';
+import {
+  addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
+} from './loadout.js?v=43';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=42';
-import { createSorter } from './table-sort.js?v=42';
+} from './utils.js?v=43';
+import { createSorter } from './table-sort.js?v=43';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -35,10 +37,10 @@ function fillSelect(select, entries, placeholder, optional = false) {
 }
 
 /*
-  Item/Kraft, Add-ons und Opfergabe hängen an der Rolle: Der Killer bringt seine
-  Kraft mit, der Survivor ein Item. Die Add-on-Liste sortiert das gewählte Item
-  nach vorn, blendet aber nichts aus – die Zuordnung im Katalog stimmt nicht
-  überall, und ein fehlendes Add-on wäre ärgerlicher als eine lange Liste.
+  Item, Add-ons und Opfergabe hängen an der Rolle: Der Killer bringt seine Power
+  mit, der Survivor ein Item. Die Power ergibt sich aus dem Killer und wird
+  darum mitgesetzt, sobald einer gewählt ist; die Add-ons richten sich dann
+  danach.
 */
 function syncLoadoutFields(keep = true) {
   const role = currentRole();
@@ -47,7 +49,7 @@ function syncLoadoutFields(keep = true) {
   const previousItem = keep ? item.value : '';
 
   document.getElementById('f-item-label').innerHTML =
-    `${role === 'killer' ? 'Kraft' : 'Item'} <em>optional</em>`;
+    `${role === 'killer' ? 'Power' : 'Item'} <em>optional</em>`;
 
   fillSelect(item, loadoutList('item', role), 'Kein Eintrag', true);
   item.value = previousItem;
@@ -57,10 +59,27 @@ function syncLoadoutFields(keep = true) {
   syncAddonOptions(keep);
 }
 
+/*
+  Jeder Killer hat genau eine Power – sie wird beim Wechsel mitgesetzt. Kennt
+  der Katalog sie noch nicht, bleibt das Feld leer: Was vorher darin stand,
+  gehörte zum vorigen Killer und wäre jetzt schlicht falsch.
+*/
+function syncPowerForKiller() {
+  if (currentRole() !== 'killer') return;
+
+  const select = document.getElementById('f-item');
+  const power = powerForKiller(document.getElementById('f-killer').value) ?? '';
+  if (select.value === power) return;
+
+  select.value = power;
+  syncAddonOptions(false);
+}
+
 function syncAddonOptions(keep = true) {
   const role = currentRole();
   const entries = addonsForItem(role, document.getElementById('f-item').value);
 
+  // Passt ein bereits gewähltes Add-on nicht mehr zum Item, fällt es weg.
   for (const slot of [1, 2]) {
     const select = document.getElementById(`f-addon-${slot}`);
     const previous = keep ? select.value : '';
@@ -186,6 +205,7 @@ function syncRoleBlocks() {
   setPerkRole(role);
   syncPerkCharacter();
   syncLoadoutFields(false);
+  syncPowerForKiller();
   syncBuildSelect(false);
 }
 
@@ -645,7 +665,9 @@ function initForm() {
   for (const [field, role] of [['killer', 'killer'], ['survivor', 'survivor'], ['faced-killer', 'killer']]) {
     document.getElementById(`f-${field}`).addEventListener('change', () => {
       syncPortrait(field, role);
-      if (field !== 'faced-killer') syncPerkCharacter();
+      if (field === 'faced-killer') return;
+      syncPerkCharacter();
+      if (field === 'killer') syncPowerForKiller();
     });
     syncPortrait(field, role);
   }

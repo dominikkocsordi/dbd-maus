@@ -10,28 +10,30 @@
 // einen lesbaren Namen ab. Ergänzt wird hier einfach Zeile für Zeile.
 //
 //   role  : 'killer' | 'survivor'
-//   group : verbindet Add-ons mit dem Item bzw. der Kraft, zu der sie gehören
+//   group : verbindet Add-ons mit dem Item bzw. der Power, zu der sie gehören
+//   killer: nur bei Powers – zu welchem Killer sie gehört (aus echten Matches
+//           abgeleitet, darum noch nicht für jeden Killer hinterlegt)
 
 export const ITEMS = [
-  { id: 'Item_Slasher_LFChainsaw', name: 'Bubba\'s Chainsaw', role: 'killer', group: 'lfchainsaw' },
-  { id: 'Item_Slasher_Killer07Item', name: 'Carter\'s Spark', role: 'killer', group: 'spark' },
-  { id: 'Item_Slasher_Chainsaw', name: 'Chainsaw', role: 'killer', group: 'chainsaw' },
-  { id: 'Item_Slasher_K31Power', name: 'Eyes In The Sky', role: 'killer', group: 'k31' },
-  { id: 'Item_Slasher_Frenzy', name: 'Feral Frenzy', role: 'killer', group: 'frenzy' },
-  { id: 'Item_Slasher_K33Power', name: 'Hidden Pursuit', role: 'killer', group: 'k33' },
-  { id: 'Item_Slasher_QatarKillerPower', name: 'Of the Abyss', role: 'killer', group: 'qatarkiller' },
-  { id: 'Item_K43Power', name: 'Omnipresent Evil', role: 'killer', group: 'k43' },
-  { id: 'Item_Slasher_ThrowingKnives', name: 'Showstopper', role: 'killer', group: 'trickster' },
-  { id: 'Item_Slasher_Blinker', name: 'Spencer\'s Last Breath', role: 'killer', group: 'blinker' },
-  { id: 'Item_Slasher_K25Power', name: 'Summons of Pain', role: 'killer', group: 'k25' },
-  { id: 'Item_Slasher_K24Power', name: 'T-VIRUS', role: 'killer', group: 'k24' },
-  { id: 'Item_Slasher_HarpoonRifle', name: 'The Redeemer', role: 'killer', group: 'harpoon' },
-  { id: 'Item_Slasher_K37Power', name: 'Vampiric Shift', role: 'killer', group: 'k37' },
-  { id: 'Item_Slasher_K36Power', name: 'VILE DARKNESS', role: 'killer', group: 'k36' },
-  { id: 'Item_Slasher_K29Power', name: 'Virulent Bound', role: 'killer', group: 'k29' },
-  { id: 'Item_Slasher_CloakBell', name: 'Wailing Bell', role: 'killer', group: 'bell' },
-  { id: 'Item_Slasher_Kanobo', name: 'Yamaoka\'s Wrath', role: 'killer', group: 'kanobo' },
-  { id: 'Item_Slasher_PhaseWalker', name: 'Yamaoka’s Haunting', role: 'killer', group: 'phasewalker' },
+  { id: 'Item_Slasher_LFChainsaw', name: 'Bubba\'s Chainsaw', role: 'killer', group: 'lfchainsaw', killer: 'cannibal' },
+  { id: 'Item_Slasher_Killer07Item', name: 'Carter\'s Spark', role: 'killer', group: 'spark', killer: 'doctor' },
+  { id: 'Item_Slasher_Chainsaw', name: 'Chainsaw', role: 'killer', group: 'chainsaw', killer: 'hillbilly' },
+  { id: 'Item_Slasher_K31Power', name: 'Eyes In The Sky', role: 'killer', group: 'k31', killer: 'skull_merchant' },
+  { id: 'Item_Slasher_Frenzy', name: 'Feral Frenzy', role: 'killer', group: 'frenzy', killer: 'legion' },
+  { id: 'Item_Slasher_K33Power', name: 'Hidden Pursuit', role: 'killer', group: 'k33', killer: 'xenomorph' },
+  { id: 'Item_Slasher_QatarKillerPower', name: 'Of the Abyss', role: 'killer', group: 'qatarkiller', killer: 'demogorgon' },
+  { id: 'Item_K43Power', name: 'Omnipresent Evil', role: 'killer', group: 'k43', killer: 'jason' },
+  { id: 'Item_Slasher_ThrowingKnives', name: 'Showstopper', role: 'killer', group: 'trickster', killer: 'trickster' },
+  { id: 'Item_Slasher_Blinker', name: 'Spencer\'s Last Breath', role: 'killer', group: 'blinker', killer: 'nurse' },
+  { id: 'Item_Slasher_K25Power', name: 'Summons of Pain', role: 'killer', group: 'k25', killer: 'cenobite' },
+  { id: 'Item_Slasher_K24Power', name: 'T-VIRUS', role: 'killer', group: 'k24', killer: 'nemesis' },
+  { id: 'Item_Slasher_HarpoonRifle', name: 'The Redeemer', role: 'killer', group: 'harpoon', killer: 'deathslinger' },
+  { id: 'Item_Slasher_K37Power', name: 'Vampiric Shift', role: 'killer', group: 'k37', killer: 'dark_lord' },
+  { id: 'Item_Slasher_K36Power', name: 'VILE DARKNESS', role: 'killer', group: 'k36', killer: 'lich' },
+  { id: 'Item_Slasher_K29Power', name: 'Virulent Bound', role: 'killer', group: 'k29', killer: 'mastermind' },
+  { id: 'Item_Slasher_CloakBell', name: 'Wailing Bell', role: 'killer', group: 'bell', killer: 'wraith' },
+  { id: 'Item_Slasher_Kanobo', name: 'Yamaoka\'s Wrath', role: 'killer', group: 'kanobo', killer: 'oni' },
+  { id: 'Item_Slasher_PhaseWalker', name: 'Yamaoka’s Haunting', role: 'killer', group: 'phasewalker', killer: 'spirit' },
   { id: 'Item_Camper_AlexsToolbox', name: 'Alex\'s Toolbox', role: 'survivor', group: 'alexstoolbox' },
   { id: 'Item_Camper_Medkit05', name: 'All Hallows\' Eve Lunchbox', role: 'survivor', group: 'medkit' },
   { id: 'Item_Camper_RainbowMap', name: 'Annotated Map', role: 'survivor', group: 'map' },
@@ -212,19 +214,25 @@ export function loadoutList(kind, role) {
 }
 
 /**
- * Add-ons für ein Item: die passenden zuerst, danach der Rest. Bewusst kein
- * Filter – die Zuordnung stimmt nicht überall, und ein fehlendes Add-on wäre
- * ärgerlicher als eine längere Liste.
+ * Add-ons zu einem Item bzw. einer Power. Ohne gewähltes Item steht die ganze
+ * Liste zur Auswahl.
+ *
+ * Kennt der Katalog zu dem Item noch keine Add-ons, kommt ebenfalls die volle
+ * Liste – sonst stünde man vor einem leeren Feld und käme gar nicht weiter.
  */
 export function addonsForItem(role, itemId) {
   const group = loadoutEntry('item', itemId)?.group ?? null;
   const list = loadoutList('addon', role);
   if (!group) return list;
 
-  return [
-    ...list.filter((entry) => entry.group === group),
-    ...list.filter((entry) => entry.group !== group),
-  ];
+  const matching = list.filter((entry) => entry.group === group);
+  return matching.length ? matching : list;
+}
+
+/** Power eines Killers, sofern im Katalog hinterlegt – sonst null. */
+export function powerForKiller(killerId) {
+  if (!killerId) return null;
+  return ITEMS.find((entry) => entry.killer === killerId)?.id ?? null;
 }
 
 /** Bis zu zwei Add-ons pro Match, doppelte und leere fliegen raus. */

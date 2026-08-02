@@ -9,9 +9,9 @@
 // Survivor war, die drei anderen und den Killer. Das Modul rechnet nur um und
 // spricht selbst weder mit Behaviour noch mit Supabase.
 
-import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=42';
-import { PERKS } from './perks.js?v=42';
-import { cleanAddons } from './loadout.js?v=42';
+import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=43';
+import { PERKS } from './perks.js?v=43';
+import { cleanAddons } from './loadout.js?v=43';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';

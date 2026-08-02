@@ -4,9 +4,9 @@
   allgemeinen und zuletzt der Rest. Schon belegte Perks sind in den anderen
   Plätzen ausgegraut. Alles bleibt optional – leer heißt einfach "nichts".
 */
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=49';
-import { perkIconHtml } from './images.js?v=49';
-import { escapeHtml } from './utils.js?v=49';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=50';
+import { perkIconHtml } from './images.js?v=50';
+import { escapeHtml } from './utils.js?v=50';
 
 const SLOT_COUNT = 4;
 

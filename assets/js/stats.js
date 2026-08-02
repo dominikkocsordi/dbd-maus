@@ -1,17 +1,17 @@
-import { supabase } from './supabase.js?v=49';
-import { initAuth } from './auth.js?v=49';
+import { supabase } from './supabase.js?v=50';
+import { initAuth } from './auth.js?v=50';
 import {
   GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=49';
-import { createSorter } from './table-sort.js?v=49';
+} from './data.js?v=50';
+import { createSorter } from './table-sort.js?v=50';
 import {
   aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
-} from './utils.js?v=49';
+} from './utils.js?v=50';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=49';
-import { loadoutName } from './loadout.js?v=49';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=49';
+} from './images.js?v=50';
+import { loadoutName } from './loadout.js?v=50';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=50';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;

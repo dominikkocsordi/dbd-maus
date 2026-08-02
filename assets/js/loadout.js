@@ -226,15 +226,27 @@ export const ADDONS = [
 */
 function nameFromId(id) {
   const bare = String(id ?? '')
-    .replace(/^(?:ADDON|Addon)_/, '')
+    .replace(/^(?:ADDON|Addon)_/i, '')
     .replace(/^Item_(?:Camper|Slasher|Survivor)_/, '')
     .replace(/^Item_/, '');
 
-  return bare
+  /*
+    Vor dem eigentlichen Namen steht meist die Kraft, zu der das Teil gehört –
+    "Lastbreath_KavanaghLastBreath". Die fällt weg, sonst liest es sich doppelt.
+    Nur wo dahinter bloß eine Nummer steht ("K25Power_16"), bleibt sie stehen:
+    allein sagt "16" gar nichts mehr.
+  */
+  const parts = bare.split('_');
+  const last = parts[parts.length - 1];
+  const useful = parts.length > 1 && !/^\d+$/.test(last) ? last : bare;
+
+  const words = useful
     .replace(/_/g, ' ')
     .replace(/([a-z\d])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
-    .trim() || String(id ?? '');
+    .trim();
+
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : String(id ?? '');
 }
 
 const index = (list) => new Map(list.map((entry) => [entry.id, entry]));

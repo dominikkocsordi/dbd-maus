@@ -4,9 +4,9 @@
 // Der handgepflegte Katalog in loadout.js bleibt die erste Adresse; hier landet
 // nur, was dort noch fehlt. Beides führt loadout.js zusammen.
 
-import { supabase } from './supabase.js?v=56';
-import { learnLoadout } from './loadout.js?v=56';
-import { toast } from './utils.js?v=56';
+import { supabase } from './supabase.js?v=57';
+import { learnLoadout } from './loadout.js?v=57';
+import { toast } from './utils.js?v=57';
 
 /* In der Tabelle heißt die Spalte `grp` – `group` ist in SQL belegt. */
 const fromRow = (row) => ({
@@ -40,7 +40,17 @@ export async function loadLoadoutCatalog() {
     .from('loadout_catalog')
     .select('kind, id, name, role, path, grp, killer');
 
-  if (error) return false;
+  /*
+    Ohne Tabelle läuft die App weiter, nur eben mit den aus der ID abgeleiteten
+    Namen. Das einmal zu sagen ist wichtig: Sonst importiert man, sieht in der
+    Vorschau die richtigen Namen und wundert sich, warum nach dem Neuladen
+    wieder "K25 Power 16" dasteht.
+  */
+  if (error) {
+    toast(`Gelernte Ausrüstung nicht ladbar: ${error.message}`, 'error');
+    return false;
+  }
+
   learnLoadout((data ?? []).map(fromRow));
   return true;
 }

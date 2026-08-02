@@ -1,21 +1,23 @@
-import { supabase } from './supabase.js?v=45';
-import { initAuth } from './auth.js?v=45';
-import { initPasskeyPanel } from './passkeys.js?v=45';
+import { supabase } from './supabase.js?v=46';
+import { initAuth } from './auth.js?v=46';
+import { initPasskeyPanel } from './passkeys.js?v=46';
 import {
-  avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=45';
-import { perkName } from './perks.js?v=45';
+  avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
+  perkIconHtml,
+} from './images.js?v=46';
+import { perkName } from './perks.js?v=46';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=45';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=45';
+} from './perk-picker.js?v=46';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=46';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=45';
+} from './loadout.js?v=46';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=45';
-import { createSorter } from './table-sort.js?v=45';
+} from './utils.js?v=46';
+import { createSorter } from './table-sort.js?v=46';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=46';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -48,8 +50,8 @@ function syncLoadoutFields(keep = true) {
   const offering = document.getElementById('f-offering');
   const previousItem = keep ? item.value : '';
 
-  document.getElementById('f-item-label').innerHTML =
-    `${role === 'killer' ? 'Power' : 'Item'} <em>optional</em>`;
+  // Der Killer bringt seine feste Power mit – dort gibt es nichts zu wählen.
+  document.getElementById('item-field').hidden = role === 'killer';
 
   fillSelect(item, loadoutList('item', role), 'Kein Eintrag', true);
   item.value = previousItem;
@@ -73,6 +75,19 @@ function syncPowerForKiller() {
 
   select.value = power;
   syncAddonOptions(false);
+  renderPowerBadge();
+}
+
+/** Zeigt die Power des Killers klein neben der Auswahl an. */
+function renderPowerBadge() {
+  const badge = document.getElementById('f-power');
+  const id = currentRole() === 'killer' ? document.getElementById('f-item').value : '';
+
+  badge.hidden = !id;
+  badge.innerHTML = id
+    ? loadoutIconHtml('item', id, loadoutName('item', id))
+      + `<span class="power-badge__name">${escapeHtml(loadoutName('item', id))}</span>`
+    : '';
 }
 
 function syncAddonOptions(keep = true) {
@@ -206,6 +221,7 @@ function syncRoleBlocks() {
   syncPerkCharacter();
   syncLoadoutFields(false);
   syncPowerForKiller();
+  renderPowerBadge();
   syncBuildSelect(false);
 }
 
@@ -378,6 +394,7 @@ function startEdit(id) {
     document.getElementById(`f-addon-${slot + 1}`).value = id;
   });
   syncAddonHint();
+  renderPowerBadge();
   syncBuildField();
   syncPerkField();
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
@@ -680,6 +697,7 @@ function initForm() {
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
   document.getElementById('f-build').addEventListener('change', adoptBuildPerks);
+  document.getElementById('import-open').addEventListener('click', openTrackerImport);
   document.getElementById('f-item').addEventListener('change', () => syncAddonOptions());
   for (const slot of [1, 2]) {
     document.getElementById(`f-addon-${slot}`).addEventListener('change', syncAddonHint);
@@ -697,6 +715,8 @@ initAuth({
     currentUser = user;
     loadBuilds().then(loadMatches);
     initPasskeyPanel();
+    // Nach dem Import die Übersicht neu laden, damit die Runden sofort zählen.
+    initTrackerImport(user, loadMatches);
   },
   onLogout: () => {
     currentUser = null;

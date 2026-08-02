@@ -3,12 +3,12 @@
   Gespeichert wird eine Zeile je Charakter, angezeigt wird das Wappen aus
   crest.js – Farbe alle fünf Stufen, Form alle 25.
 */
-import { supabase } from './supabase.js?v=45';
-import { initAuth } from './auth.js?v=45';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=45';
-import { MAX_PRESTIGE, MILESTONES, TIERS, crestHtml, crestLabel, crestMilestone } from './crest.js?v=45';
-import { avatarHtml, mountIcons } from './images.js?v=45';
-import { escapeHtml, fmtNumber, fmtPercent, toast } from './utils.js?v=45';
+import { supabase } from './supabase.js?v=46';
+import { initAuth } from './auth.js?v=46';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=46';
+import { MAX_PRESTIGE, MILESTONES, TIERS, crestHtml, crestLabel, crestMilestone } from './crest.js?v=46';
+import { avatarHtml, mountIcons } from './images.js?v=46';
+import { escapeHtml, fmtNumber, fmtPercent, toast } from './utils.js?v=46';
 
 let currentUser = null;
 let levels = new Map();       // "killer:trapper" -> Stufe

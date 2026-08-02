@@ -1,10 +1,9 @@
-import { supabase } from './supabase.js?v=45';
-import { initAuth } from './auth.js?v=45';
-import { initPasskeyPanel } from './passkeys.js?v=45';
-import { initTrackerImport } from './tracker-import-panel.js?v=45';
-import { mountIcons } from './images.js?v=45';
-import { loadProfile, roleLabel } from './profile.js?v=45';
-import { fmtDate, toast } from './utils.js?v=45';
+import { supabase } from './supabase.js?v=46';
+import { initAuth } from './auth.js?v=46';
+import { initPasskeyPanel } from './passkeys.js?v=46';
+import { mountIcons } from './images.js?v=46';
+import { loadProfile, roleLabel } from './profile.js?v=46';
+import { fmtDate, toast } from './utils.js?v=46';
 
 function hint(id, message, type = 'info') {
   const el = document.getElementById(id);
@@ -83,6 +82,5 @@ initAuth({
       `${user.email} · ${roleLabel()} · dabei seit ${fmtDate(user.created_at)}`;
     document.getElementById('set-email').placeholder = user.email ?? '';
     initPasskeyPanel();
-    initTrackerImport(user);
   },
 });

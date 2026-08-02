@@ -2227,3 +2227,12 @@ a.panel__meta:hover { text-decoration: underline; }
 /* Opfergaben sind im Spiel rund, Add-ons quadratisch – das trennt die Reihe. */
 .perk-icon--offering { border-radius: 50%; }
 .perk-icon--item { border-radius: var(--r-sm); }
+
+/* Power des Killers: feste Anzeige statt Auswahl. */
+.power-badge { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.5rem; }
+.power-badge__name { font-size: 0.82rem; color: var(--muted); }
+.power-badge .perk-icon { width: 1.75rem; height: 1.75rem; }
+
+/* Der Import braucht mehr Platz als die übrigen Schubladen – die Vorschau
+   ist eine Tabelle mit acht Spalten. */
+.drawer--import .drawer__panel { width: min(940px, 100%); }

@@ -1,17 +1,19 @@
-// Import-Panel auf der Einstellungsseite: JSON aus dem offiziellen Tracker
-// einlesen, prüfen und als Matches speichern.
+// Import aus dem offiziellen Tracker: Der Knopf am Eintragsformular öffnet ein
+// Fenster, in das die Daten eingefügt werden. Von dort aus geprüft, in der
+// Vorschau bestätigt und als Matches gespeichert.
 
-import { supabase } from './supabase.js?v=45';
+import { supabase } from './supabase.js?v=46';
 import {
   avatarHtml, killMarksHtml, loadoutIconHtml, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=45';
-import { loadoutName } from './loadout.js?v=45';
-import { perkName } from './perks.js?v=45';
-import { gameModeLabel, labelFor } from './data.js?v=45';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=45';
-import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=45';
+} from './images.js?v=46';
+import { loadoutName } from './loadout.js?v=46';
+import { perkName } from './perks.js?v=46';
+import { gameModeLabel, labelFor } from './data.js?v=46';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=46';
+import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=46';
 
 let currentUser = null;
+let onImported = null;
 let rows = [];
 
 const el = (id) => document.getElementById(id);
@@ -33,7 +35,7 @@ async function mountBookmarklet() {
   const link = el('import-bookmarklet');
 
   try {
-    const res = await fetch('assets/js/tracker-bookmarklet.js?v=45');
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=46');
     if (!res.ok) throw new Error(String(res.status));
     link.href = `javascript:${encodeURIComponent(await res.text())}`;
     link.removeAttribute('aria-disabled');
@@ -235,14 +237,43 @@ async function save() {
   rows = [];
   el('import-input').value = '';
   renderPreview();
-  hint(`${picked.length} ${picked.length === 1 ? 'Match' : 'Matches'} übernommen.`, 'success');
+  hint('');
+  closeTrackerImport();
   toast(`${picked.length} ${picked.length === 1 ? 'Match' : 'Matches'} importiert.`, 'success');
+  await onImported?.();
 }
 
-export function initTrackerImport(user) {
+/* Das Fenster folgt dem Muster der übrigen Schubladen der App. */
+export function openTrackerImport() {
+  const drawer = el('import-drawer');
+  drawer.hidden = false;
+  requestAnimationFrame(() => drawer.classList.add('is-open'));
+  el('import-input').focus();
+}
+
+function closeTrackerImport() {
+  const drawer = el('import-drawer');
+  drawer.classList.remove('is-open');
+  setTimeout(() => { drawer.hidden = true; }, 200);
+}
+
+/**
+ * `refresh` läuft nach einem erfolgreichen Import – die Seite, die den Import
+ * einbindet, lädt damit ihre Liste neu.
+ */
+export function initTrackerImport(user, refresh = null) {
   currentUser = user;
-  el('import-panel').hidden = false;
+  onImported = refresh;
+
   el('import-parse').addEventListener('click', analyse);
   el('import-save').addEventListener('click', save);
+
+  document.querySelectorAll('[data-import-close]').forEach((node) => {
+    node.addEventListener('click', closeTrackerImport);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !el('import-drawer').hidden) closeTrackerImport();
+  });
+
   mountBookmarklet();
 }

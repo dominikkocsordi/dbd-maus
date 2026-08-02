@@ -117,6 +117,9 @@ items      iconItems_flashlight.png                       Flashlight
 addons     iconAddon_battery.png                          Battery
            iconAddon_gauseRoll.png                        Gauze Roll (Tippfehler stammt aus dem Spiel)
            T_UI_iconAddon_GnarledCompass.png              Gnarled Compass
+offerings  iconFavors_escapeCake.png                      Escape! Cake
+           iconFavors_momentoMoriEbony.png                Ebony Memento Mori (auch hier ein Tippfehler)
+           T_UI_iconsFavors_10thAnniversary.png           Toothy Torte (Jubilaeum 2026)
 
 Gross-/Kleinschreibung zaehlt. Ohne Eintrag in loadout.js zeigt die App das
 Namenskuerzel statt eines Bildes - hochladen allein reicht also nicht, die

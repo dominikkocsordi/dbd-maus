@@ -6,7 +6,7 @@
   <title>DBD Stats – Einstellungen</title>
   <meta name="description" content="Konto, Passwort und Passkeys verwalten.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=53">
+  <link rel="stylesheet" href="assets/css/style.css?v=55">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -118,6 +118,23 @@
       </section>
 
 
+      <section class="panel" id="check-panel" hidden>
+        <header class="panel__head">
+          <h2>Bilder prüfen</h2>
+        </header>
+        <p class="import-lead">
+          Lädt jedes Motiv aus den Katalogen und meldet, was nicht ankommt.
+          Fällt ein ganzer Bucket aus, steht er meist nicht auf öffentlich;
+          fehlen einzelne Dateien, stimmt der Dateiname im Katalog nicht.
+        </p>
+        <div class="settings-row">
+          <button type="button" class="btn btn--ghost" id="check-run">Prüfung starten</button>
+          <button type="button" class="btn btn--ghost" id="check-copy" hidden>Bericht kopieren</button>
+        </div>
+        <p class="form-hint" id="check-status"></p>
+        <div id="check-result"></div>
+      </section>
+
       <section class="panel">
         <header class="panel__head">
           <h2>Sitzung</h2>
@@ -131,6 +148,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/settings.js?v=53"></script>
+  <script type="module" src="assets/js/settings.js?v=55"></script>
 </body>
 </html>

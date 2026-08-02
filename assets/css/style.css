@@ -2236,3 +2236,12 @@ a.panel__meta:hover { text-decoration: underline; }
 /* Der Import braucht mehr Platz als die übrigen Schubladen – die Vorschau
    ist eine Tabelle mit acht Spalten. */
 .drawer--import .drawer__panel { width: min(940px, 100%); }
+
+/* ---------------------------------------------------------- Bilder prüfen --
+   Eigener Namensraum: .check gehört schon den Checkbox-Zeilen der Challenges. */
+.imgcheck { margin: 0.9rem 0 0; padding: 0; list-style: none; }
+.imgcheck__bucket { margin-bottom: 0.9rem; font-size: 0.86rem; }
+.imgcheck__bucket.is-bad { padding-left: 0.6rem; box-shadow: inset 2px 0 0 var(--bad); }
+.imgcheck__hint { display: block; margin-top: 0.2rem; color: var(--muted); font-size: 0.8rem; }
+.imgcheck__list { margin: 0.35rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.8rem; }
+.imgcheck__list code { font-size: 0.95em; }

@@ -1,9 +1,10 @@
-import { supabase } from './supabase.js?v=53';
-import { initAuth } from './auth.js?v=53';
-import { initPasskeyPanel } from './passkeys.js?v=53';
-import { mountIcons } from './images.js?v=53';
-import { loadProfile, roleLabel } from './profile.js?v=53';
-import { fmtDate, toast } from './utils.js?v=53';
+import { supabase } from './supabase.js?v=55';
+import { initAuth } from './auth.js?v=55';
+import { initPasskeyPanel } from './passkeys.js?v=55';
+import { initImageCheck } from './image-check.js?v=55';
+import { mountIcons } from './images.js?v=55';
+import { loadProfile, roleLabel } from './profile.js?v=55';
+import { fmtDate, toast } from './utils.js?v=55';
 
 function hint(id, message, type = 'info') {
   const el = document.getElementById(id);
@@ -82,5 +83,6 @@ initAuth({
       `${user.email} · ${roleLabel()} · dabei seit ${fmtDate(user.created_at)}`;
     document.getElementById('set-email').placeholder = user.email ?? '';
     initPasskeyPanel();
+    initImageCheck();
   },
 });

@@ -1,10 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=50';
-import { fileFor } from './data.js?v=50';
-import { loadoutEntry } from './loadout.js?v=50';
-import { escapeHtml } from './utils.js?v=50';
+import { SUPABASE_URL } from './config.js?v=51';
+import { fileFor } from './data.js?v=51';
+import { loadoutEntry } from './loadout.js?v=51';
+import { escapeHtml } from './utils.js?v=51';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -60,7 +60,14 @@ export function loadoutIconHtml(kind, id, name, modifier = '') {
   const url = loadoutImageUrl(kind, id);
   const short = String(name ?? '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || '?';
 
-  return `<span class="perk-icon perk-icon--${kind}${modifier ? ` ${modifier}` : ''}" title="${escapeHtml(name ?? '')}">
+  /*
+    Kennt der Katalog den Eintrag nicht, steht im Tooltip zusätzlich die
+    Spiel-ID. Nur daran lässt sich nachtragen, was fehlt – der angezeigte Name
+    ist in dem Fall bloß aus der ID abgeleitet und taugt nicht als Schlüssel.
+  */
+  const title = loadoutEntry(kind, id) ? (name ?? '') : `${name ?? ''} · ${id}`;
+
+  return `<span class="perk-icon perk-icon--${kind}${modifier ? ` ${modifier}` : ''}" title="${escapeHtml(title)}">
     <span class="perk-icon__fallback">${escapeHtml(short)}</span>
     ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
   </span>`;

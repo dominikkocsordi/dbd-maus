@@ -1,6 +1,6 @@
 // Passkeys (WebAuthn) über Supabase Auth – Anmeldung und Verwaltung.
-import { supabase } from './supabase.js?v=51';
-import { escapeHtml, fmtDate, toast } from './utils.js?v=51';
+import { supabase } from './supabase.js?v=52';
+import { escapeHtml, fmtDate, toast } from './utils.js?v=52';
 
 /** Browser ohne WebAuthn (z. B. ältere Mobile-Browser) bekommen die Buttons erst gar nicht. */
 export function passkeysSupported() {

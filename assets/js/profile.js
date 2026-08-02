@@ -1,5 +1,5 @@
 // Profil und Rolle des angemeldeten Benutzers.
-import { supabase } from './supabase.js?v=51';
+import { supabase } from './supabase.js?v=52';
 
 let profile = null;
 let pending = null;

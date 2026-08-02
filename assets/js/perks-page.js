@@ -1,9 +1,9 @@
-import { supabase } from './supabase.js?v=51';
-import { initAuth } from './auth.js?v=51';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=51';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=51';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=51';
-import { escapeHtml, fmtNumber, toast } from './utils.js?v=51';
+import { supabase } from './supabase.js?v=52';
+import { initAuth } from './auth.js?v=52';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=52';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=52';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=52';
+import { escapeHtml, fmtNumber, toast } from './utils.js?v=52';
 
 const MAX_PERKS = 4;
 

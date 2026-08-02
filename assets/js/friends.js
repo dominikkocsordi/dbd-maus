@@ -3,11 +3,11 @@
   Geteilt werden nur die Summen aus friend_stats() – einzelne Matches, Notizen
   und Builds bleiben privat.
 */
-import { supabase } from './supabase.js?v=57';
-import { initAuth } from './auth.js?v=57';
-import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=57';
-import { createSorter } from './table-sort.js?v=57';
-import { crestHtml } from './crest.js?v=57';
+import { supabase } from './supabase.js?v=58';
+import { initAuth } from './auth.js?v=58';
+import { escapeHtml, fmtDate, fmtNumber, fmtPercent, toast } from './utils.js?v=58';
+import { createSorter } from './table-sort.js?v=58';
+import { crestHtml } from './crest.js?v=58';
 
 /** Womit sich vergleichen lässt; `value` liefert die Zahl, `format` den Text. */
 const METRICS = [

@@ -1,10 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=57';
-import { fileFor } from './data.js?v=57';
-import { loadoutEntry } from './loadout.js?v=57';
-import { escapeHtml } from './utils.js?v=57';
+import { SUPABASE_URL } from './config.js?v=58';
+import { fileFor } from './data.js?v=58';
+import { loadoutEntry } from './loadout.js?v=58';
+import { escapeHtml } from './utils.js?v=58';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -48,28 +48,51 @@ export const LOADOUT_BUCKETS = {
 */
 export const TRACKER_ASSETS = 'https://assets.live.bhvraccount.com';
 
-export function loadoutImageUrl(kind, id) {
-  const entry = loadoutEntry(kind, id);
-  if (!entry) return null;
+/* Dort heißt jede Datei nach ihrer Spiel-ID, nur der Ordner richtet sich nach
+   der Art – Killer-Kräfte liegen bei den Items. */
+const TRACKER_DIRS = { item: 'items', addon: 'add-ons', offering: 'offerings' };
 
-  if (entry.file) {
-    // Item und Power stehen im selben Katalog, ihre Bilder aber in getrennten
-    // Buckets – der Killer bringt eine Power mit, der Survivor ein Item.
-    const bucket = kind === 'item' && entry.role === 'killer'
-      ? LOADOUT_BUCKETS.power
-      : LOADOUT_BUCKETS[kind];
+/**
+ * Bild beim Tracker. Der Pfad ergibt sich aus der ID und kann darum nicht am
+ * falschen Teil landen; ein vom Import mitgebrachter Pfad geht trotzdem vor,
+ * falls Behaviour einmal von seinem Muster abweicht.
+ */
+export function trackerImageUrl(kind, id) {
+  const path = loadoutEntry(kind, id)?.path
+    ?? (TRACKER_DIRS[kind] && id ? `${TRACKER_DIRS[kind]}/${id}.png` : null);
 
-    if (bucket) return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(entry.file)}`;
-  }
-
-  // Der eigene Bucket geht vor; erst wenn dort nichts hinterlegt ist, der Tracker.
-  return entry.path ? `${TRACKER_ASSETS}/${entry.path.split('/').map(encodeURIComponent).join('/')}` : null;
+  return path ? `${TRACKER_ASSETS}/${path.split('/').map(encodeURIComponent).join('/')}` : null;
 }
+
+/** Bild im eigenen Bucket – nur wo im Katalog ein Dateiname hinterlegt ist. */
+export function loadoutBucketUrl(kind, id) {
+  const entry = loadoutEntry(kind, id);
+  if (!entry?.file) return null;
+
+  // Item und Power stehen im selben Katalog, ihre Bilder aber in getrennten
+  // Buckets – der Killer bringt eine Power mit, der Survivor ein Item.
+  const bucket = kind === 'item' && entry.role === 'killer'
+    ? LOADOUT_BUCKETS.power
+    : LOADOUT_BUCKETS[kind];
+
+  if (!bucket) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(entry.file)}`;
+}
+
+export const loadoutImageUrl = (kind, id) => trackerImageUrl(kind, id) ?? loadoutBucketUrl(kind, id);
 
 /** Kachel für ein Item, Add-on oder eine Opfergabe – gleiche Optik wie die Perks. */
 export function loadoutIconHtml(kind, id, name, modifier = '') {
   if (!id) return '';
-  const url = loadoutImageUrl(kind, id);
+
+  /*
+    Der Tracker zuerst: sein Pfad steckt in der ID und trifft darum immer das
+    richtige Teil. Kommt von dort nichts (kein Netz, Bild abgezogen), springt
+    das eigene Bucket ein – dafür trägt das Bild seine Ersatzadresse mit sich.
+  */
+  const url = trackerImageUrl(kind, id);
+  const fallback = loadoutBucketUrl(kind, id);
+  const src = url ?? fallback;
   const short = String(name ?? '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || '?';
 
   /*
@@ -79,9 +102,14 @@ export function loadoutIconHtml(kind, id, name, modifier = '') {
   */
   const title = loadoutEntry(kind, id) ? (name ?? '') : `${name ?? ''} · ${id}`;
 
+  const swap = url && fallback
+    ? `onerror="this.onerror=null;this.src=this.dataset.fallback"`
+    : 'onerror="this.remove()"';
+
   return `<span class="perk-icon perk-icon--${kind}${modifier ? ` ${modifier}` : ''}" title="${escapeHtml(title)}">
     <span class="perk-icon__fallback">${escapeHtml(short)}</span>
-    ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+    ${src ? `<img src="${escapeHtml(src)}" alt="" loading="lazy"
+      ${url && fallback ? `data-fallback="${escapeHtml(fallback)}"` : ''} ${swap}>` : ''}
   </span>`;
 }
 

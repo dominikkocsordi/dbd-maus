@@ -6,7 +6,7 @@
   <title>DBD Stats – Einstellungen</title>
   <meta name="description" content="Konto, Passwort und Passkeys verwalten.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=39">
+  <link rel="stylesheet" href="assets/css/style.css?v=40">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -117,6 +117,43 @@
         <p class="passkey-hint" id="passkey-hint"></p>
       </section>
 
+      <section class="panel" id="import-panel" hidden>
+        <header class="panel__head">
+          <h2>Import aus dem offiziellen Tracker</h2>
+        </header>
+
+        <p class="import-lead">
+          Behaviour hält unter
+          <a href="https://stats.deadbydaylight.com/match-history/" target="_blank" rel="noopener">stats.deadbydaylight.com</a>
+          die letzten Runden vor (rund 90 Tage). Eine Schnittstelle zum direkten
+          Abholen gibt es nicht – das Lesezeichen holt die Liste deshalb in deinem
+          Browser ab und legt sie hier ab.
+        </p>
+
+        <ol class="import-steps">
+          <li id="import-bookmarklet-step">
+            <a class="btn btn--ghost btn--sm" id="import-bookmarklet" href="#" aria-disabled="true">Matches holen</a>
+            in die Lesezeichenleiste ziehen (einmalig).
+          </li>
+          <li>Auf <strong>stats.deadbydaylight.com</strong> einloggen und das Lesezeichen anklicken.</li>
+          <li>Den kopierten Text unten einfügen und auswerten.</li>
+        </ol>
+
+        <label class="field">
+          <span class="field__label">Daten aus dem Tracker</span>
+          <textarea id="import-input" rows="4" spellcheck="false"
+                    placeholder="Hier den kopierten Text einfügen …"></textarea>
+        </label>
+
+        <div class="settings-row">
+          <button type="button" class="btn btn--ghost" id="import-parse">Auswerten</button>
+          <button type="button" class="btn btn--primary" id="import-save" hidden>Übernehmen</button>
+        </div>
+
+        <p class="form-hint" id="import-hint"></p>
+        <div id="import-preview"></div>
+      </section>
+
       <section class="panel">
         <header class="panel__head">
           <h2>Sitzung</h2>
@@ -130,6 +167,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/settings.js?v=39"></script>
+  <script type="module" src="assets/js/settings.js?v=40"></script>
 </body>
 </html>

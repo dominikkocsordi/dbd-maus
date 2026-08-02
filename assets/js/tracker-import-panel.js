@@ -1,0 +1,224 @@
+// Import-Panel auf der Einstellungsseite: JSON aus dem offiziellen Tracker
+// einlesen, prüfen und als Matches speichern.
+
+import { supabase } from './supabase.js?v=40';
+import { avatarHtml, killMarksHtml, outcomeIconHtml, perkIconHtml } from './images.js?v=40';
+import { perkName } from './perks.js?v=40';
+import { gameModeLabel, labelFor } from './data.js?v=40';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=40';
+import { markDuplicates, parseMatchHistory } from './tracker-import.js?v=40';
+
+let currentUser = null;
+let rows = [];
+
+const el = (id) => document.getElementById(id);
+
+function hint(message, type = 'info') {
+  const box = el('import-hint');
+  box.textContent = message ?? '';
+  box.className = `form-hint form-hint--${type}`;
+}
+
+// ------------------------------------------------------------ Lesezeichen --
+
+/*
+  Das Bookmarklet steht als normale Datei im Repo – hier wird daraus die
+  javascript:-Adresse gebaut. So bleibt der Quelltext lesbar und muss nicht
+  doppelt gepflegt werden.
+*/
+async function mountBookmarklet() {
+  const link = el('import-bookmarklet');
+
+  try {
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=40');
+    if (!res.ok) throw new Error(String(res.status));
+    link.href = `javascript:${encodeURIComponent(await res.text())}`;
+    link.removeAttribute('aria-disabled');
+  } catch {
+    link.remove();
+    el('import-bookmarklet-step')?.remove();
+  }
+}
+
+// -------------------------------------------------------------- Vorschau --
+
+function rowHtml(row, index) {
+  const { payload } = row;
+  const character = payload.killer ?? payload.survivor;
+  const result = payload.role === 'killer'
+    ? killMarksHtml(payload.kills)
+    : outcomeIconHtml(payload.escaped);
+
+  const notes = [
+    gameModeLabel(payload.game_mode),
+    payload.faced_killer ? `vs ${labelFor('killer', payload.faced_killer)}` : null,
+    row.source.rawMode && payload.game_mode === 'event' ? row.source.rawMode : null,
+  ].filter(Boolean).join(' · ');
+
+  const flags = row.duplicate
+    ? '<span class="pill">schon vorhanden</span>'
+    : row.warnings.map((w) => `<span class="pill pill--bad">${escapeHtml(w)}</span>`).join(' ');
+
+  return `
+    <tr class="is-${payload.role}${row.duplicate ? ' is-muted' : ''}">
+      <td>
+        <input type="checkbox" data-import-row="${index}" ${row.duplicate ? '' : 'checked'}>
+      </td>
+      <td data-label="Datum">${fmtDate(payload.played_at)}</td>
+      <td data-label="Charakter">
+        <span class="char-cell">
+          ${avatarHtml(payload.role, character, labelFor(payload.role, character))}
+          <span class="char-cell__text">
+            <span class="char-cell__name">${escapeHtml(labelFor(payload.role, character))}</span>
+            <span class="char-cell__sub">${escapeHtml(notes)}</span>
+          </span>
+        </span>
+      </td>
+      <td data-label="Ergebnis">${result}</td>
+      <td data-label="Perks">${(payload.perks ?? []).map((f) => perkIconHtml(f, perkName(f))).join('')}</td>
+      <td data-label="BP" class="num">${fmtNumber(payload.bloodpoints)}</td>
+      <td data-label="Hinweis">${flags}</td>
+    </tr>`;
+}
+
+function selectedCount() {
+  return document.querySelectorAll('[data-import-row]:checked').length;
+}
+
+function syncSaveButton() {
+  const count = selectedCount();
+  const button = el('import-save');
+  button.hidden = !rows.length;
+  button.disabled = count === 0;
+  button.textContent = count === 1 ? '1 Match übernehmen' : `${count} Matches übernehmen`;
+}
+
+function renderPreview() {
+  const target = el('import-preview');
+
+  if (!rows.length) {
+    target.innerHTML = '';
+    syncSaveButton();
+    return;
+  }
+
+  target.innerHTML = `
+    <div class="table-wrap">
+      <table class="table import-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="import-all" checked></th>
+            <th>Datum</th><th>Charakter</th><th>Ergebnis</th>
+            <th>Perks</th><th class="num">BP</th><th>Hinweis</th>
+          </tr>
+        </thead>
+        <tbody>${rows.map(rowHtml).join('')}</tbody>
+      </table>
+    </div>`;
+
+  const all = el('import-all');
+  all.checked = selectedCount() === rows.length;
+  all.addEventListener('change', () => {
+    document.querySelectorAll('[data-import-row]').forEach((box) => { box.checked = all.checked; });
+    syncSaveButton();
+  });
+
+  target.querySelectorAll('[data-import-row]').forEach((box) => {
+    box.addEventListener('change', () => {
+      all.checked = selectedCount() === rows.length;
+      syncSaveButton();
+    });
+  });
+
+  syncSaveButton();
+}
+
+// ---------------------------------------------------------------- Ablauf --
+
+/*
+  Dubletten erkennt der Abgleich nur gegen bereits gespeicherte Matches im
+  Zeitraum des Imports – mehr muss dafür nicht geladen werden.
+*/
+async function loadExisting(fromIso, toIso) {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('played_at, role')
+    .gte('played_at', fromIso)
+    .lte('played_at', toIso);
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+async function analyse() {
+  const button = el('import-parse');
+  button.disabled = true;
+
+  try {
+    const parsed = parseMatchHistory(el('import-input').value);
+
+    if (!parsed.rows.length) {
+      rows = [];
+      renderPreview();
+      return hint('Darin steckt kein auswertbares Match.', 'error');
+    }
+
+    // Die Liste ist absteigend sortiert, der Zeitraum steht also an den Enden.
+    const newest = parsed.rows[0].payload.played_at;
+    const oldest = parsed.rows[parsed.rows.length - 1].payload.played_at;
+    rows = markDuplicates(parsed.rows, await loadExisting(oldest, newest));
+
+    renderPreview();
+
+    const duplicates = rows.filter((r) => r.duplicate).length;
+    const summary = [
+      `${rows.length} Matches gelesen`,
+      duplicates ? `${duplicates} davon schon vorhanden` : null,
+      parsed.failed.length ? `${parsed.failed.length} übersprungen` : null,
+    ].filter(Boolean).join(' · ');
+
+    hint(`${summary}. Die Auswahl lässt sich vor dem Übernehmen anpassen.`);
+  } catch (error) {
+    rows = [];
+    renderPreview();
+    hint(error.message, 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function save() {
+  const button = el('import-save');
+  const picked = [...document.querySelectorAll('[data-import-row]:checked')]
+    .map((box) => rows[Number(box.dataset.importRow)])
+    .filter(Boolean);
+
+  if (!picked.length) return;
+
+  button.disabled = true;
+  button.textContent = 'Speichere …';
+
+  const { error } = await supabase
+    .from('matches')
+    .insert(picked.map((row) => ({ ...row.payload, user_id: currentUser.id })));
+
+  if (error) {
+    syncSaveButton();
+    hint(`Speichern fehlgeschlagen: ${error.message}`, 'error');
+    return;
+  }
+
+  rows = [];
+  el('import-input').value = '';
+  renderPreview();
+  hint(`${picked.length} ${picked.length === 1 ? 'Match' : 'Matches'} übernommen.`, 'success');
+  toast(`${picked.length} ${picked.length === 1 ? 'Match' : 'Matches'} importiert.`, 'success');
+}
+
+export function initTrackerImport(user) {
+  currentUser = user;
+  el('import-panel').hidden = false;
+  el('import-parse').addEventListener('click', analyse);
+  el('import-save').addEventListener('click', save);
+  mountBookmarklet();
+}

@@ -1712,6 +1712,37 @@ option { background: var(--surface-2); color: var(--text); }
 .form-hint--error { color: var(--bad); }
 .form-hint--success { color: var(--good); }
 
+/* ------------------------------------------------------- Tracker-Import -- */
+/* Verweis aus dem Eintragsformular auf den Import in den Einstellungen. */
+a.panel__meta { color: var(--survivor); text-decoration: none; }
+a.panel__meta:hover { text-decoration: underline; }
+
+.import-lead { margin: 0 0 0.9rem; font-size: 0.86rem; color: var(--muted); }
+.import-lead a { color: var(--survivor); }
+
+.import-steps {
+  margin: 0 0 1.1rem;
+  padding-left: 1.2rem;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.import-steps li { margin-bottom: 0.5rem; }
+.import-steps li:last-child { margin-bottom: 0; }
+.import-steps strong { color: var(--text); font-weight: 600; }
+
+/* Das Lesezeichen wird gezogen, nicht geklickt – der Cursor sagt es an. */
+#import-bookmarklet { cursor: grab; margin-right: 0.35rem; }
+
+#import-input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+
+#import-preview:not(:empty) { margin-top: 1rem; }
+.import-table th:first-child, .import-table td:first-child { width: 1.6rem; padding-right: 0; }
+.import-table .perk-icon { width: 1.55rem; height: 1.55rem; }
+
+/* Schon vorhandene Runden bleiben sichtbar, treten aber zurück. */
+.import-table tr.is-muted { opacity: 0.5; }
+
 .icon-btn.is-active { color: var(--text); background: var(--surface-3); border-color: var(--line-strong); }
 
 /* Cockpit-Zugang: steckt neben dem Zahnrad statt in der Navigation. */

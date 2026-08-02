@@ -105,16 +105,16 @@ empty.png                               Anderer Survivor
 K25_TheCenobite_Portrait.png            Pinhead
 S46_OrelaRose_Portrait.png              Orela Rose
 
-## Ausrüstung
+## Ausruestung
 Buckets: items, addons, offerings (Dateien direkt im Root)
-Der Dateiname ist immer die Spiel-ID mit .png – genau die ID, die auch der
-offizielle Tracker liefert und die in assets/js/loadout.js steht.
+Wie bei Portraits und Perks behalten die Dateien ihre Original-Namen aus dem
+Spiel. Welcher Name zu welchem Teil gehoert, steht als `file` in
+assets/js/loadout.js.
 
-items      Item_Camper_Flashlight.png      Flashlight (Survivor)
-           Item_Slasher_Chainsaw.png       Chainsaw (Hillbilly)
-addons     Addon_Flashlight_001.png        Battery
-           ADDON_medkit_gauzeroll.png      Gauze Roll
-offerings  EscapeCake.png                  Escape! Cake
+items      iconItems_flashlight.png                       Flashlight
+           iconItems_toolboxAlexs.png                     Alex's Toolbox
+           T_UI_iconItems_vigosFogVial.png                Vigo's Fog Vial
 
-Gross-/Kleinschreibung zaehlt: "ADDON_medkit_..." und "Addon_Medkit_..." sind
-beides echte Schreibweisen des Spiels und stehen so im Katalog.
+Gross-/Kleinschreibung zaehlt. Ohne Eintrag in loadout.js zeigt die App das
+Namenskuerzel statt eines Bildes - hochladen allein reicht also nicht, die
+Datei muss dort auch zugeordnet sein.

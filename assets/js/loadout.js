@@ -1,8 +1,9 @@
 // Katalog für Items/Kräfte, Add-ons und Opfergaben.
 //
 // Gespeichert wird die `id` des Spiels (z. B. Item_Camper_Flashlight) – das ist
-// derselbe Schlüssel, den auch der offizielle Tracker liefert. Die Icons heißen
-// im Bucket entsprechend `<id>.png`, wie bei Behaviour selbst.
+// derselbe Schlüssel, den auch der offizielle Tracker liefert. Das Bild dazu
+// steht als `file` daneben, unter seinem Original-Dateinamen aus dem Spiel
+// (iconItems_flashlight.png), genau wie bei Portraits und Perks.
 //
 // Der Katalog ist aus echten Matches zusammengetragen und deckt darum noch
 // nicht alles ab, was es im Spiel gibt. Fehlt ein Eintrag, geht trotzdem nichts
@@ -10,6 +11,7 @@
 // einen lesbaren Namen ab. Ergänzt wird hier einfach Zeile für Zeile.
 //
 //   role  : 'killer' | 'survivor'
+//   file  : Dateiname im Bucket; fehlt er, bleibt das Namenskürzel stehen
 //   group : verbindet Add-ons mit dem Item bzw. der Power, zu der sie gehören
 //   killer: nur bei Powers – zu welchem Killer sie gehört (aus echten Matches
 //           abgeleitet, darum noch nicht für jeden Killer hinterlegt)
@@ -34,24 +36,24 @@ export const ITEMS = [
   { id: 'Item_Slasher_CloakBell', name: 'Wailing Bell', role: 'killer', group: 'bell', killer: 'wraith' },
   { id: 'Item_Slasher_Kanobo', name: 'Yamaoka\'s Wrath', role: 'killer', group: 'kanobo', killer: 'oni' },
   { id: 'Item_Slasher_PhaseWalker', name: 'Yamaoka’s Haunting', role: 'killer', group: 'phasewalker', killer: 'spirit' },
-  { id: 'Item_Camper_AlexsToolbox', name: 'Alex\'s Toolbox', role: 'survivor', group: 'alexstoolbox' },
-  { id: 'Item_Camper_Medkit05', name: 'All Hallows\' Eve Lunchbox', role: 'survivor', group: 'medkit' },
-  { id: 'Item_Camper_RainbowMap', name: 'Annotated Map', role: 'survivor', group: 'map' },
-  { id: 'Item_Camper_Flashlight_Anniversary2026', name: 'Banquet Flashlight', role: 'survivor', group: 'flashlight' },
-  { id: 'Item_Camper_Medkit_Anniversary2026', name: 'Banquet Med-Kit', role: 'survivor', group: 'medkit' },
-  { id: 'Item_Camper_Toolbox_Anniversary2026', name: 'Banquet Toolbox', role: 'survivor', group: 'toolbox' },
-  { id: 'Item_Camper_MedKit', name: 'Camping Aid Kit', role: 'survivor', group: 'medkit' },
-  { id: 'Item_Camper_CommodiousToolbox', name: 'Commodious Toolbox', role: 'survivor', group: 'commodioustoolbox' },
-  { id: 'Item_Camper_MedKit03', name: 'Emergency Med-kit', role: 'survivor', group: 'medkit' },
-  { id: 'Item_Camper_EngineerToolbox', name: 'Engineer\'s Toolbox', role: 'survivor', group: 'engineertoolbox' },
-  { id: 'Item_Camper_MedKit02', name: 'First Aid Kit', role: 'survivor', group: 'medkit' },
-  { id: 'Item_Camper_Flashlight', name: 'Flashlight', role: 'survivor', group: 'flashlight' },
-  { id: 'Item_Camper_Flashlight_Anniversary2022', name: 'Masquerade Flashlight', role: 'survivor', group: 'flashlight' },
-  { id: 'Item_Camper_Toolbox_Anniversary2022', name: 'Masquerade Toolbox', role: 'survivor', group: 'toolbox' },
-  { id: 'Item_Camper_MedKit04', name: 'Ranger Med-kit', role: 'survivor', group: 'medkit' },
-  { id: 'Item_Camper_Flashlight02', name: 'Sport Flashlight', role: 'survivor', group: 'flashlight' },
-  { id: 'Item_Camper_Flashlight03', name: 'Utility Flashlight', role: 'survivor', group: 'flashlight' },
-  { id: 'Item_Survivor_VigosFogVial', name: 'Vigo\'s Fog Vial', role: 'survivor', group: 'fogvial' },
+  { id: 'Item_Camper_AlexsToolbox', name: 'Alex\'s Toolbox', role: 'survivor', group: 'alexstoolbox', file: 'iconItems_toolboxAlexs.png' },
+  { id: 'Item_Camper_Medkit05', name: 'All Hallows\' Eve Lunchbox', role: 'survivor', group: 'medkit', file: 'iconItems_medkitHalloween.png' },
+  { id: 'Item_Camper_RainbowMap', name: 'Annotated Map', role: 'survivor', group: 'map', file: 'iconItems_rainbowMap.png' },
+  { id: 'Item_Camper_Flashlight_Anniversary2026', name: 'Banquet Flashlight', role: 'survivor', group: 'flashlight', file: 'T_UI_iconItems_flashlight_anniversary2026.png' },
+  { id: 'Item_Camper_Medkit_Anniversary2026', name: 'Banquet Med-Kit', role: 'survivor', group: 'medkit', file: 'T_UI_iconItems_medkit_anniversary2026.png' },
+  { id: 'Item_Camper_Toolbox_Anniversary2026', name: 'Banquet Toolbox', role: 'survivor', group: 'toolbox', file: 'T_UI_iconItems_toolbox_anniversary2026.png' },
+  { id: 'Item_Camper_MedKit', name: 'Camping Aid Kit', role: 'survivor', group: 'medkit', file: 'iconItems_medkit.png' },
+  { id: 'Item_Camper_CommodiousToolbox', name: 'Commodious Toolbox', role: 'survivor', group: 'commodioustoolbox', file: 'iconItems_toolboxCommodious.png' },
+  { id: 'Item_Camper_MedKit03', name: 'Emergency Med-kit', role: 'survivor', group: 'medkit', file: 'iconItems_rundownAidKit.png' },
+  { id: 'Item_Camper_EngineerToolbox', name: 'Engineer\'s Toolbox', role: 'survivor', group: 'engineertoolbox', file: 'iconItems_toolboxEngineers.png' },
+  { id: 'Item_Camper_MedKit02', name: 'First Aid Kit', role: 'survivor', group: 'medkit', file: 'iconItems_firstAidKit.png' },
+  { id: 'Item_Camper_Flashlight', name: 'Flashlight', role: 'survivor', group: 'flashlight', file: 'iconItems_flashlight.png' },
+  { id: 'Item_Camper_Flashlight_Anniversary2022', name: 'Masquerade Flashlight', role: 'survivor', group: 'flashlight', file: 'iconItems_flashlight_anniversary2022.png' },
+  { id: 'Item_Camper_Toolbox_Anniversary2022', name: 'Masquerade Toolbox', role: 'survivor', group: 'toolbox', file: 'iconItems_toolbox_anniversary2022.png' },
+  { id: 'Item_Camper_MedKit04', name: 'Ranger Med-kit', role: 'survivor', group: 'medkit', file: 'iconItems_rangersAidKit.png' },
+  { id: 'Item_Camper_Flashlight02', name: 'Sport Flashlight', role: 'survivor', group: 'flashlight', file: 'iconItems_flashlightSport.png' },
+  { id: 'Item_Camper_Flashlight03', name: 'Utility Flashlight', role: 'survivor', group: 'flashlight', file: 'iconItems_flashlightUtility.png' },
+  { id: 'Item_Survivor_VigosFogVial', name: 'Vigo\'s Fog Vial', role: 'survivor', group: 'fogvial', file: 'T_UI_iconItems_vigosFogVial.png' },
 ];
 
 export const OFFERINGS = [
@@ -197,6 +199,12 @@ const INDEXES = {
 
 /** Katalogeintrag zu einer ID, oder null. `kind` ist item | offering | addon. */
 export const loadoutEntry = (kind, id) => (id ? INDEXES[kind]?.get(id) ?? null : null);
+
+/**
+ * Dateiname des Bildes im Bucket. Ohne Eintrag im Katalog gibt es keinen –
+ * dann bleibt es beim Namenskürzel, statt eine 404 zu erzeugen.
+ */
+export const loadoutFile = (kind, id) => loadoutEntry(kind, id)?.file ?? null;
 
 /** Anzeigename – aus dem Katalog, sonst aus der ID abgeleitet. */
 export function loadoutName(kind, id) {

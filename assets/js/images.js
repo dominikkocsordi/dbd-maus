@@ -1,9 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=43';
-import { fileFor } from './data.js?v=43';
-import { escapeHtml } from './utils.js?v=43';
+import { SUPABASE_URL } from './config.js?v=44';
+import { fileFor } from './data.js?v=44';
+import { loadoutFile } from './loadout.js?v=44';
+import { escapeHtml } from './utils.js?v=44';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -26,10 +27,11 @@ export function perkIconHtml(file, name, modifier = '') {
 }
 
 /*
-  Items, Add-ons und Opfergaben liegen je in einem eigenen Bucket, benannt nach
-  der Spiel-ID (<id>.png) – so wie Behaviour die Dateien selbst ablegt. Solange
-  ein Bucket noch leer ist, bleibt das Kürzel stehen; das Bild blendet sich bei
-  einem Fehler selbst aus.
+  Items, Add-ons und Opfergaben liegen je in einem eigenen Bucket. Die Dateien
+  behalten ihre Original-Namen aus dem Spiel (iconItems_flashlight.png), genau
+  wie Portraits und Perks; welcher Name zu welcher ID gehört, steht als `file`
+  in loadout.js. Fehlt dort einer, bleibt das Namenskürzel stehen – und ein
+  Bild, das sich doch nicht laden lässt, blendet sich selbst aus.
 */
 export const LOADOUT_BUCKETS = {
   item: 'items',
@@ -39,8 +41,9 @@ export const LOADOUT_BUCKETS = {
 
 export function loadoutImageUrl(kind, id) {
   const bucket = LOADOUT_BUCKETS[kind];
-  if (!bucket || !id) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(`${id}.png`)}`;
+  const file = loadoutFile(kind, id);
+  if (!bucket || !file) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(file)}`;
 }
 
 /** Kachel für ein Item, Add-on oder eine Opfergabe – gleiche Optik wie die Perks. */

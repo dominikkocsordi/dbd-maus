@@ -6,7 +6,7 @@
   <title>DBD Stats – Statistik</title>
   <meta name="description" content="Detaillierte Dead-by-Daylight-Statistik, filterbar nach Killer und Survivor.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=52">
+  <link rel="stylesheet" href="assets/css/style.css?v=53">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -196,6 +196,29 @@
         </div>
       </section>
 
+      <!-- Nur sichtbar, sobald an Matches Ausrüstung hängt. -->
+      <section class="panel" id="loadout-panel" hidden>
+        <header class="panel__head panel__head--row">
+          <h2>Nach Ausrüstung</h2>
+          <span class="panel__meta" id="loadout-count"></span>
+        </header>
+        <div class="table-wrap">
+          <table class="table table--sortable" id="loadout-table">
+            <thead>
+              <tr>
+                <th><button type="button" class="th-sort" data-sort="name">Item / Add-on</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="matches">Matches</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="pickrate">Pick-Rate</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="hits">Kills / Escapes</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="quote">Quote</button></th>
+                <th class="num"><button type="button" class="th-sort" data-sort="bpAvg">Ø BP</button></th>
+              </tr>
+            </thead>
+            <tbody id="loadout-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="panel" id="faced-panel" hidden>
         <header class="panel__head">
           <h2>Gegen Killer</h2>
@@ -261,6 +284,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/stats.js?v=52"></script>
+  <script type="module" src="assets/js/stats.js?v=53"></script>
 </body>
 </html>

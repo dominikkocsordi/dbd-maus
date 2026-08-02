@@ -1,23 +1,23 @@
-import { supabase } from './supabase.js?v=52';
-import { initAuth } from './auth.js?v=52';
-import { initPasskeyPanel } from './passkeys.js?v=52';
+import { supabase } from './supabase.js?v=53';
+import { initAuth } from './auth.js?v=53';
+import { initPasskeyPanel } from './passkeys.js?v=53';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=52';
-import { perkName } from './perks.js?v=52';
+} from './images.js?v=53';
+import { perkName } from './perks.js?v=53';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=52';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=52';
+} from './perk-picker.js?v=53';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=53';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=52';
+} from './loadout.js?v=53';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=52';
-import { createSorter } from './table-sort.js?v=52';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=52';
+} from './utils.js?v=53';
+import { createSorter } from './table-sort.js?v=53';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=53';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;

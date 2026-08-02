@@ -1,5 +1,5 @@
 // Kleine Helfer für Formatierung, Toasts und Statistik-Berechnung.
-import { maxKills, streakMinKills } from './data.js?v=52';
+import { maxKills, streakMinKills } from './data.js?v=53';
 
 const nf = new Intl.NumberFormat('de-DE');
 const df = new Intl.DateTimeFormat('de-DE', {
@@ -161,6 +161,42 @@ export function byPerk(matches) {
   return [...groups.entries()]
     .map(([file, list]) => ({
       file,
+      role: list[0].role,
+      matches: list.length,
+      stats: aggregate(list),
+    }))
+    .sort((a, b) => b.matches - a.matches);
+}
+
+/**
+ * Gruppiert Matches nach Ausrüstung: beim Survivor nach dem mitgebrachten
+ * Item, beim Killer nach den Add-ons.
+ *
+ * Die Power bleibt außen vor – sie gehört fest zum Killer und würde nur dessen
+ * Zeile doppeln. Beim Killer zählt ein Match in beiden Add-ons mit, die Summe
+ * der Zeilen ist dort also größer als die Zahl der Matches.
+ */
+export function byLoadout(matches) {
+  const groups = new Map();
+
+  const add = (kind, id, match) => {
+    const key = `${kind}:${id}`;
+    if (!groups.has(key)) groups.set(key, { kind, id, list: [] });
+    groups.get(key).list.push(match);
+  };
+
+  for (const m of matches) {
+    if (m.role === 'survivor') {
+      if (m.item) add('item', m.item, m);
+    } else {
+      for (const addon of m.addons ?? []) add('addon', addon, m);
+    }
+  }
+
+  return [...groups.values()]
+    .map(({ kind, id, list }) => ({
+      kind,
+      id,
       role: list[0].role,
       matches: list.length,
       stats: aggregate(list),

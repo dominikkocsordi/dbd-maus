@@ -1,17 +1,18 @@
-import { supabase } from './supabase.js?v=52';
-import { initAuth } from './auth.js?v=52';
+import { supabase } from './supabase.js?v=53';
+import { initAuth } from './auth.js?v=53';
 import {
   GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=52';
-import { createSorter } from './table-sort.js?v=52';
+} from './data.js?v=53';
+import { createSorter } from './table-sort.js?v=53';
 import {
-  aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
-} from './utils.js?v=52';
+  aggregate, byCharacter, byLoadout, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent,
+  killTier, toast,
+} from './utils.js?v=53';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=52';
-import { loadoutName } from './loadout.js?v=52';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=52';
+} from './images.js?v=53';
+import { loadoutEntry, loadoutName } from './loadout.js?v=53';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=53';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;
@@ -203,6 +204,16 @@ const resort = () => { page = 1; render(); };
 
 const characterSorter = createSorter({ table: '#character-table', values: CHARACTER_VALUES, initial: 'matches', onChange: resort });
 const perkSorter = createSorter({ table: '#perk-table', values: PERK_VALUES, initial: 'matches', onChange: resort });
+
+const LOADOUT_VALUES = {
+  name: (r) => loadoutName(r.kind, r.id),
+  matches: (r) => r.matches,
+  pickrate: (r) => r.pickRate,
+  hits: (r) => (r.role === 'killer' ? r.stats.kills : r.stats.escapes),
+  quote: (r) => (r.role === 'killer' ? r.stats.killRate : r.stats.escapeRate),
+  bpAvg: (r) => r.stats.bloodpointsAvg,
+};
+const loadoutSorter = createSorter({ table: '#loadout-table', values: LOADOUT_VALUES, initial: 'matches', onChange: resort });
 const facedSorter = createSorter({ table: '#faced-table', values: FACED_VALUES, initial: 'matches', onChange: resort });
 const matchSorter = createSorter({ table: '#match-table', values: MATCH_VALUES, initial: 'date', onChange: resort });
 
@@ -260,6 +271,61 @@ function renderTopBars(rows) {
   Auswertung der am Match hinterlegten Perks: wie oft gespielt, mit welcher
   Kill- bzw. Escape-Quote. Ohne Perk-Angaben bleibt die Tafel weg.
 */
+/*
+  Ausrüstung: beim Survivor das Item, beim Killer die Add-ons. Die Pick-Rate
+  misst sich an den Matches derselben Rolle, an denen überhaupt etwas hängt.
+*/
+function renderLoadoutTable(filtered) {
+  const panel = document.getElementById('loadout-panel');
+
+  const pool = { killer: 0, survivor: 0 };
+  filtered.forEach((m) => {
+    const has = m.role === 'survivor' ? Boolean(m.item) : Boolean((m.addons ?? []).length);
+    if (has) pool[m.role] += 1;
+  });
+
+  const rows = byLoadout(filtered).map((r) => ({
+    ...r,
+    pickRate: pool[r.role] ? (r.matches / pool[r.role]) * 100 : null,
+  }));
+
+  panel.hidden = rows.length === 0;
+  if (!rows.length) return;
+
+  document.getElementById('loadout-count').textContent =
+    `${fmtNumber(rows.length)} Einträge aus ${fmtNumber(pool.killer + pool.survivor)} Matches mit Angabe`;
+
+  document.getElementById('loadout-body').innerHTML = loadoutSorter.apply(rows).map((row) => {
+    const { kind, id, role, matches: count, stats, pickRate } = row;
+    const killer = role === 'killer';
+    const hits = killer ? stats.kills : stats.escapes;
+    const quote = killer ? stats.killRate : stats.escapeRate;
+    const name = loadoutName(kind, id);
+    // Ohne Katalogeintrag bleibt nur die ID – die gehört dann zur Einordnung dazu.
+    const meta = loadoutEntry(kind, id)
+      ? `${kind === 'item' ? 'Item' : 'Add-on'} · ${killer ? 'Killer' : 'Survivor'}`
+      : id;
+
+    return `
+      <tr class="is-${role}">
+        <td data-label="Item / Add-on">
+          <span class="perk-cell">
+            ${loadoutIconHtml(kind, id, name)}
+            <span class="perk-cell__text">
+              <span class="perk-cell__name">${escapeHtml(name)}</span>
+              <span class="perk-cell__meta">${escapeHtml(meta)}</span>
+            </span>
+          </span>
+        </td>
+        <td data-label="Matches" class="num">${fmtNumber(count)}</td>
+        <td data-label="Pick-Rate" class="num">${pickRate === null ? '–' : fmtPercent(pickRate)}</td>
+        <td data-label="Kills / Escapes" class="num">${fmtNumber(hits)}</td>
+        <td data-label="Quote" class="num"><span class="quote ${quote >= 50 ? 'quote--high' : 'quote--low'}">${fmtPercent(quote)}</span></td>
+        <td data-label="Ø BP" class="num">${stats.bloodpointsAvg === null ? '–' : fmtNumber(stats.bloodpointsAvg)}</td>
+      </tr>`;
+  }).join('');
+}
+
 function renderPerkTable(filtered) {
   const panel = document.getElementById('perk-panel');
 
@@ -586,6 +652,7 @@ function render() {
   renderKpis(filtered);
   renderCharacterTable(characterSorter.apply(rows));
   renderPerkTable(filtered);
+  renderLoadoutTable(filtered);
   renderFacedKillers(filtered);
   renderTopBars(rows);
   renderMatchList(filtered);

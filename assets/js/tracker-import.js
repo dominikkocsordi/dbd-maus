@@ -9,8 +9,9 @@
 // Survivor war, die drei anderen und den Killer. Das Modul rechnet nur um und
 // spricht selbst weder mit Behaviour noch mit Supabase.
 
-import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=41';
-import { PERKS } from './perks.js?v=41';
+import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=42';
+import { PERKS } from './perks.js?v=42';
+import { cleanAddons } from './loadout.js?v=42';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -174,6 +175,9 @@ function convert(entry) {
     faced_killer: null,
     build_id: null,
     perks: null,
+    item: null,
+    offering: null,
+    addons: null,
   };
 
   if (role === 'killer') {
@@ -207,6 +211,18 @@ function convert(entry) {
       else warnings.push(`Gegnerischer Killer unbekannt: ${versus.characterName?.name ?? '–'}`);
     }
   }
+
+  /*
+    Ausrüstung: Der Tracker liefert dieselben Spiel-IDs, die auch der Katalog
+    führt – sie werden unverändert übernommen. Was der Katalog noch nicht kennt,
+    wird trotzdem gespeichert und später über die ID benannt.
+  */
+  const loadout = stat.characterLoadout ?? {};
+  payload.item = loadout.power?.id ?? null;
+  payload.offering = loadout.offering?.id ?? null;
+
+  const addons = cleanAddons((loadout.addOns ?? []).map((addon) => addon?.id));
+  if (addons.length) payload.addons = addons;
 
   if (hasPerks(mode)) {
     const played = (stat.characterLoadout?.perks ?? [])

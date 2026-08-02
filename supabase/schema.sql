@@ -236,6 +236,31 @@ comment on column public.matches.perks is 'Bis zu 4 gespielte Perks als Dateinam
 -- Auswertung "Nach Perk" liest über den Array – GIN-Index hält das flott.
 create index if not exists matches_perks_idx on public.matches using gin (perks);
 
+/*
+  Ausrüstung der Runde. Gespeichert wird die ID aus dem Spiel
+  (z. B. Item_Camper_Flashlight) – derselbe Schlüssel, den der offizielle
+  Tracker liefert, damit importierte und von Hand eingetragene Matches
+  dieselben Werte tragen. Der Katalog dazu steht in assets/js/loadout.js.
+
+  `item` hält beim Survivor das mitgebrachte Item, beim Killer die Kraft.
+  Zwei Add-ons sind das Maximum, das das Spiel zulässt.
+*/
+alter table public.matches add column if not exists item     text;
+alter table public.matches add column if not exists offering text;
+alter table public.matches add column if not exists addons   text[];
+
+alter table public.matches drop constraint if exists matches_addons_len;
+alter table public.matches add constraint matches_addons_len
+  check (addons is null or coalesce(array_length(addons, 1), 0) <= 2);
+
+comment on column public.matches.item     is 'Item (Survivor) bzw. Kraft (Killer) als Spiel-ID, z. B. Item_Camper_Flashlight';
+comment on column public.matches.offering is 'Opfergabe als Spiel-ID, z. B. EscapeCake';
+comment on column public.matches.addons   is 'Bis zu 2 Add-ons als Spiel-IDs, z. B. {Addon_Flashlight_001}';
+
+-- Wie bei den Perks: die Auswertung filtert über den Array.
+create index if not exists matches_addons_idx on public.matches using gin (addons);
+create index if not exists matches_item_idx on public.matches (user_id, item) where item is not null;
+
 -- ---------------------------------------------------------------------------
 -- 7) Profile und Rollen
 --

@@ -1,9 +1,9 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=41';
-import { fileFor } from './data.js?v=41';
-import { escapeHtml } from './utils.js?v=41';
+import { SUPABASE_URL } from './config.js?v=42';
+import { fileFor } from './data.js?v=42';
+import { escapeHtml } from './utils.js?v=42';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -20,6 +20,36 @@ export function perkIconHtml(file, name, modifier = '') {
   const url = perkImageUrl(file);
   const short = String(name ?? '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || '?';
   return `<span class="perk-icon${modifier ? ` ${modifier}` : ''}" title="${escapeHtml(name ?? '')}">
+    <span class="perk-icon__fallback">${escapeHtml(short)}</span>
+    ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+  </span>`;
+}
+
+/*
+  Items, Add-ons und Opfergaben liegen je in einem eigenen Bucket, benannt nach
+  der Spiel-ID (<id>.png) – so wie Behaviour die Dateien selbst ablegt. Solange
+  ein Bucket noch leer ist, bleibt das Kürzel stehen; das Bild blendet sich bei
+  einem Fehler selbst aus.
+*/
+export const LOADOUT_BUCKETS = {
+  item: 'items',
+  addon: 'addons',
+  offering: 'offerings',
+};
+
+export function loadoutImageUrl(kind, id) {
+  const bucket = LOADOUT_BUCKETS[kind];
+  if (!bucket || !id) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(`${id}.png`)}`;
+}
+
+/** Kachel für ein Item, Add-on oder eine Opfergabe – gleiche Optik wie die Perks. */
+export function loadoutIconHtml(kind, id, name, modifier = '') {
+  if (!id) return '';
+  const url = loadoutImageUrl(kind, id);
+  const short = String(name ?? '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || '?';
+
+  return `<span class="perk-icon perk-icon--${kind}${modifier ? ` ${modifier}` : ''}" title="${escapeHtml(name ?? '')}">
     <span class="perk-icon__fallback">${escapeHtml(short)}</span>
     ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
   </span>`;

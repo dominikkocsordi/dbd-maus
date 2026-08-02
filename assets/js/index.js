@@ -1,18 +1,19 @@
-import { supabase } from './supabase.js?v=41';
-import { initAuth } from './auth.js?v=41';
-import { initPasskeyPanel } from './passkeys.js?v=41';
+import { supabase } from './supabase.js?v=42';
+import { initAuth } from './auth.js?v=42';
+import { initPasskeyPanel } from './passkeys.js?v=42';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=41';
-import { perkName } from './perks.js?v=41';
+} from './images.js?v=42';
+import { perkName } from './perks.js?v=42';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=41';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=41';
+} from './perk-picker.js?v=42';
+import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=42';
+import { addonsForItem, cleanAddons, loadoutList, loadoutName } from './loadout.js?v=42';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=41';
-import { createSorter } from './table-sort.js?v=41';
+} from './utils.js?v=42';
+import { createSorter } from './table-sort.js?v=42';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -32,6 +33,54 @@ function fillSelect(select, entries, placeholder, optional = false) {
     `<option value=""${optional ? '' : ' disabled'} selected>${placeholder}</option>` +
     entries.map((e) => `<option value="${e.id}">${escapeHtml(e.label)}</option>`).join('');
 }
+
+/*
+  Item/Kraft, Add-ons und Opfergabe hängen an der Rolle: Der Killer bringt seine
+  Kraft mit, der Survivor ein Item. Die Add-on-Liste sortiert das gewählte Item
+  nach vorn, blendet aber nichts aus – die Zuordnung im Katalog stimmt nicht
+  überall, und ein fehlendes Add-on wäre ärgerlicher als eine lange Liste.
+*/
+function syncLoadoutFields(keep = true) {
+  const role = currentRole();
+  const item = document.getElementById('f-item');
+  const offering = document.getElementById('f-offering');
+  const previousItem = keep ? item.value : '';
+
+  document.getElementById('f-item-label').innerHTML =
+    `${role === 'killer' ? 'Kraft' : 'Item'} <em>optional</em>`;
+
+  fillSelect(item, loadoutList('item', role), 'Kein Eintrag', true);
+  item.value = previousItem;
+  fillSelect(offering, loadoutList('offering', role), 'Kein Eintrag', true);
+  if (!keep) offering.value = '';
+
+  syncAddonOptions(keep);
+}
+
+function syncAddonOptions(keep = true) {
+  const role = currentRole();
+  const entries = addonsForItem(role, document.getElementById('f-item').value);
+
+  for (const slot of [1, 2]) {
+    const select = document.getElementById(`f-addon-${slot}`);
+    const previous = keep ? select.value : '';
+    fillSelect(select, entries, 'Kein Eintrag', true);
+    select.value = entries.some((e) => e.id === previous) ? previous : '';
+  }
+  syncAddonHint();
+}
+
+/* Zwei gleiche Add-ons gehen nicht – das Spiel lässt sie nicht zu. */
+function syncAddonHint() {
+  const picked = addonValues();
+  const hint = document.getElementById('f-addon-hint');
+  const doubled = picked.length === 2 && picked[0] === picked[1];
+  hint.textContent = doubled ? 'Zweimal dasselbe Add-on geht nicht – es wird nur einmal gezählt.' : '';
+}
+
+const addonValues = () => [1, 2]
+  .map((slot) => document.getElementById(`f-addon-${slot}`).value)
+  .filter(Boolean);
 
 function currentRole() {
   return document.querySelector('input[name="role"]:checked').value;
@@ -136,6 +185,7 @@ function syncRoleBlocks() {
   document.getElementById('entry-panel').dataset.role = role;
   setPerkRole(role);
   syncPerkCharacter();
+  syncLoadoutFields(false);
   syncBuildSelect(false);
 }
 
@@ -214,6 +264,9 @@ function buildPayload() {
     faced_killer: null,
     build_id: supportsBuilds(mode) ? (document.getElementById('f-build').value || null) : null,
     perks: hasPerks(mode) && pickedPerks().length ? pickedPerks() : null,
+    item: document.getElementById('f-item').value || null,
+    offering: document.getElementById('f-offering').value || null,
+    addons: cleanAddons(addonValues()).length ? cleanAddons(addonValues()) : null,
   };
 
   if (role === 'killer') {
@@ -255,6 +308,9 @@ function resetForm() {
   document.getElementById('f-survivor').value = '';
   document.getElementById('f-faced-killer').value = '';
   document.getElementById('f-build').value = '';
+  document.getElementById('f-item').value = '';
+  document.getElementById('f-offering').value = '';
+  syncLoadoutFields(false);
   syncKillsOptions();
   document.querySelector('input[name="kills"][value="0"]').checked = true;
   document.querySelector('input[name="escaped"][value="true"]').checked = true;
@@ -295,6 +351,13 @@ function startEdit(id) {
   syncPerkCharacter();
   document.getElementById('f-build').value = match.build_id ?? '';
   setPickedPerks(match.perks ?? []);
+  document.getElementById('f-item').value = match.item ?? '';
+  document.getElementById('f-offering').value = match.offering ?? '';
+  syncAddonOptions(false);
+  (match.addons ?? []).forEach((id, slot) => {
+    document.getElementById(`f-addon-${slot + 1}`).value = id;
+  });
+  syncAddonHint();
   syncBuildField();
   syncPerkField();
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
@@ -394,6 +457,7 @@ function renderRecent() {
       gameModeLabel(m.game_mode),
       m.faced_killer ? `vs ${labelFor('killer', m.faced_killer)}` : null,
       buildName,
+      m.item ? loadoutName('item', m.item) : null,
     ].filter(Boolean).join(' · ');
 
     return `
@@ -534,7 +598,7 @@ async function loadBuilds() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, build_id, perks, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, build_id, perks, item, offering, addons, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 
@@ -594,6 +658,11 @@ function initForm() {
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
   document.getElementById('f-build').addEventListener('change', adoptBuildPerks);
+  document.getElementById('f-item').addEventListener('change', () => syncAddonOptions());
+  for (const slot of [1, 2]) {
+    document.getElementById(`f-addon-${slot}`).addEventListener('change', syncAddonHint);
+  }
+  syncLoadoutFields(false);
   initPerkPicker();
   syncPerkField();
   applyFormMode();

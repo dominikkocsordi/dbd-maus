@@ -104,3 +104,17 @@ empty.png                               Anderer Survivor
 ## Ohne Eintrag in der App (Datei vorhanden, Charakter nicht in den Dropdowns)
 K25_TheCenobite_Portrait.png            Pinhead
 S46_OrelaRose_Portrait.png              Orela Rose
+
+## Ausrüstung
+Buckets: items, addons, offerings (Dateien direkt im Root)
+Der Dateiname ist immer die Spiel-ID mit .png – genau die ID, die auch der
+offizielle Tracker liefert und die in assets/js/loadout.js steht.
+
+items      Item_Camper_Flashlight.png      Flashlight (Survivor)
+           Item_Slasher_Chainsaw.png       Chainsaw (Hillbilly)
+addons     Addon_Flashlight_001.png        Battery
+           ADDON_medkit_gauzeroll.png      Gauze Roll
+offerings  EscapeCake.png                  Escape! Cake
+
+Gross-/Kleinschreibung zaehlt: "ADDON_medkit_..." und "Addon_Medkit_..." sind
+beides echte Schreibweisen des Spiels und stehen so im Katalog.

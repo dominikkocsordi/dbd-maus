@@ -1,14 +1,17 @@
-import { supabase } from './supabase.js?v=41';
-import { initAuth } from './auth.js?v=41';
+import { supabase } from './supabase.js?v=42';
+import { initAuth } from './auth.js?v=42';
 import {
   GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=41';
-import { createSorter } from './table-sort.js?v=41';
+} from './data.js?v=42';
+import { createSorter } from './table-sort.js?v=42';
 import {
   aggregate, byCharacter, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent, killTier, toast,
-} from './utils.js?v=41';
-import { characterCellHtml, iconHtml, mountIcons, outcomeIconHtml, perkIconHtml } from './images.js?v=41';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=41';
+} from './utils.js?v=42';
+import {
+  characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
+} from './images.js?v=42';
+import { loadoutName } from './loadout.js?v=42';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=42';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;
@@ -379,7 +382,7 @@ function editRowHtml(m) {
 
   return `
     <tr class="edit-row" data-edit-row="${escapeHtml(m.id)}">
-      <td colspan="7">
+      <td colspan="8">
         <form class="inline-edit" data-edit-form>
           <div class="inline-edit__grid">
             <label class="field">
@@ -433,7 +436,7 @@ function editRowHtml(m) {
             <button type="submit" class="btn btn--primary btn--sm">Speichern</button>
             <button type="button" class="btn btn--ghost btn--sm" data-edit-cancel>Abbrechen</button>
             <a class="btn btn--ghost btn--sm" href="index.html?edit=${encodeURIComponent(m.id)}">Im Formular öffnen</a>
-            <span class="inline-edit__hint">Rolle, Build und Perks ändert man im Formular.</span>
+            <span class="inline-edit__hint">Rolle, Build, Perks und Ausrüstung ändert man im Formular.</span>
           </div>
         </form>
       </td>
@@ -514,6 +517,21 @@ function wireEditRow(body) {
   form.querySelector('input, select')?.focus();
 }
 
+/*
+  Ausrüstung als Kachelreihe: Item bzw. Kraft, danach die Add-ons, zuletzt die
+  Opfergabe. Fehlt alles, bleibt die Zelle leer statt einen Platzhalter zu
+  zeigen – die Spalte ist bei alten Matches naturgemäß leer.
+*/
+function loadoutCellHtml(match) {
+  const tiles = [
+    match.item ? loadoutIconHtml('item', match.item, loadoutName('item', match.item)) : '',
+    ...(match.addons ?? []).map((id) => loadoutIconHtml('addon', id, loadoutName('addon', id))),
+    match.offering ? loadoutIconHtml('offering', match.offering, loadoutName('offering', match.offering)) : '',
+  ].filter(Boolean);
+
+  return tiles.length ? `<span class="loadout-cell">${tiles.join('')}</span>` : '';
+}
+
 function renderMatchList(filtered) {
   const body = document.getElementById('match-body');
   const sorted = matchSorter.apply(filtered);
@@ -527,7 +545,7 @@ function renderMatchList(filtered) {
   renderPager(filtered.length, pages);
 
   if (!shown.length) {
-    body.innerHTML = '<tr><td colspan="7" class="empty">Keine Matches für diesen Filter.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">Keine Matches für diesen Filter.</td></tr>';
     return;
   }
 
@@ -547,6 +565,7 @@ function renderMatchList(filtered) {
           m.faced_killer ? `vs ${labelFor('killer', m.faced_killer)}` : (m.role === 'killer' ? 'Killer' : 'Survivor'))}</td>
         <td data-label="Gamemode">${escapeHtml(gameModeLabel(m.game_mode))}</td>
         <td data-label="Ergebnis">${result}</td>
+        <td data-label="Ausrüstung">${loadoutCellHtml(m)}</td>
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
         <td data-label="Notiz" class="notes">${escapeHtml(m.notes ?? '')}</td>
         <td data-label="Aktion" class="num">
@@ -577,7 +596,7 @@ function render() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, perks, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, perks, item, offering, addons, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 

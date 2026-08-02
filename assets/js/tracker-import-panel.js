@@ -1,12 +1,15 @@
 // Import-Panel auf der Einstellungsseite: JSON aus dem offiziellen Tracker
 // einlesen, prüfen und als Matches speichern.
 
-import { supabase } from './supabase.js?v=41';
-import { avatarHtml, killMarksHtml, outcomeIconHtml, perkIconHtml } from './images.js?v=41';
-import { perkName } from './perks.js?v=41';
-import { gameModeLabel, labelFor } from './data.js?v=41';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=41';
-import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=41';
+import { supabase } from './supabase.js?v=42';
+import {
+  avatarHtml, killMarksHtml, loadoutIconHtml, outcomeIconHtml, perkIconHtml,
+} from './images.js?v=42';
+import { loadoutName } from './loadout.js?v=42';
+import { perkName } from './perks.js?v=42';
+import { gameModeLabel, labelFor } from './data.js?v=42';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=42';
+import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=42';
 
 let currentUser = null;
 let rows = [];
@@ -30,7 +33,7 @@ async function mountBookmarklet() {
   const link = el('import-bookmarklet');
 
   try {
-    const res = await fetch('assets/js/tracker-bookmarklet.js?v=41');
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=42');
     if (!res.ok) throw new Error(String(res.status));
     link.href = `javascript:${encodeURIComponent(await res.text())}`;
     link.removeAttribute('aria-disabled');
@@ -77,6 +80,11 @@ function rowHtml(row, index) {
       </td>
       <td data-label="Ergebnis">${result}</td>
       <td data-label="Perks">${(payload.perks ?? []).map((f) => perkIconHtml(f, perkName(f))).join('')}</td>
+      <td data-label="Ausrüstung">${[
+        payload.item ? loadoutIconHtml('item', payload.item, loadoutName('item', payload.item)) : '',
+        ...(payload.addons ?? []).map((id) => loadoutIconHtml('addon', id, loadoutName('addon', id))),
+        payload.offering ? loadoutIconHtml('offering', payload.offering, loadoutName('offering', payload.offering)) : '',
+      ].filter(Boolean).join('')}</td>
       <td data-label="BP" class="num">${fmtNumber(payload.bloodpoints)}</td>
       <td data-label="Hinweis">${flags}</td>
     </tr>`;
@@ -110,7 +118,7 @@ function renderPreview() {
           <tr>
             <th><input type="checkbox" id="import-all" checked></th>
             <th>Datum</th><th>Charakter</th><th>Ergebnis</th>
-            <th>Perks</th><th class="num">BP</th><th>Hinweis</th>
+            <th>Perks</th><th>Ausrüstung</th><th class="num">BP</th><th>Hinweis</th>
           </tr>
         </thead>
         <tbody>${rows.map(rowHtml).join('')}</tbody>

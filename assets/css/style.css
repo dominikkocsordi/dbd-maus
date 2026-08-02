@@ -2215,3 +2215,15 @@ a.panel__meta:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ------------------------------------------------------------ Ausrüstung -- */
+/* Item/Kraft, Add-ons und Opfergabe als Kachelreihe, wie die Perks. */
+.loadout-cell { display: inline-flex; flex-wrap: wrap; gap: 0.2rem; }
+
+/* Zwei Auswahlfelder nebeneinander, auf schmalen Geräten untereinander. */
+.addon-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+@media (max-width: 520px) { .addon-picks { grid-template-columns: 1fr; } }
+
+/* Opfergaben sind im Spiel rund, Add-ons quadratisch – das trennt die Reihe. */
+.perk-icon--offering { border-radius: 50%; }
+.perk-icon--item { border-radius: var(--r-sm); }

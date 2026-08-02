@@ -8,7 +8,7 @@
   Dieselbe Rechnung liefert damit für jedes Level von 1 bis 100 genau ein
   Wappen – ohne Tabelle mit hundert Einträgen.
 */
-import { escapeHtml } from './utils.js?v=47';
+import { escapeHtml } from './utils.js?v=48';
 
 export const MAX_PRESTIGE = 100;
 

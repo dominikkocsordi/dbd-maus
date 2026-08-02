@@ -5,6 +5,10 @@
 // steht als `file` daneben, unter seinem Original-Dateinamen aus dem Spiel
 // (iconItems_flashlight.png), genau wie bei Portraits und Perks.
 //
+// Die Buckets trennen nach Art: items, powers, addons, offerings. Killer-Powers
+// und Survivor-Items stehen hier zwar in derselben Liste, ihre Bilder liegen
+// aber getrennt – die Rolle entscheidet.
+//
 // Der Katalog ist aus echten Matches zusammengetragen und deckt darum noch
 // nicht alles ab, was es im Spiel gibt. Fehlt ein Eintrag, geht trotzdem nichts
 // verloren: Import und Anzeige arbeiten mit der ID weiter und leiten daraus
@@ -17,25 +21,25 @@
 //           abgeleitet, darum noch nicht für jeden Killer hinterlegt)
 
 export const ITEMS = [
-  { id: 'Item_Slasher_LFChainsaw', name: 'Bubba\'s Chainsaw', role: 'killer', group: 'lfchainsaw', killer: 'cannibal' },
-  { id: 'Item_Slasher_Killer07Item', name: 'Carter\'s Spark', role: 'killer', group: 'spark', killer: 'doctor' },
-  { id: 'Item_Slasher_Chainsaw', name: 'Chainsaw', role: 'killer', group: 'chainsaw', killer: 'hillbilly' },
-  { id: 'Item_Slasher_K31Power', name: 'Eyes In The Sky', role: 'killer', group: 'k31', killer: 'skull_merchant' },
-  { id: 'Item_Slasher_Frenzy', name: 'Feral Frenzy', role: 'killer', group: 'frenzy', killer: 'legion' },
-  { id: 'Item_Slasher_K33Power', name: 'Hidden Pursuit', role: 'killer', group: 'k33', killer: 'xenomorph' },
-  { id: 'Item_Slasher_QatarKillerPower', name: 'Of the Abyss', role: 'killer', group: 'qatarkiller', killer: 'demogorgon' },
+  { id: 'Item_Slasher_LFChainsaw', name: 'Bubba\'s Chainsaw', role: 'killer', group: 'lfchainsaw', killer: 'cannibal', file: 'iconPowers_bubbasChainsaw.png' },
+  { id: 'Item_Slasher_Killer07Item', name: 'Carter\'s Spark', role: 'killer', group: 'spark', killer: 'doctor', file: 'iconPowers_cartersSpark.png' },
+  { id: 'Item_Slasher_Chainsaw', name: 'Chainsaw', role: 'killer', group: 'chainsaw', killer: 'hillbilly', file: 'iconPowers_chainsaw.png' },
+  { id: 'Item_Slasher_K31Power', name: 'Eyes In The Sky', role: 'killer', group: 'k31', killer: 'skull_merchant', file: 'iconPowers_drones.png' },
+  { id: 'Item_Slasher_Frenzy', name: 'Feral Frenzy', role: 'killer', group: 'frenzy', killer: 'legion', file: 'iconPowers_feralFrenzy.png' },
+  { id: 'Item_Slasher_K33Power', name: 'Hidden Pursuit', role: 'killer', group: 'k33', killer: 'xenomorph', file: 'iconPowers_hiddenPursuit_active.png' },
+  { id: 'Item_Slasher_QatarKillerPower', name: 'Of the Abyss', role: 'killer', group: 'qatarkiller', killer: 'demogorgon', file: 'iconPowers_ofTheAbyss.png' },
   { id: 'Item_K43Power', name: 'Omnipresent Evil', role: 'killer', group: 'k43', killer: 'jason' },
-  { id: 'Item_Slasher_ThrowingKnives', name: 'Showstopper', role: 'killer', group: 'trickster', killer: 'trickster' },
-  { id: 'Item_Slasher_Blinker', name: 'Spencer\'s Last Breath', role: 'killer', group: 'blinker', killer: 'nurse' },
-  { id: 'Item_Slasher_K25Power', name: 'Summons of Pain', role: 'killer', group: 'k25', killer: 'cenobite' },
-  { id: 'Item_Slasher_K24Power', name: 'T-VIRUS', role: 'killer', group: 'k24', killer: 'nemesis' },
+  { id: 'Item_Slasher_ThrowingKnives', name: 'Showstopper', role: 'killer', group: 'trickster', killer: 'trickster', file: 'iconPowers_Showstopper_01.png' },
+  { id: 'Item_Slasher_Blinker', name: 'Spencer\'s Last Breath', role: 'killer', group: 'blinker', killer: 'nurse', file: 'iconPowers_breath.png' },
+  { id: 'Item_Slasher_K25Power', name: 'Summons of Pain', role: 'killer', group: 'k25', killer: 'cenobite', file: 'iconPowers_summonsOfPain.png' },
+  { id: 'Item_Slasher_K24Power', name: 'T-VIRUS', role: 'killer', group: 'k24', killer: 'nemesis', file: 'iconPowers_T-virus.png' },
   { id: 'Item_Slasher_HarpoonRifle', name: 'The Redeemer', role: 'killer', group: 'harpoon', killer: 'deathslinger' },
-  { id: 'Item_Slasher_K37Power', name: 'Vampiric Shift', role: 'killer', group: 'k37', killer: 'dark_lord' },
-  { id: 'Item_Slasher_K36Power', name: 'VILE DARKNESS', role: 'killer', group: 'k36', killer: 'lich' },
-  { id: 'Item_Slasher_K29Power', name: 'Virulent Bound', role: 'killer', group: 'k29', killer: 'mastermind' },
-  { id: 'Item_Slasher_CloakBell', name: 'Wailing Bell', role: 'killer', group: 'bell', killer: 'wraith' },
-  { id: 'Item_Slasher_Kanobo', name: 'Yamaoka\'s Wrath', role: 'killer', group: 'kanobo', killer: 'oni' },
-  { id: 'Item_Slasher_PhaseWalker', name: 'Yamaoka’s Haunting', role: 'killer', group: 'phasewalker', killer: 'spirit' },
+  { id: 'Item_Slasher_K37Power', name: 'Vampiric Shift', role: 'killer', group: 'k37', killer: 'dark_lord', file: 'iconPowers_K37_Shapeshift.png' },
+  { id: 'Item_Slasher_K36Power', name: 'VILE DARKNESS', role: 'killer', group: 'k36', killer: 'lich', file: 'iconPowers_VileDarkness.png' },
+  { id: 'Item_Slasher_K29Power', name: 'Virulent Bound', role: 'killer', group: 'k29', killer: 'mastermind', file: 'iconPowers_virulentBound.png' },
+  { id: 'Item_Slasher_CloakBell', name: 'Wailing Bell', role: 'killer', group: 'bell', killer: 'wraith', file: 'iconPowers_bell.png' },
+  { id: 'Item_Slasher_Kanobo', name: 'Yamaoka\'s Wrath', role: 'killer', group: 'kanobo', killer: 'oni', file: 'iconPowers_yamaokasWrath.png' },
+  { id: 'Item_Slasher_PhaseWalker', name: 'Yamaoka’s Haunting', role: 'killer', group: 'phasewalker', killer: 'spirit', file: 'iconPowers_yamaokasHaunting.png' },
   { id: 'Item_Camper_AlexsToolbox', name: 'Alex\'s Toolbox', role: 'survivor', group: 'alexstoolbox', file: 'iconItems_toolboxAlexs.png' },
   { id: 'Item_Camper_Medkit05', name: 'All Hallows\' Eve Lunchbox', role: 'survivor', group: 'medkit', file: 'iconItems_medkitHalloween.png' },
   { id: 'Item_Camper_RainbowMap', name: 'Annotated Map', role: 'survivor', group: 'map', file: 'iconItems_rainbowMap.png' },

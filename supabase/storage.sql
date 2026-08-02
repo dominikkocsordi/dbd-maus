@@ -66,7 +66,7 @@ do $$
 declare
   bucket text;
 begin
-  foreach bucket in array array['items', 'addons', 'offerings'] loop
+  foreach bucket in array array['items', 'powers', 'addons', 'offerings'] loop
     insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
     values (bucket, bucket, true, 2097152, array['image/png', 'image/jpeg', 'image/webp'])
     on conflict (id) do update

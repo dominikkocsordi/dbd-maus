@@ -1,10 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=46';
-import { fileFor } from './data.js?v=46';
-import { loadoutFile } from './loadout.js?v=46';
-import { escapeHtml } from './utils.js?v=46';
+import { SUPABASE_URL } from './config.js?v=47';
+import { fileFor } from './data.js?v=47';
+import { loadoutEntry } from './loadout.js?v=47';
+import { escapeHtml } from './utils.js?v=47';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -35,15 +35,23 @@ export function perkIconHtml(file, name, modifier = '') {
 */
 export const LOADOUT_BUCKETS = {
   item: 'items',
+  power: 'powers',
   addon: 'addons',
   offering: 'offerings',
 };
 
 export function loadoutImageUrl(kind, id) {
-  const bucket = LOADOUT_BUCKETS[kind];
-  const file = loadoutFile(kind, id);
-  if (!bucket || !file) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(file)}`;
+  const entry = loadoutEntry(kind, id);
+  if (!entry?.file) return null;
+
+  // Item und Power stehen im selben Katalog, ihre Bilder aber in getrennten
+  // Buckets – der Killer bringt eine Power mit, der Survivor ein Item.
+  const bucket = kind === 'item' && entry.role === 'killer'
+    ? LOADOUT_BUCKETS.power
+    : LOADOUT_BUCKETS[kind];
+
+  if (!bucket) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(entry.file)}`;
 }
 
 /** Kachel für ein Item, Add-on oder eine Opfergabe – gleiche Optik wie die Perks. */

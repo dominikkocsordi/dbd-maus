@@ -106,12 +106,13 @@ K25_TheCenobite_Portrait.png            Pinhead
 S46_OrelaRose_Portrait.png              Orela Rose
 
 ## Ausruestung
-Buckets: items, addons, offerings (Dateien direkt im Root)
+Buckets: items, powers, addons, offerings (Dateien direkt im Root)
 Wie bei Portraits und Perks behalten die Dateien ihre Original-Namen aus dem
 Spiel. Welcher Name zu welchem Teil gehoert, steht als `file` in
 assets/js/loadout.js.
 
-items      iconItems_flashlight.png                       Flashlight
+items      iconItems_flashlight.png                       Flashlight (Survivor)
+powers     iconPowers_feralFrenzy.png                     Feral Frenzy (Legion)
            iconItems_toolboxAlexs.png                     Alex's Toolbox
            T_UI_iconItems_vigosFogVial.png                Vigo's Fog Vial
 addons     iconAddon_battery.png                          Battery
@@ -120,6 +121,9 @@ addons     iconAddon_battery.png                          Battery
 offerings  iconFavors_escapeCake.png                      Escape! Cake
            iconFavors_momentoMoriEbony.png                Ebony Memento Mori (auch hier ein Tippfehler)
            T_UI_iconsFavors_10thAnniversary.png           Toothy Torte (Jubilaeum 2026)
+
+Killer-Powers und Survivor-Items stehen in loadout.js in derselben Liste,
+ihre Bilder aber in getrennten Buckets - die Rolle entscheidet.
 
 Gross-/Kleinschreibung zaehlt. Ohne Eintrag in loadout.js zeigt die App das
 Namenskuerzel statt eines Bildes - hochladen allein reicht also nicht, die

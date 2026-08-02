@@ -9,8 +9,8 @@
 // Survivor war, die drei anderen und den Killer. Das Modul rechnet nur um und
 // spricht selbst weder mit Behaviour noch mit Supabase.
 
-import { KILLERS, SURVIVORS, hasPerks, maxKills } from './data.js?v=40';
-import { PERKS } from './perks.js?v=40';
+import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=41';
+import { PERKS } from './perks.js?v=41';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -22,13 +22,18 @@ const ROLES = { VE_Slasher: 'killer', VE_Camper: 'survivor' };
 const ESCAPED = 'VE_Escaped';
 
 /*
-  Bekannte Warteschlangen. Alles Unbekannte landet als Event-Modus in der App,
-  der Originalwert bleibt in den Notizen stehen. Neue Modi brauchen hier nur
-  eine weitere Zeile.
+  Bekannte Warteschlangen. Behaviour benennt die Modifier intern nach Essen –
+  die Tracker-Seite kennt neben "Regular" noch Calamari, Cake, ChocolateBox und
+  Firefly. Welcher Deckname zu welchem Modus gehört, verrät nur der Vergleich
+  mit dem eigenen Spielverlauf; bestätigt ist bisher ChocolateBox.
+
+  Alles Unbekannte landet als Event-Modus in der App, der Deckname bleibt dann
+  in den Notizen stehen – daran lässt sich der nächste Eintrag hier ablesen.
 */
 const GAME_MODES = {
   Online: 'public',
   Regular: 'public',
+  ChocolateBox: 'chaos_shuffle',
 };
 
 const BP_MAX = 2000000;
@@ -276,6 +281,40 @@ export function parseMatchHistory(raw) {
 
   rows.sort((a, b) => new Date(b.payload.played_at) - new Date(a.payload.played_at));
   return { rows, failed };
+}
+
+/** Perks als reihenfolgeunabhängiger Schlüssel, oder null wenn keine da sind. */
+const perkKey = (perks) => (perks?.length ? [...perks].sort().join('|') : null);
+
+/**
+ * Ordnet den Zeilen gespeicherte Builds zu: Wer dieselben Perks schon einmal
+ * als Build abgelegt hat, sieht ihn am importierten Match wieder.
+ *
+ * In 2v8 und Chaos Shuffle bleibt das Feld leer – dort gibt das Spiel die Perks
+ * vor, ein eigener Build steckt also nicht dahinter.
+ */
+export function attachBuilds(rows, builds) {
+  const known = (builds ?? [])
+    .map((build) => ({ ...build, key: perkKey(build.perks) }))
+    .filter((build) => build.key);
+
+  if (!known.length) return rows;
+
+  return rows.map((row) => {
+    const { payload } = row;
+    if (!supportsBuilds(payload.game_mode)) return row;
+
+    const key = perkKey(payload.perks);
+    if (!key) return row;
+
+    const matching = known.filter((build) => build.role === payload.role && build.key === key);
+    // Ein Build für genau diesen Charakter passt besser als ein allgemeiner.
+    const character = payload.killer ?? payload.survivor;
+    const build = matching.find((entry) => entry.character === character) ?? matching[0];
+    if (!build) return row;
+
+    return { ...row, buildName: build.name, payload: { ...payload, build_id: build.id } };
+  });
 }
 
 /*

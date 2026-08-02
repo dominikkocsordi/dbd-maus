@@ -1,12 +1,12 @@
 // Import-Panel auf der Einstellungsseite: JSON aus dem offiziellen Tracker
 // einlesen, prüfen und als Matches speichern.
 
-import { supabase } from './supabase.js?v=40';
-import { avatarHtml, killMarksHtml, outcomeIconHtml, perkIconHtml } from './images.js?v=40';
-import { perkName } from './perks.js?v=40';
-import { gameModeLabel, labelFor } from './data.js?v=40';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=40';
-import { markDuplicates, parseMatchHistory } from './tracker-import.js?v=40';
+import { supabase } from './supabase.js?v=41';
+import { avatarHtml, killMarksHtml, outcomeIconHtml, perkIconHtml } from './images.js?v=41';
+import { perkName } from './perks.js?v=41';
+import { gameModeLabel, labelFor } from './data.js?v=41';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=41';
+import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=41';
 
 let currentUser = null;
 let rows = [];
@@ -30,7 +30,7 @@ async function mountBookmarklet() {
   const link = el('import-bookmarklet');
 
   try {
-    const res = await fetch('assets/js/tracker-bookmarklet.js?v=40');
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=41');
     if (!res.ok) throw new Error(String(res.status));
     link.href = `javascript:${encodeURIComponent(await res.text())}`;
     link.removeAttribute('aria-disabled');
@@ -52,6 +52,7 @@ function rowHtml(row, index) {
   const notes = [
     gameModeLabel(payload.game_mode),
     payload.faced_killer ? `vs ${labelFor('killer', payload.faced_killer)}` : null,
+    row.buildName,
     row.source.rawMode && payload.game_mode === 'event' ? row.source.rawMode : null,
   ].filter(Boolean).join(' · ');
 
@@ -150,6 +151,17 @@ async function loadExisting(fromIso, toIso) {
   return data ?? [];
 }
 
+/* Der jüngste Build zuerst – bei mehreren mit denselben Perks gewinnt er. */
+async function loadBuilds() {
+  const { data, error } = await supabase
+    .from('builds')
+    .select('id, name, role, character, perks')
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 async function analyse() {
   const button = el('import-parse');
   button.disabled = true;
@@ -166,13 +178,17 @@ async function analyse() {
     // Die Liste ist absteigend sortiert, der Zeitraum steht also an den Enden.
     const newest = parsed.rows[0].payload.played_at;
     const oldest = parsed.rows[parsed.rows.length - 1].payload.played_at;
-    rows = markDuplicates(parsed.rows, await loadExisting(oldest, newest));
+    const [existing, builds] = await Promise.all([loadExisting(oldest, newest), loadBuilds()]);
+
+    rows = markDuplicates(attachBuilds(parsed.rows, builds), existing);
 
     renderPreview();
 
     const duplicates = rows.filter((r) => r.duplicate).length;
+    const withBuild = rows.filter((r) => r.buildName).length;
     const summary = [
       `${rows.length} Matches gelesen`,
+      withBuild ? `${withBuild} einem Build zugeordnet` : null,
       duplicates ? `${duplicates} davon schon vorhanden` : null,
       parsed.failed.length ? `${parsed.failed.length} übersprungen` : null,
     ].filter(Boolean).join(' · ');

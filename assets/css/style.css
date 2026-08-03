@@ -201,6 +201,33 @@ h1, h2, h3 { margin: 0; font-weight: 620; letter-spacing: -0.02em; }
   gap: 0.75rem;
 }
 
+/* ------------------------------------------------------- Panel zuklappen --
+   Die Überschrift ist der Knopf; das Dreieck zeigt nach unten, solange offen. */
+.panel__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.panel__toggle:hover h2 { color: var(--text); }
+.panel__toggle:focus-visible { outline: 2px solid var(--killer); outline-offset: 3px; border-radius: var(--r-sm, 6px); }
+.panel__chevron {
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.is-collapsed .panel__chevron { transform: rotate(-90deg); }
+/* Zugeklappt bleibt nur die Kopfzeile stehen – oben wie unten gleich viel Luft. */
+.is-collapsed .panel__head { margin-bottom: 0; }
+.panel.is-collapsed { padding-bottom: 1.15rem; }
+
 .panel__meta { font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .panel--editing { border-color: rgba(89, 180, 240, 0.45); }
 

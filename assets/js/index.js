@@ -1,24 +1,27 @@
-import { supabase } from './supabase.js?v=59';
-import { initAuth } from './auth.js?v=59';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=59';
-import { initPasskeyPanel } from './passkeys.js?v=59';
+import { supabase } from './supabase.js?v=60';
+import { initAuth } from './auth.js?v=60';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=60';
+import { initPasskeyPanel } from './passkeys.js?v=60';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=59';
-import { perkName } from './perks.js?v=59';
+} from './images.js?v=60';
+import { perkName } from './perks.js?v=60';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=59';
-import { GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds } from './data.js?v=59';
+} from './perk-picker.js?v=60';
+import {
+  GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasLoadoutExtras, hasPerks, labelFor,
+  maxKills, supportsBuilds,
+} from './data.js?v=60';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=59';
+} from './loadout.js?v=60';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=59';
-import { createSorter } from './table-sort.js?v=59';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=59';
+} from './utils.js?v=60';
+import { createSorter } from './table-sort.js?v=60';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=60';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -60,6 +63,24 @@ function syncLoadoutFields(keep = true) {
   if (!keep) offering.value = '';
 
   syncAddonOptions(keep);
+  syncExtraFields();
+}
+
+/*
+  Lights Out lässt nur Item bzw. Kraft zu – Add-ons und Opfergabe bleiben dort
+  in der Truhe. Die Felder verschwinden und werden geleert, damit nichts stehen
+  bleibt, was es in der Runde gar nicht gab.
+*/
+function syncExtraFields() {
+  const allowed = hasLoadoutExtras(document.getElementById('f-mode').value);
+
+  document.getElementById('addon-field').hidden = !allowed;
+  document.getElementById('offering-field').hidden = !allowed;
+
+  if (allowed) return;
+  document.getElementById('f-offering').value = '';
+  [1, 2].forEach((slot) => { document.getElementById(`f-addon-${slot}`).value = ''; });
+  syncAddonHint();
 }
 
 /*
@@ -302,8 +323,8 @@ function buildPayload() {
     build_id: supportsBuilds(mode) ? (document.getElementById('f-build').value || null) : null,
     perks: hasPerks(mode) && pickedPerks().length ? pickedPerks() : null,
     item: document.getElementById('f-item').value || null,
-    offering: document.getElementById('f-offering').value || null,
-    addons: cleanAddons(addonValues()).length ? cleanAddons(addonValues()) : null,
+    offering: hasLoadoutExtras(mode) ? document.getElementById('f-offering').value || null : null,
+    addons: hasLoadoutExtras(mode) && cleanAddons(addonValues()).length ? cleanAddons(addonValues()) : null,
   };
 
   if (role === 'killer') {
@@ -395,6 +416,7 @@ function startEdit(id) {
     document.getElementById(`f-addon-${slot + 1}`).value = id;
   });
   syncAddonHint();
+  syncExtraFields();
   renderPowerBadge();
   syncBuildField();
   syncPerkField();
@@ -693,6 +715,7 @@ function initForm() {
   document.getElementById('f-mode').addEventListener('change', () => {
     syncBuildField();
     syncPerkField();
+    syncExtraFields();
     syncKillsOptions();
   });
   document.getElementById('match-form').addEventListener('submit', handleSubmit);

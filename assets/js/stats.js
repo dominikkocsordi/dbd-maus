@@ -1,20 +1,21 @@
-import { supabase } from './supabase.js?v=59';
-import { initAuth } from './auth.js?v=59';
-import { initCollapse } from './collapse.js?v=59';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=59';
+import { supabase } from './supabase.js?v=60';
+import { initAuth } from './auth.js?v=60';
+import { initCollapse } from './collapse.js?v=60';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=60';
 import {
-  GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=59';
-import { createSorter } from './table-sort.js?v=59';
+  GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasLoadoutExtras, hasPerks, labelFor,
+  maxKills, supportsBuilds,
+} from './data.js?v=60';
+import { createSorter } from './table-sort.js?v=60';
 import {
   aggregate, byCharacter, byLoadout, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent,
   killTier, toast,
-} from './utils.js?v=59';
+} from './utils.js?v=60';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=59';
-import { loadoutEntry, loadoutName } from './loadout.js?v=59';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=59';
+} from './images.js?v=60';
+import { loadoutEntry, loadoutName } from './loadout.js?v=60';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=60';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;
@@ -535,9 +536,10 @@ async function saveEditRow(match, form) {
     patch.faced_killer = String(data.get('faced_killer') ?? '') || null;
   }
 
-  // Ein Moduswechsel kann Perks oder Build ungültig machen.
+  // Ein Moduswechsel kann Perks, Build oder Ausrüstung ungültig machen.
   if (!hasPerks(mode)) patch.perks = null;
   if (!supportsBuilds(mode)) patch.build_id = null;
+  if (!hasLoadoutExtras(mode)) { patch.offering = null; patch.addons = null; }
 
   const button = form.querySelector('[type="submit"]');
   button.disabled = true;

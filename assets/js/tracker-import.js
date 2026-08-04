@@ -9,9 +9,11 @@
 // Survivor war, die drei anderen und den Killer. Das Modul rechnet nur um und
 // spricht selbst weder mit Behaviour noch mit Supabase.
 
-import { KILLERS, SURVIVORS, hasPerks, maxKills, supportsBuilds } from './data.js?v=59';
-import { PERKS } from './perks.js?v=59';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=59';
+import {
+  KILLERS, SURVIVORS, hasLoadoutExtras, hasPerks, maxKills, supportsBuilds,
+} from './data.js?v=60';
+import { PERKS } from './perks.js?v=60';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=60';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -26,7 +28,7 @@ const ESCAPED = 'VE_Escaped';
   Bekannte Warteschlangen. Behaviour benennt die Modifier intern nach Essen –
   die Tracker-Seite kennt neben "Regular" noch Calamari, Cake, ChocolateBox und
   Firefly. Welcher Deckname zu welchem Modus gehört, verrät nur der Vergleich
-  mit dem eigenen Spielverlauf; bestätigt ist bisher ChocolateBox.
+  mit dem eigenen Spielverlauf – bestätigt sind ChocolateBox und Firefly.
 
   Alles Unbekannte landet als Event-Modus in der App, der Deckname bleibt dann
   in den Notizen stehen – daran lässt sich der nächste Eintrag hier ablesen.
@@ -35,6 +37,7 @@ const GAME_MODES = {
   Online: 'public',
   Regular: 'public',
   ChocolateBox: 'chaos_shuffle',
+  Firefly: 'lights_out',
 };
 
 const BP_MAX = 2000000;
@@ -219,9 +222,13 @@ function convert(entry) {
   */
   const loadout = stat.characterLoadout ?? {};
   payload.item = loadout.power?.id ?? null;
-  payload.offering = loadout.offering?.id ?? null;
 
-  const addons = cleanAddons((loadout.addOns ?? []).map((addon) => addon?.id));
+  // In Lights Out gibt es nur das Item bzw. die Kraft – was der Tracker dort
+  // an Add-ons oder Opfergabe meldet, gehört nicht ins Match.
+  const extras = hasLoadoutExtras(mode);
+  payload.offering = extras ? loadout.offering?.id ?? null : null;
+
+  const addons = extras ? cleanAddons((loadout.addOns ?? []).map((addon) => addon?.id)) : [];
   if (addons.length) payload.addons = addons;
 
   /*
@@ -233,8 +240,8 @@ function convert(entry) {
   const group = loadoutEntry('item', payload.item)?.group ?? payload.item ?? null;
   const catalog = [
     learnable('item', loadout.power, role, { group, killer: role === 'killer' ? payload.killer : null }),
-    learnable('offering', loadout.offering, role, {}),
-    ...(loadout.addOns ?? []).map((addon) => learnable('addon', addon, role, { group })),
+    extras ? learnable('offering', loadout.offering, role, {}) : null,
+    ...(extras ? loadout.addOns ?? [] : []).map((addon) => learnable('addon', addon, role, { group })),
   ].filter(Boolean);
 
   if (hasPerks(mode)) {

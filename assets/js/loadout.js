@@ -21,6 +21,8 @@
 //           abgeleitet, darum noch nicht für jeden Killer hinterlegt)
 
 export const ITEMS = [
+  { id: 'Item_Slasher_K35Power', name: 'UVX', role: 'killer', group: 'k35', killer: 'unknown' },
+  { id: 'FireflyLantern', name: 'Lantern', role: 'survivor', group: 'lantern' },
   { id: 'Item_Slasher_Beartrap', name: 'Bear Trap', role: 'killer', group: 'beartrap', killer: 'trapper' },
   { id: 'Item_Slasher_K30Power', name: 'Guardia Compagnia', role: 'killer', group: 'k30', killer: 'knight' },
   { id: 'Item_Slasher_ReverseBearTrap', name: 'Jigsaw\'s Baptism', role: 'killer', group: 'reversebeartrap', killer: 'pig' },
@@ -81,6 +83,7 @@ export const ITEMS = [
 ];
 
 export const OFFERINGS = [
+  { id: 'FreshPrimroseBlossom', name: 'Fresh Primrose Blossom', role: 'survivor' },
   { id: 'SurvivorPudding', name: 'Survivor Pudding', role: 'killer' },
   { id: 'HollowShell', name: 'Hollow Shell', role: 'killer' },
   { id: 'FragrantCrispleafAmaranth', name: 'Fragrant Crispleaf Amaranth', role: 'survivor' },
@@ -116,6 +119,8 @@ export const OFFERINGS = [
 ];
 
 export const ADDONS = [
+  { id: 'Addon_Stalker_ScratchedMirror', name: 'Scratched Mirror', role: 'killer', group: 'stalker' },
+  { id: 'Addon_Map_003', name: 'Gnarled Compass', role: 'survivor', group: 'map' },
   { id: 'ADDON_Lastbreath_KavanaghLastBreath', name: 'Kavanagh\'s Last Breath', role: 'killer', group: 'blinker' },
   { id: 'Addon_K40_01', name: 'Help Wanted Ad', role: 'killer', group: 'k40' },
   { id: 'Addon_K40_06', name: 'Greasy Paper Plate', role: 'killer', group: 'k40' },

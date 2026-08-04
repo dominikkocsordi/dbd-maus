@@ -1,10 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=59';
-import { fileFor } from './data.js?v=59';
-import { loadoutEntry } from './loadout.js?v=59';
-import { escapeHtml } from './utils.js?v=59';
+import { SUPABASE_URL } from './config.js?v=60';
+import { fileFor } from './data.js?v=60';
+import { loadoutEntry } from './loadout.js?v=60';
+import { escapeHtml } from './utils.js?v=60';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';

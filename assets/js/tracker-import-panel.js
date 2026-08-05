@@ -2,16 +2,16 @@
 // Fenster, in das die Daten eingefügt werden. Von dort aus geprüft, in der
 // Vorschau bestätigt und als Matches gespeichert.
 
-import { supabase } from './supabase.js?v=61';
+import { supabase } from './supabase.js?v=62';
 import {
   avatarHtml, killMarksHtml, loadoutIconHtml, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=61';
-import { loadoutEntry, loadoutName } from './loadout.js?v=61';
-import { saveLoadoutCatalog } from './loadout-catalog.js?v=61';
-import { perkName } from './perks.js?v=61';
-import { gameModeLabel, labelFor } from './data.js?v=61';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=61';
-import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=61';
+} from './images.js?v=62';
+import { loadoutEntry, loadoutName } from './loadout.js?v=62';
+import { saveLoadoutCatalog } from './loadout-catalog.js?v=62';
+import { perkName } from './perks.js?v=62';
+import { gameModeLabel, labelFor } from './data.js?v=62';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=62';
+import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=62';
 
 let currentUser = null;
 let onImported = null;
@@ -36,7 +36,7 @@ async function mountBookmarklet() {
   const link = el('import-bookmarklet');
 
   try {
-    const res = await fetch('assets/js/tracker-bookmarklet.js?v=61');
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=62');
     if (!res.ok) throw new Error(String(res.status));
     link.href = `javascript:${encodeURIComponent(await res.text())}`;
     link.removeAttribute('aria-disabled');

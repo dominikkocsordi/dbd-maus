@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=61';
-import { initAuth } from './auth.js?v=61';
-import { initPasskeyPanel } from './passkeys.js?v=61';
-import { initImageCheck } from './image-check.js?v=61';
-import { mountIcons } from './images.js?v=61';
-import { loadProfile, roleLabel } from './profile.js?v=61';
-import { fmtDate, toast } from './utils.js?v=61';
+import { supabase } from './supabase.js?v=62';
+import { initAuth } from './auth.js?v=62';
+import { initPasskeyPanel } from './passkeys.js?v=62';
+import { initImageCheck } from './image-check.js?v=62';
+import { mountIcons } from './images.js?v=62';
+import { loadProfile, roleLabel } from './profile.js?v=62';
+import { fmtDate, toast } from './utils.js?v=62';
 
 function hint(id, message, type = 'info') {
   const el = document.getElementById(id);

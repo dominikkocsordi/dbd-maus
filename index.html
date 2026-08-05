@@ -6,7 +6,7 @@
   <title>DBD Stats – Übersicht</title>
   <meta name="description" content="Dead by Daylight Statistik-Tracker mit Supabase-Login.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=61">
+  <link rel="stylesheet" href="assets/css/style.css?v=62">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -102,168 +102,170 @@
       </section>
 
       <div class="columns">
-        <section class="panel" id="entry-panel">
+        <section class="panel" id="entry-panel" data-collapse="closed">
           <header class="panel__head panel__head--row">
             <h2 id="form-title">Match eintragen</h2>
             <button type="button" class="btn btn--ghost btn--sm" id="import-open">Aus dem Tracker holen</button>
           </header>
 
-          <form id="match-form" class="match-form" novalidate>
-            <div class="form-group">
-              <span class="form-group__title">Partie</span>
+          <div class="panel__body">
+            <form id="match-form" class="match-form" novalidate>
+              <div class="form-group">
+                <span class="form-group__title">Partie</span>
 
-            <label class="field">
-              <span class="field__label">Gamemode</span>
-              <select id="f-mode" required></select>
-            </label>
-
-            <fieldset class="field">
-              <legend class="field__label">Rolle</legend>
-              <div class="segmented" role="radiogroup" aria-label="Rolle">
-                <label class="segmented__opt">
-                  <input type="radio" name="role" value="killer" checked>
-                  <span><span class="icon" data-icon="killer"><i class="icon__fallback">&#128481;</i></span>Killer</span>
-                </label>
-                <label class="segmented__opt">
-                  <input type="radio" name="role" value="survivor">
-                  <span><span class="icon" data-icon="survivor"><i class="icon__fallback">&#127939;</i></span>Survivor</span>
-                </label>
-              </div>
-            </fieldset>
-            </div>
-
-            <div class="form-group">
-              <span class="form-group__title">Ergebnis</span>
-
-            <div class="role-block" data-role-block="killer">
               <label class="field">
-                <span class="field__label">Killer</span>
-                <span class="select-row">
-                  <select id="f-killer"></select>
-                  <span class="portrait" id="f-killer-portrait"></span>
-                </span>
-                <!-- Die Power ergibt sich aus dem Killer, darum nur Anzeige. -->
-                <span class="power-badge" id="f-power" hidden></span>
+                <span class="field__label">Gamemode</span>
+                <select id="f-mode" required></select>
               </label>
 
               <fieldset class="field">
-                <legend class="field__label">Kills</legend>
-                <!-- Anzahl der Schaltflächen hängt am Gamemode: 2v8 geht bis 8K. -->
-                <div class="segmented segmented--kills" id="f-kills" role="radiogroup" aria-label="Kills"></div>
-              </fieldset>
-            </div>
-
-            <div class="role-block" data-role-block="survivor" hidden>
-              <label class="field">
-                <span class="field__label">Survivor</span>
-                <span class="select-row">
-                  <select id="f-survivor"></select>
-                  <span class="portrait" id="f-survivor-portrait"></span>
-                </span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Gegner <em>optional</em></span>
-                <span class="select-row">
-                  <select id="f-faced-killer"></select>
-                  <span class="portrait" id="f-faced-killer-portrait"></span>
-                </span>
-              </label>
-
-              <fieldset class="field">
-                <legend class="field__label">Ausgang</legend>
-                <div class="segmented" role="radiogroup" aria-label="Ausgang">
-                  <label class="segmented__opt segmented__opt--good">
-                    <input type="radio" name="escaped" value="true" checked><span><span class="icon" data-icon="escape"></span>Entkommen</span>
+                <legend class="field__label">Rolle</legend>
+                <div class="segmented" role="radiogroup" aria-label="Rolle">
+                  <label class="segmented__opt">
+                    <input type="radio" name="role" value="killer" checked>
+                    <span><span class="icon" data-icon="killer"><i class="icon__fallback">&#128481;</i></span>Killer</span>
                   </label>
-                  <label class="segmented__opt segmented__opt--bad">
-                    <input type="radio" name="escaped" value="false"><span><span class="icon" data-icon="sacrificed"></span>Gestorben</span>
+                  <label class="segmented__opt">
+                    <input type="radio" name="role" value="survivor">
+                    <span><span class="icon" data-icon="survivor"><i class="icon__fallback">&#127939;</i></span>Survivor</span>
                   </label>
                 </div>
               </fieldset>
-            </div>
-            </div>
-
-            <div class="form-group">
-              <span class="form-group__title">Ausbeute</span>
-
-            <fieldset class="field bp-field">
-              <legend class="field__label"><span class="icon" data-icon="bp"></span>Blutpunkte</legend>
-
-              <div class="bp-display">
-                <input id="f-bp" type="text" inputmode="numeric" value="0"
-                       aria-label="Verdiente Blutpunkte" autocomplete="off">
-                <span class="bp-display__unit icon icon--bp" data-icon="bp"><i class="icon__fallback">BP</i></span>
               </div>
 
-              <input id="f-bp-range" class="bp-slider" type="range"
-                     min="0" max="1000000" step="1000" value="0" aria-label="Blutpunkte-Regler">
+              <div class="form-group">
+                <span class="form-group__title">Ergebnis</span>
 
-              <div class="bp-chips">
-                <button type="button" class="chip" data-bp="10000">+10k</button>
-                <button type="button" class="chip" data-bp="25000">+25k</button>
-                <button type="button" class="chip" data-bp="50000">+50k</button>
-                <button type="button" class="chip" data-bp="100000">+100k</button>
-                <button type="button" class="chip chip--reset" data-bp="reset">Reset</button>
+              <div class="role-block" data-role-block="killer">
+                <label class="field">
+                  <span class="field__label">Killer</span>
+                  <span class="select-row">
+                    <select id="f-killer"></select>
+                    <span class="portrait" id="f-killer-portrait"></span>
+                  </span>
+                  <!-- Die Power ergibt sich aus dem Killer, darum nur Anzeige. -->
+                  <span class="power-badge" id="f-power" hidden></span>
+                </label>
+
+                <fieldset class="field">
+                  <legend class="field__label">Kills</legend>
+                  <!-- Anzahl der Schaltflächen hängt am Gamemode: 2v8 geht bis 8K. -->
+                  <div class="segmented segmented--kills" id="f-kills" role="radiogroup" aria-label="Kills"></div>
+                </fieldset>
               </div>
-            </fieldset>
-            </div>
 
-            <div class="form-group">
-              <span class="form-group__title">Ausrüstung</span>
+              <div class="role-block" data-role-block="survivor" hidden>
+                <label class="field">
+                  <span class="field__label">Survivor</span>
+                  <span class="select-row">
+                    <select id="f-survivor"></select>
+                    <span class="portrait" id="f-survivor-portrait"></span>
+                  </span>
+                </label>
 
-            <label class="field" id="build-field">
-              <span class="field__label">Build <em>optional</em></span>
-              <select id="f-build"></select>
-              <span class="build-preview" id="f-build-preview"></span>
-            </label>
+                <label class="field">
+                  <span class="field__label">Gegner <em>optional</em></span>
+                  <span class="select-row">
+                    <select id="f-faced-killer"></select>
+                    <span class="portrait" id="f-faced-killer-portrait"></span>
+                  </span>
+                </label>
 
-            <!-- Vier Dropdowns, die auch leer bleiben dürfen. -->
-            <fieldset class="field" id="perk-field">
-              <legend class="field__label">Perks <em>optional</em></legend>
-              <!-- Jeder Platz bringt seine eigene Suche mit. -->
-              <div class="perk-picks" id="f-perks"></div>
-              <p class="field__hint" id="f-perks-hint"></p>
-            </fieldset>
-
-            <!-- Nur beim Survivor: der Killer bringt seine feste Power mit. -->
-            <label class="field" id="item-field">
-              <span class="field__label">Item <em>optional</em></span>
-              <select id="f-item"></select>
-            </label>
-
-            <fieldset class="field" id="addon-field">
-              <legend class="field__label">Add-ons <em>optional</em></legend>
-              <div class="addon-picks">
-                <select id="f-addon-1" aria-label="Erstes Add-on"></select>
-                <select id="f-addon-2" aria-label="Zweites Add-on"></select>
+                <fieldset class="field">
+                  <legend class="field__label">Ausgang</legend>
+                  <div class="segmented" role="radiogroup" aria-label="Ausgang">
+                    <label class="segmented__opt segmented__opt--good">
+                      <input type="radio" name="escaped" value="true" checked><span><span class="icon" data-icon="escape"></span>Entkommen</span>
+                    </label>
+                    <label class="segmented__opt segmented__opt--bad">
+                      <input type="radio" name="escaped" value="false"><span><span class="icon" data-icon="sacrificed"></span>Gestorben</span>
+                    </label>
+                  </div>
+                </fieldset>
               </div>
-              <p class="field__hint" id="f-addon-hint"></p>
-            </fieldset>
+              </div>
 
-            <label class="field" id="offering-field">
-              <span class="field__label">Opfergabe <em>optional</em></span>
-              <select id="f-offering"></select>
-            </label>
-            </div>
+              <div class="form-group">
+                <span class="form-group__title">Ausbeute</span>
 
-            <div class="form-group">
-              <span class="form-group__title">Details</span>
+              <fieldset class="field bp-field">
+                <legend class="field__label"><span class="icon" data-icon="bp"></span>Blutpunkte</legend>
 
-            <label class="field">
-              <span class="field__label">Zeitpunkt</span>
-              <input type="datetime-local" id="f-played-at" required>
-            </label>
+                <div class="bp-display">
+                  <input id="f-bp" type="text" inputmode="numeric" value="0"
+                         aria-label="Verdiente Blutpunkte" autocomplete="off">
+                  <span class="bp-display__unit icon icon--bp" data-icon="bp"><i class="icon__fallback">BP</i></span>
+                </div>
 
-            <label class="field">
-              <span class="field__label">Notiz</span>
-              <input type="text" id="f-notes" maxlength="500" placeholder="optional">
-            </label>
-            </div>
+                <input id="f-bp-range" class="bp-slider" type="range"
+                       min="0" max="1000000" step="1000" value="0" aria-label="Blutpunkte-Regler">
 
-            <button type="submit" class="btn btn--primary btn--block" id="f-submit">Speichern</button>
-            <button type="button" class="btn btn--ghost btn--block" id="f-cancel" hidden>Abbrechen</button>
-          </form>
+                <div class="bp-chips">
+                  <button type="button" class="chip" data-bp="10000">+10k</button>
+                  <button type="button" class="chip" data-bp="25000">+25k</button>
+                  <button type="button" class="chip" data-bp="50000">+50k</button>
+                  <button type="button" class="chip" data-bp="100000">+100k</button>
+                  <button type="button" class="chip chip--reset" data-bp="reset">Reset</button>
+                </div>
+              </fieldset>
+              </div>
+
+              <div class="form-group">
+                <span class="form-group__title">Ausrüstung</span>
+
+              <label class="field" id="build-field">
+                <span class="field__label">Build <em>optional</em></span>
+                <select id="f-build"></select>
+                <span class="build-preview" id="f-build-preview"></span>
+              </label>
+
+              <!-- Vier Dropdowns, die auch leer bleiben dürfen. -->
+              <fieldset class="field" id="perk-field">
+                <legend class="field__label">Perks <em>optional</em></legend>
+                <!-- Jeder Platz bringt seine eigene Suche mit. -->
+                <div class="perk-picks" id="f-perks"></div>
+                <p class="field__hint" id="f-perks-hint"></p>
+              </fieldset>
+
+              <!-- Nur beim Survivor: der Killer bringt seine feste Power mit. -->
+              <label class="field" id="item-field">
+                <span class="field__label">Item <em>optional</em></span>
+                <select id="f-item"></select>
+              </label>
+
+              <fieldset class="field" id="addon-field">
+                <legend class="field__label">Add-ons <em>optional</em></legend>
+                <div class="addon-picks">
+                  <select id="f-addon-1" aria-label="Erstes Add-on"></select>
+                  <select id="f-addon-2" aria-label="Zweites Add-on"></select>
+                </div>
+                <p class="field__hint" id="f-addon-hint"></p>
+              </fieldset>
+
+              <label class="field" id="offering-field">
+                <span class="field__label">Opfergabe <em>optional</em></span>
+                <select id="f-offering"></select>
+              </label>
+              </div>
+
+              <div class="form-group">
+                <span class="form-group__title">Details</span>
+
+              <label class="field">
+                <span class="field__label">Zeitpunkt</span>
+                <input type="datetime-local" id="f-played-at" required>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Notiz</span>
+                <input type="text" id="f-notes" maxlength="500" placeholder="optional">
+              </label>
+              </div>
+
+              <button type="submit" class="btn btn--primary btn--block" id="f-submit">Speichern</button>
+              <button type="button" class="btn btn--ghost btn--block" id="f-cancel" hidden>Abbrechen</button>
+            </form>
+          </div>
         </section>
 
         <div class="stack">
@@ -373,6 +375,6 @@
     </aside>
   </div>
 
-  <script type="module" src="assets/js/index.js?v=61"></script>
+  <script type="module" src="assets/js/index.js?v=62"></script>
 </body>
 </html>

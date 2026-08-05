@@ -1,27 +1,28 @@
-import { supabase } from './supabase.js?v=61';
-import { initAuth } from './auth.js?v=61';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=61';
-import { initPasskeyPanel } from './passkeys.js?v=61';
+import { supabase } from './supabase.js?v=62';
+import { initAuth } from './auth.js?v=62';
+import { expandPanel, initCollapse } from './collapse.js?v=62';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=62';
+import { initPasskeyPanel } from './passkeys.js?v=62';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=61';
-import { perkName } from './perks.js?v=61';
+} from './images.js?v=62';
+import { perkName } from './perks.js?v=62';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=61';
+} from './perk-picker.js?v=62';
 import {
   GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasLoadoutExtras, hasPerks, labelFor,
   maxKills, supportsBuilds,
-} from './data.js?v=61';
+} from './data.js?v=62';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=61';
+} from './loadout.js?v=62';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=61';
-import { createSorter } from './table-sort.js?v=61';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=61';
+} from './utils.js?v=62';
+import { createSorter } from './table-sort.js?v=62';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=62';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -425,6 +426,7 @@ function startEdit(id) {
   setBloodpoints(match.bloodpoints ?? 0);
 
   applyFormMode();
+  expandPanel('entry-panel');
   document.getElementById('entry-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -734,6 +736,7 @@ function initForm() {
 
 initForm();
 mountIcons();
+initCollapse();
 initAuth({
   onLogin: (user) => {
     currentUser = user;

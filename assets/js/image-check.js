@@ -6,11 +6,11 @@
 // (meist steht er nicht auf öffentlich). Fallen nur einzelne Dateien aus, ist
 // der Dateiname im Katalog falsch.
 
-import { KILLERS, SURVIVORS } from './data.js?v=60';
-import { PERKS } from './perks.js?v=60';
-import { ADDONS, ITEMS, OFFERINGS } from './loadout.js?v=60';
-import { characterImageUrl, loadoutImageUrl, perkImageUrl } from './images.js?v=60';
-import { escapeHtml, fmtNumber, toast } from './utils.js?v=60';
+import { KILLERS, SURVIVORS } from './data.js?v=61';
+import { PERKS } from './perks.js?v=61';
+import { ADDONS, ITEMS, OFFERINGS } from './loadout.js?v=61';
+import { characterImageUrl, loadoutImageUrl, perkImageUrl } from './images.js?v=61';
+import { escapeHtml, fmtNumber, toast } from './utils.js?v=61';
 
 /** Alles, was ein Bild haben sollte, mit Bucket und erwarteter Adresse. */
 function catalogue() {

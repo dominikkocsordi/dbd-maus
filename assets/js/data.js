@@ -135,11 +135,11 @@ export const MODES_WITHOUT_PERKS = ['2v8', 'lights_out'];
 export const hasPerks = (mode) => !MODES_WITHOUT_PERKS.includes(mode);
 
 /*
-  Lights Out lässt nur das Item bzw. die Kraft zu: Add-ons und Opfergabe bleiben
-  in der Truhe. Felder dafür wären dort also irreführend, und der Import darf
-  auch nichts eintragen.
+  Lights Out lässt nur das Item bzw. die Kraft zu, 2v8 ebenso: Add-ons und
+  Opfergabe bleiben dort in der Truhe. Felder dafür wären also irreführend, und
+  der Import darf auch nichts eintragen.
 */
-export const MODES_WITHOUT_EXTRAS = ['lights_out'];
+export const MODES_WITHOUT_EXTRAS = ['2v8', 'lights_out'];
 export const hasLoadoutExtras = (mode) => !MODES_WITHOUT_EXTRAS.includes(mode);
 
 /**

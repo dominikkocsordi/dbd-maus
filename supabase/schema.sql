@@ -64,7 +64,7 @@ alter table public.matches add constraint matches_role_fields check (
 
 comment on table  public.matches            is 'Einzelne Dead-by-Daylight-Matches pro Benutzer';
 comment on column public.matches.game_mode  is 'public | 2v8 | chaos_shuffle | event | custom | other';
-comment on column public.matches.kills      is 'Anzahl Kills (0-4), nur für role = killer';
+comment on column public.matches.kills      is 'Anzahl Kills (0-4, in 2v8 bis 8), nur für role = killer';
 comment on column public.matches.escaped    is 'Entkommen ja/nein, nur für role = survivor';
 comment on column public.matches.faced_killer is 'Optional: gegen welchen Killer gespielt wurde, nur für role = survivor';
 

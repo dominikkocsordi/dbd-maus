@@ -6,14 +6,15 @@
 //
 // Ein Eintrag beschreibt die eigene Runde (`playerStat`) plus die übrigen
 // Mitspieler (`opponentStat`): Wer Killer war, findet dort vier Survivor, wer
-// Survivor war, die drei anderen und den Killer. Das Modul rechnet nur um und
-// spricht selbst weder mit Behaviour noch mit Supabase.
+// Survivor war, die drei anderen und den Killer. In 2v8 ist das Feld größer –
+// acht Survivor und zwei Killer. Das Modul rechnet nur um und spricht selbst
+// weder mit Behaviour noch mit Supabase.
 
 import {
-  KILLERS, SURVIVORS, hasLoadoutExtras, hasPerks, maxKills, supportsBuilds,
-} from './data.js?v=62';
-import { PERKS } from './perks.js?v=62';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=62';
+  KILLERS, SURVIVORS, hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
+} from './data.js?v=63';
+import { PERKS } from './perks.js?v=63';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=63';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -28,7 +29,8 @@ const ESCAPED = 'VE_Escaped';
   Bekannte Warteschlangen. Behaviour benennt die Modifier intern nach Essen –
   die Tracker-Seite kennt neben "Regular" noch Calamari, Cake, ChocolateBox und
   Firefly. Welcher Deckname zu welchem Modus gehört, verrät nur der Vergleich
-  mit dem eigenen Spielverlauf – bestätigt sind ChocolateBox und Firefly.
+  mit dem eigenen Spielverlauf – bestätigt sind Calamari, ChocolateBox und
+  Firefly.
 
   Alles Unbekannte landet als Event-Modus in der App, der Deckname bleibt dann
   in den Notizen stehen – daran lässt sich der nächste Eintrag hier ablesen.
@@ -36,9 +38,22 @@ const ESCAPED = 'VE_Escaped';
 const GAME_MODES = {
   Online: 'public',
   Regular: 'public',
+  Calamari: '2v8',
   ChocolateBox: 'chaos_shuffle',
   Firefly: 'lights_out',
 };
+
+/*
+  Zweiter Weg über den Anzeigenamen: Der Deckname wechselt womöglich mit dem
+  nächsten Durchlauf, "2V8" steht aber so im Export. Damit bleibt der Modus
+  auch dann erkannt, wenn die Warteschlange plötzlich anders heißt.
+*/
+const GAME_MODE_NAMES = { '2v8': '2v8' };
+
+/** Modus der App zum Eintrag des Trackers – Unbekanntes wird zum Event-Modus. */
+function gameMode(id, name) {
+  return GAME_MODES[id] ?? GAME_MODE_NAMES[norm(name)] ?? 'event';
+}
 
 const BP_MAX = 2000000;
 
@@ -155,7 +170,7 @@ function convert(entry) {
   // Gekürzt, damit ein unerwartet langer Wert nicht am Längenlimit der
   // Notiz-Spalte scheitert.
   const rawMode = String(match.gameType?.id ?? '').slice(0, 60);
-  const mode = GAME_MODES[rawMode] ?? 'event';
+  const mode = gameMode(rawMode, match.gameType?.name);
   const character = findCharacter(role, stat.characterName);
   const warnings = [];
 
@@ -163,14 +178,25 @@ function convert(entry) {
     warnings.push(`Charakter unbekannt: ${stat.characterName?.name ?? stat.characterName?.id ?? '–'}`);
   }
 
+  /*
+    Was in der App keine eigene Spalte hat, sonst aber verloren wäre, sammelt
+    sich in der Notiz: bei unbekannten Warteschlangen der Deckname, in 2v8 die
+    Klasse – dort steht sie anstelle der Perks.
+  */
+  const notes = [];
+  // Der Modus geht sonst verloren: die App kennt nur "Event-Modus", welches
+  // Event es war, steht danach nur noch hier.
+  if (mode === 'event' && rawMode) notes.push(`${rawMode} (offizieller Tracker)`);
+
+  const className = mode === '2v8' ? cut(stat.characterClass?.name) : null;
+  if (className) notes.push(`Klasse: ${className}`);
+
   const payload = {
     played_at: playedAt.toISOString(),
     game_mode: mode,
     role,
     bloodpoints: Math.min(Math.max(Math.round(Number(stat.bloodpointsEarned) || 0), 0), BP_MAX),
-    // Der Modus geht sonst verloren: die App kennt nur "Event-Modus", welches
-    // Event es war, steht danach nur noch hier.
-    notes: mode === 'event' && rawMode ? `${rawMode} (offizieller Tracker)` : null,
+    notes: null,          // wird unten aus `notes` gesetzt
     killer: null,
     kills: null,
     survivor: null,
@@ -207,12 +233,22 @@ function convert(entry) {
     if (!status) warnings.push('Eigener Ausgang unbekannt – als gestorben gewertet');
     payload.escaped = status === ESCAPED;
 
-    const versus = (entry.opponentStat ?? []).find((o) => ROLES[o.playerRole] === 'killer');
+    /*
+      In 2v8 stehen zwei Killer auf dem Feld, die App kennt aber nur ein Feld.
+      Gespeichert wird der erste aus der Liste, der zweite kommt in die Notiz –
+      sonst fiele die Hälfte des Duos unter den Tisch.
+    */
+    const [versus, ...alongside] = (entry.opponentStat ?? [])
+      .filter((o) => ROLES[o.playerRole] === 'killer');
+
     if (versus) {
       const facedKiller = findCharacter('killer', versus.characterName);
       if (facedKiller) payload.faced_killer = facedKiller;
       else warnings.push(`Gegnerischer Killer unbekannt: ${versus.characterName?.name ?? '–'}`);
     }
+
+    const others = alongside.map(killerLabel).filter(Boolean);
+    if (others.length) notes.push(`Zweiter Killer: ${others.join(', ')}`);
   }
 
   /*
@@ -223,8 +259,8 @@ function convert(entry) {
   const loadout = stat.characterLoadout ?? {};
   payload.item = loadout.power?.id ?? null;
 
-  // In Lights Out gibt es nur das Item bzw. die Kraft – was der Tracker dort
-  // an Add-ons oder Opfergabe meldet, gehört nicht ins Match.
+  // In Lights Out und 2v8 gibt es nur das Item bzw. die Kraft – was der Tracker
+  // dort an Add-ons oder Opfergabe meldet, gehört nicht ins Match.
   const extras = hasLoadoutExtras(mode);
   payload.offering = extras ? loadout.offering?.id ?? null : null;
 
@@ -255,6 +291,10 @@ function convert(entry) {
     if (total && played.length < total) warnings.push(`${total - played.length} Perk(s) nicht im Katalog`);
   }
 
+  // Die Notiz-Spalte hört bei 500 Zeichen auf; so weit kommt es hier zwar nie,
+  // aber der Import soll auch an unerwarteten Daten nicht scheitern.
+  payload.notes = notes.length ? notes.join(' · ').slice(0, 500) : null;
+
   return {
     payload,
     warnings,
@@ -262,9 +302,22 @@ function convert(entry) {
     source: {
       rawMode,
       characterName: stat.characterName?.name ?? null,
+      characterClass: className,
       status: stat.playerStatus?.name ?? null,
     },
   };
+}
+
+/** Kürzt Namen aus dem Tracker auf ein Maß, das in die Notiz passt. */
+function cut(value) {
+  const text = String(value ?? '').trim();
+  return text ? text.slice(0, 40) : null;
+}
+
+/** Name eines Killers für die Notiz – aus dem Katalog, sonst wie geliefert. */
+function killerLabel(entry) {
+  const id = findCharacter('killer', entry?.characterName);
+  return id ? labelFor('killer', id) : cut(entry?.characterName?.name);
 }
 
 /**

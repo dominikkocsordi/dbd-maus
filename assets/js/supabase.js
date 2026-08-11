@@ -12,7 +12,7 @@
 //
 // Passkeys brauchen supabase-js >= 2.105.0 und das experimentelle Opt-in.
 
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=63';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=64';
 
 const VERSION = '2.105.0';
 

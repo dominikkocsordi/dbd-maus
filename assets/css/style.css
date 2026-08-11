@@ -2255,6 +2255,12 @@ a.panel__meta:hover { text-decoration: underline; }
 .perk-icon--offering { border-radius: 50%; }
 .perk-icon--item { border-radius: var(--r-sm); }
 
+/* Die Klasse aus 2v8 steht am Anfang der Reihe und hebt sich leicht ab. */
+.perk-icon--class {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(242, 182, 92, 0.45);   /* --gold, gedämpft */
+}
+
 /* Power des Killers: feste Anzeige statt Auswahl. */
 .power-badge { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.5rem; }
 .power-badge__name { font-size: 0.82rem; color: var(--muted); }

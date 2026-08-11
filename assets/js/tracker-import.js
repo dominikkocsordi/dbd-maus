@@ -11,10 +11,11 @@
 // weder mit Behaviour noch mit Supabase.
 
 import {
-  KILLERS, SURVIVORS, hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=63';
-import { PERKS } from './perks.js?v=63';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=63';
+  KILLERS, SURVIVORS, hasClasses, hasKillerDuo, hasLoadoutExtras, hasPerks, maxKills,
+  supportsBuilds,
+} from './data.js?v=64';
+import { PERKS } from './perks.js?v=64';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=64';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -178,36 +179,34 @@ function convert(entry) {
     warnings.push(`Charakter unbekannt: ${stat.characterName?.name ?? stat.characterName?.id ?? '–'}`);
   }
 
-  /*
-    Was in der App keine eigene Spalte hat, sonst aber verloren wäre, sammelt
-    sich in der Notiz: bei unbekannten Warteschlangen der Deckname, in 2v8 die
-    Klasse – dort steht sie anstelle der Perks.
-  */
-  const notes = [];
-  // Der Modus geht sonst verloren: die App kennt nur "Event-Modus", welches
-  // Event es war, steht danach nur noch hier.
-  if (mode === 'event' && rawMode) notes.push(`${rawMode} (offizieller Tracker)`);
-
-  const className = mode === '2v8' ? cut(stat.characterClass?.name) : null;
-  if (className) notes.push(`Klasse: ${className}`);
-
   const payload = {
     played_at: playedAt.toISOString(),
     game_mode: mode,
     role,
     bloodpoints: Math.min(Math.max(Math.round(Number(stat.bloodpointsEarned) || 0), 0), BP_MAX),
-    notes: null,          // wird unten aus `notes` gesetzt
+    // Der Modus geht sonst verloren: die App kennt nur "Event-Modus", welches
+    // Event es war, steht danach nur noch hier.
+    notes: mode === 'event' && rawMode ? `${rawMode} (offizieller Tracker)` : null,
     killer: null,
     kills: null,
     survivor: null,
     escaped: null,
     faced_killer: null,
+    faced_killer_2: null,
+    character_class: null,
     build_id: null,
     perks: null,
     item: null,
     offering: null,
     addons: null,
   };
+
+  /*
+    In 2v8 gibt das Spiel die Perks vor und stellt die Klasse an ihre Stelle.
+    Sie gehört damit zur Ausrüstung der Runde und wird wie ein Item gespeichert:
+    die Spiel-ID ans Match, Name und Symbol in den Katalog.
+  */
+  if (hasClasses(mode)) payload.character_class = stat.characterClass?.id ?? null;
 
   if (role === 'killer') {
     payload.killer = character ?? 'other_killer';
@@ -234,21 +233,29 @@ function convert(entry) {
     payload.escaped = status === ESCAPED;
 
     /*
-      In 2v8 stehen zwei Killer auf dem Feld, die App kennt aber nur ein Feld.
-      Gespeichert wird der erste aus der Liste, der zweite kommt in die Notiz –
-      sonst fiele die Hälfte des Duos unter den Tisch.
+      In 2v8 stehen zwei Killer auf dem Feld – beide gehören ans Match, in der
+      Reihenfolge, in der der Tracker sie nennt. Außerhalb von 2v8 gibt es nur
+      einen; ein zweiter wäre dort ein Datenfehler und bleibt darum liegen.
     */
-    const [versus, ...alongside] = (entry.opponentStat ?? [])
-      .filter((o) => ROLES[o.playerRole] === 'killer');
+    const versus = (entry.opponentStat ?? []).filter((o) => ROLES[o.playerRole] === 'killer');
+    const slots = hasKillerDuo(mode) ? ['faced_killer', 'faced_killer_2'] : ['faced_killer'];
 
-    if (versus) {
-      const facedKiller = findCharacter('killer', versus.characterName);
-      if (facedKiller) payload.faced_killer = facedKiller;
-      else warnings.push(`Gegnerischer Killer unbekannt: ${versus.characterName?.name ?? '–'}`);
+    versus.slice(0, slots.length).forEach((opponent, slot) => {
+      const facedKiller = findCharacter('killer', opponent.characterName);
+      if (facedKiller) payload[slots[slot]] = facedKiller;
+      else warnings.push(`Gegnerischer Killer unbekannt: ${opponent.characterName?.name ?? '–'}`);
+    });
+
+    /*
+      Kennt der Katalog den ersten Killer nicht, den zweiten aber schon, stünde
+      sonst der zweite allein da – die Spalten sind der Reihe nach belegt.
+    */
+    if (!payload.faced_killer && payload.faced_killer_2) {
+      payload.faced_killer = payload.faced_killer_2;
+      payload.faced_killer_2 = null;
     }
 
-    const others = alongside.map(killerLabel).filter(Boolean);
-    if (others.length) notes.push(`Zweiter Killer: ${others.join(', ')}`);
+    if (hasKillerDuo(mode) && versus.length < 2) warnings.push('Nur ein Killer im Eintrag');
   }
 
   /*
@@ -278,6 +285,13 @@ function convert(entry) {
     learnable('item', loadout.power, role, { group, killer: role === 'killer' ? payload.killer : null }),
     extras ? learnable('offering', loadout.offering, role, {}) : null,
     ...(extras ? loadout.addOns ?? [] : []).map((addon) => learnable('addon', addon, role, { group })),
+    /*
+      Klassen lernt der Import von allen Beteiligten, nicht nur von sich selbst:
+      In einer 2v8-Runde stehen zehn Leute auf dem Feld – ihre Klassen füllen die
+      Auswahl im Formular nach einem Import fast von allein.
+    */
+    ...(hasClasses(mode) ? [stat, ...(entry.opponentStat ?? [])] : [])
+      .map((who) => learnable('class', who?.characterClass, ROLES[who?.playerRole], {})),
   ].filter(Boolean);
 
   if (hasPerks(mode)) {
@@ -291,10 +305,6 @@ function convert(entry) {
     if (total && played.length < total) warnings.push(`${total - played.length} Perk(s) nicht im Katalog`);
   }
 
-  // Die Notiz-Spalte hört bei 500 Zeichen auf; so weit kommt es hier zwar nie,
-  // aber der Import soll auch an unerwarteten Daten nicht scheitern.
-  payload.notes = notes.length ? notes.join(' · ').slice(0, 500) : null;
-
   return {
     payload,
     warnings,
@@ -302,31 +312,18 @@ function convert(entry) {
     source: {
       rawMode,
       characterName: stat.characterName?.name ?? null,
-      characterClass: className,
       status: stat.playerStatus?.name ?? null,
     },
   };
 }
 
-/** Kürzt Namen aus dem Tracker auf ein Maß, das in die Notiz passt. */
-function cut(value) {
-  const text = String(value ?? '').trim();
-  return text ? text.slice(0, 40) : null;
-}
-
-/** Name eines Killers für die Notiz – aus dem Katalog, sonst wie geliefert. */
-function killerLabel(entry) {
-  const id = findCharacter('killer', entry?.characterName);
-  return id ? labelFor('killer', id) : cut(entry?.characterName?.name);
-}
-
 /**
- * Ein Teil aus dem Tracker als Katalogeintrag – oder null, wenn Name oder ID
- * fehlen. `image.path` zeigt auf Behaviours Asset-Server und dient als Bild,
- * solange im eigenen Bucket nichts liegt.
+ * Ein Teil aus dem Tracker als Katalogeintrag – oder null, wenn Name, ID oder
+ * Rolle fehlen. `image.path` zeigt auf Behaviours Asset-Server und dient als
+ * Bild, solange im eigenen Bucket nichts liegt.
  */
 function learnable(kind, part, role, extra) {
-  if (!part?.id || !part?.name) return null;
+  if (!part?.id || !part?.name || !role) return null;
   return {
     kind,
     id: part.id,

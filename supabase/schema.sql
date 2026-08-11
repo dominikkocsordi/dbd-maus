@@ -46,6 +46,19 @@ create table if not exists public.matches (
 -- Nachtrag für bereits bestehende Tabellen (das Skript ist erneut ausführbar):
 alter table public.matches add column if not exists faced_killer text;
 
+/*
+  In 2v8 stehen zwei Killer auf dem Feld – der zweite steht gleichberechtigt
+  daneben, nicht in der Notiz. Außerhalb von 2v8 bleibt die Spalte leer.
+*/
+alter table public.matches add column if not exists faced_killer_2 text;
+
+/*
+  2v8 gibt beiden Seiten eine Klasse (Enforcer, Medic, Escapist …) statt der
+  Perks. Gespeichert wird die ID aus dem Spiel, genau wie bei der Ausrüstung –
+  Name und Symbol dazu stehen im Katalog (loadout.js bzw. loadout_catalog).
+*/
+alter table public.matches add column if not exists character_class text;
+
 -- 2v8 kennt acht Survivor, entsprechend sind dort bis zu 8 Kills möglich.
 alter table public.matches drop constraint if exists matches_kills_check;
 alter table public.matches add constraint matches_kills_check
@@ -55,18 +68,26 @@ alter table public.matches drop constraint if exists matches_role_fields;
 alter table public.matches add constraint matches_role_fields check (
   (role = 'killer'
      and killer is not null and kills is not null
-     and survivor is null and escaped is null and faced_killer is null)
+     and survivor is null and escaped is null
+     and faced_killer is null and faced_killer_2 is null)
   or
   (role = 'survivor'
      and survivor is not null and escaped is not null
      and killer is null and kills is null)
 );
 
+-- Ein zweiter Gegner ohne ersten wäre eine Lücke – die Reihenfolge steht fest.
+alter table public.matches drop constraint if exists matches_faced_killer_order;
+alter table public.matches add constraint matches_faced_killer_order
+  check (faced_killer_2 is null or faced_killer is not null);
+
 comment on table  public.matches            is 'Einzelne Dead-by-Daylight-Matches pro Benutzer';
 comment on column public.matches.game_mode  is 'public | 2v8 | chaos_shuffle | event | custom | other';
 comment on column public.matches.kills      is 'Anzahl Kills (0-4, in 2v8 bis 8), nur für role = killer';
 comment on column public.matches.escaped    is 'Entkommen ja/nein, nur für role = survivor';
 comment on column public.matches.faced_killer is 'Optional: gegen welchen Killer gespielt wurde, nur für role = survivor';
+comment on column public.matches.faced_killer_2 is 'Der zweite Killer in 2v8, nur für role = survivor';
+comment on column public.matches.character_class is 'Klasse in 2v8 als Spiel-ID, z. B. Assassin (Enforcer) oder Medic';
 
 -- ---------------------------------------------------------------------------
 -- 2) Indizes
@@ -76,6 +97,8 @@ create index if not exists matches_user_role_idx   on public.matches (user_id, r
 create index if not exists matches_killer_idx      on public.matches (user_id, killer)   where killer   is not null;
 create index if not exists matches_survivor_idx    on public.matches (user_id, survivor) where survivor is not null;
 create index if not exists matches_faced_killer_idx on public.matches (user_id, faced_killer) where faced_killer is not null;
+create index if not exists matches_faced_killer_2_idx on public.matches (user_id, faced_killer_2) where faced_killer_2 is not null;
+create index if not exists matches_class_idx on public.matches (user_id, character_class) where character_class is not null;
 
 -- ---------------------------------------------------------------------------
 -- 3) updated_at automatisch pflegen
@@ -864,7 +887,8 @@ grant execute on function public.friend_stats() to authenticated;
 -- ============================================================================
 --  Ausrüstung, die der Import gelernt hat
 --
---  Der offizielle Tracker liefert zu jedem Item, Add-on und jeder Opfergabe
+--  Der offizielle Tracker liefert zu jedem Item, Add-on, jeder Opfergabe und
+--  jeder 2v8-Klasse
 --  nicht nur die Spiel-ID, sondern auch den Namen und den Pfad zum Symbol.
 --  Was der Katalog in assets/js/loadout.js noch nicht kennt, landet hier –
 --  sonst stünde nach jedem Neuladen wieder "K25 Power 16" statt "Frank's Heart".
@@ -885,9 +909,11 @@ create table if not exists public.loadout_catalog (
   primary key (user_id, kind, id)
 );
 
+-- 'class' kam mit 2v8 dazu: dort tritt die Klasse an die Stelle der Perks, und
+-- Name wie Symbol liefert der Tracker genauso mit wie bei der Ausrüstung.
 alter table public.loadout_catalog drop constraint if exists loadout_catalog_kind_check;
 alter table public.loadout_catalog add constraint loadout_catalog_kind_check
-  check (kind in ('item', 'offering', 'addon'));
+  check (kind in ('item', 'offering', 'addon', 'class'));
 
 alter table public.loadout_catalog drop constraint if exists loadout_catalog_role_check;
 alter table public.loadout_catalog add constraint loadout_catalog_role_check

@@ -126,6 +126,19 @@ export const supportsBuilds = (mode) => !MODES_WITHOUT_BUILDS.includes(mode);
 /** In 2v8 stehen acht Survivor auf dem Feld, sonst vier. */
 export const maxKills = (mode) => (mode === '2v8' ? 8 : 4);
 
+/**
+ * Und zwei Killer: als Survivor spielt man dort gegen ein Duo, beide gehören
+ * gleichberechtigt ans Match.
+ */
+export const hasKillerDuo = (mode) => mode === '2v8';
+
+/**
+ * 2v8 gibt jeder Seite eine Klasse (Enforcer, Medic, Escapist …). Sie tritt an
+ * die Stelle der Perks und wird wie ein Ausrüstungsteil geführt – mit Spiel-ID,
+ * Namen und Symbol.
+ */
+export const hasClasses = (mode) => mode === '2v8';
+
 /*
   2v8 spielt mit Klassen statt Perks, Lights Out nimmt sie einem ganz weg –
   dort gibt es nichts einzutragen. Chaos Shuffle würfelt die Perks zwar zu,
@@ -161,6 +174,15 @@ const SURVIVOR_FILES = toFileMap(SURVIVORS);
 export function labelFor(role, id) {
   if (!id) return '–';
   return (role === 'killer' ? KILLER_LABELS : SURVIVOR_LABELS)[id] ?? id;
+}
+
+/**
+ * "vs Wraith" – und in 2v8, wo zwei Killer gegenüberstehen, "vs Wraith & Oni".
+ * Ohne Gegner im Match bleibt es null, dann steht dort schlicht nichts.
+ */
+export function facedKillersLabel(match) {
+  const ids = [match?.faced_killer, match?.faced_killer_2].filter(Boolean);
+  return ids.length ? `vs ${ids.map((id) => labelFor('killer', id)).join(' & ')}` : null;
 }
 
 /** Dateiname des Portraits im Storage-Bucket, oder null wenn keins hinterlegt ist. */

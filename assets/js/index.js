@@ -1,28 +1,28 @@
-import { supabase } from './supabase.js?v=63';
-import { initAuth } from './auth.js?v=63';
-import { expandPanel, initCollapse } from './collapse.js?v=63';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=63';
-import { initPasskeyPanel } from './passkeys.js?v=63';
+import { supabase } from './supabase.js?v=64';
+import { initAuth } from './auth.js?v=64';
+import { expandPanel, initCollapse } from './collapse.js?v=64';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=64';
+import { initPasskeyPanel } from './passkeys.js?v=64';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=63';
-import { perkName } from './perks.js?v=63';
+} from './images.js?v=64';
+import { perkName } from './perks.js?v=64';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=63';
+} from './perk-picker.js?v=64';
 import {
-  GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasLoadoutExtras, hasPerks, labelFor,
-  maxKills, supportsBuilds,
-} from './data.js?v=63';
+  GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
+  hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
+} from './data.js?v=64';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=63';
+} from './loadout.js?v=64';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=63';
-import { createSorter } from './table-sort.js?v=63';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=63';
+} from './utils.js?v=64';
+import { createSorter } from './table-sort.js?v=64';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=64';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -64,7 +64,57 @@ function syncLoadoutFields(keep = true) {
   if (!keep) offering.value = '';
 
   syncAddonOptions(keep);
+  syncClassOptions(keep);
   syncExtraFields();
+}
+
+/*
+  Die Klassen hängen ebenfalls an der Rolle: Killer wählen aus ihren vier,
+  Survivor aus ihren. Was der Import dazugelernt hat, steht mit in der Liste.
+*/
+function syncClassOptions(keep = true) {
+  const select = document.getElementById('f-class');
+  const previous = keep ? select.value : '';
+  const entries = loadoutList('class', currentRole());
+
+  fillSelect(select, entries, 'Kein Eintrag', true);
+  select.value = entries.some((entry) => entry.id === previous) ? previous : '';
+  renderClassBadge();
+}
+
+/** Symbol und Name der gewählten Klasse, wie bei der Power des Killers. */
+function renderClassBadge() {
+  const badge = document.getElementById('f-class-badge');
+  const id = document.getElementById('f-class').value;
+
+  badge.hidden = !id;
+  badge.innerHTML = id
+    ? loadoutIconHtml('class', id, loadoutName('class', id))
+      + `<span class="power-badge__name">${escapeHtml(loadoutName('class', id))}</span>`
+    : '';
+}
+
+/*
+  Klasse und zweiter Gegner gibt es nur in 2v8. Außerhalb verschwinden die
+  Felder und werden geleert – wie bei Add-ons und Opfergabe, damit nichts stehen
+  bleibt, was es in der Runde gar nicht gab.
+*/
+function syncDuoFields() {
+  const mode = document.getElementById('f-mode').value;
+  const classes = hasClasses(mode);
+  const duo = hasKillerDuo(mode) && currentRole() === 'survivor';
+
+  document.getElementById('class-field').hidden = !classes;
+  document.getElementById('faced-killer-2-field').hidden = !duo;
+
+  if (!classes) {
+    document.getElementById('f-class').value = '';
+    renderClassBadge();
+  }
+  if (!duo && document.getElementById('f-faced-killer-2').value) {
+    document.getElementById('f-faced-killer-2').value = '';
+    syncPortrait('faced-killer-2', 'killer');
+  }
 }
 
 /*
@@ -246,6 +296,7 @@ function syncRoleBlocks() {
   syncPowerForKiller();
   renderPowerBadge();
   syncBuildSelect(false);
+  syncDuoFields();
 }
 
 // --- Blutpunkte-Feld: Textfeld, Slider und Chips halten sich gegenseitig aktuell
@@ -321,6 +372,8 @@ function buildPayload() {
     survivor: null,
     escaped: null,
     faced_killer: null,
+    faced_killer_2: null,
+    character_class: hasClasses(mode) ? document.getElementById('f-class').value || null : null,
     build_id: supportsBuilds(mode) ? (document.getElementById('f-build').value || null) : null,
     perks: hasPerks(mode) && pickedPerks().length ? pickedPerks() : null,
     item: document.getElementById('f-item').value || null,
@@ -339,6 +392,12 @@ function buildPayload() {
     payload.survivor = survivor;
     payload.escaped = document.querySelector('input[name="escaped"]:checked').value === 'true';
     payload.faced_killer = document.getElementById('f-faced-killer').value || null;
+
+    // Der zweite Gegner steht nur neben einem ersten – so hält es auch die
+    // Tabelle. Ist nur er gewählt, rückt er auf den freien Platz.
+    const second = hasKillerDuo(mode) ? document.getElementById('f-faced-killer-2').value || null : null;
+    if (payload.faced_killer) payload.faced_killer_2 = second === payload.faced_killer ? null : second;
+    else payload.faced_killer = second;
   }
 
   return { payload };
@@ -366,8 +425,10 @@ function resetForm() {
   document.getElementById('f-killer').value = '';
   document.getElementById('f-survivor').value = '';
   document.getElementById('f-faced-killer').value = '';
+  document.getElementById('f-faced-killer-2').value = '';
   document.getElementById('f-build').value = '';
   document.getElementById('f-item').value = '';
+  document.getElementById('f-class').value = '';
   document.getElementById('f-offering').value = '';
   syncLoadoutFields(false);
   syncKillsOptions();
@@ -381,7 +442,9 @@ function resetForm() {
   syncPortrait('killer');
   syncPortrait('survivor');
   syncPortrait('faced-killer', 'killer');
+  syncPortrait('faced-killer-2', 'killer');
   syncBuildSelect(false);
+  syncDuoFields();
   applyFormMode();
 }
 
@@ -403,7 +466,9 @@ function startEdit(id) {
     document.getElementById('f-survivor').value = match.survivor ?? '';
     document.querySelector(`input[name="escaped"][value="${match.escaped}"]`).checked = true;
     document.getElementById('f-faced-killer').value = match.faced_killer ?? '';
+    document.getElementById('f-faced-killer-2').value = match.faced_killer_2 ?? '';
     syncPortrait('faced-killer', 'killer');
+    syncPortrait('faced-killer-2', 'killer');
   }
 
   syncPortrait(match.role);
@@ -419,6 +484,9 @@ function startEdit(id) {
   syncAddonHint();
   syncExtraFields();
   renderPowerBadge();
+  document.getElementById('f-class').value = match.character_class ?? '';
+  renderClassBadge();
+  syncDuoFields();
   syncBuildField();
   syncPerkField();
   document.getElementById('f-played-at').value = toLocalInput(match.played_at);
@@ -517,7 +585,8 @@ function renderRecent() {
     const buildName = builds.find((b) => b.id === m.build_id)?.name;
     const sub = [
       gameModeLabel(m.game_mode),
-      m.faced_killer ? `vs ${labelFor('killer', m.faced_killer)}` : null,
+      facedKillersLabel(m),
+      m.character_class ? loadoutName('class', m.character_class) : null,
       buildName,
       m.item ? loadoutName('item', m.item) : null,
     ].filter(Boolean).join(' · ');
@@ -660,7 +729,7 @@ async function loadBuilds() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, build_id, perks, item, offering, addons, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, faced_killer_2, character_class, build_id, perks, item, offering, addons, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 
@@ -691,6 +760,7 @@ function initForm() {
   fillSelect(document.getElementById('f-killer'), KILLERS, 'Killer wählen …');
   fillSelect(document.getElementById('f-survivor'), SURVIVORS, 'Survivor wählen …');
   fillSelect(document.getElementById('f-faced-killer'), KILLERS, 'Kein Eintrag', true);
+  fillSelect(document.getElementById('f-faced-killer-2'), KILLERS, 'Kein Eintrag', true);
 
   document.getElementById('f-mode').value = 'public';
   document.getElementById('f-played-at').value = localNowValue();
@@ -704,10 +774,15 @@ function initForm() {
   wireBloodpointsField();
   setBloodpoints(0);
 
-  for (const [field, role] of [['killer', 'killer'], ['survivor', 'survivor'], ['faced-killer', 'killer']]) {
+  const CHARACTER_FIELDS = [
+    ['killer', 'killer'], ['survivor', 'survivor'],
+    ['faced-killer', 'killer'], ['faced-killer-2', 'killer'],
+  ];
+
+  for (const [field, role] of CHARACTER_FIELDS) {
     document.getElementById(`f-${field}`).addEventListener('change', () => {
       syncPortrait(field, role);
-      if (field === 'faced-killer') return;
+      if (field.startsWith('faced-killer')) return;
       syncPerkCharacter();
       if (field === 'killer') syncPowerForKiller();
     });
@@ -718,8 +793,10 @@ function initForm() {
     syncBuildField();
     syncPerkField();
     syncExtraFields();
+    syncDuoFields();
     syncKillsOptions();
   });
+  document.getElementById('f-class').addEventListener('change', renderClassBadge);
   document.getElementById('match-form').addEventListener('submit', handleSubmit);
   document.getElementById('f-cancel').addEventListener('click', resetForm);
   document.getElementById('f-build').addEventListener('change', adoptBuildPerks);
@@ -731,6 +808,7 @@ function initForm() {
   syncLoadoutFields(false);
   initPerkPicker();
   syncPerkField();
+  syncDuoFields();
   applyFormMode();
 }
 

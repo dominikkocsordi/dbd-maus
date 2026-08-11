@@ -1,13 +1,13 @@
-// Katalog für Items/Kräfte, Add-ons und Opfergaben.
+// Katalog für Items/Kräfte, Add-ons, Opfergaben und die Klassen aus 2v8.
 //
 // Gespeichert wird die `id` des Spiels (z. B. Item_Camper_Flashlight) – das ist
 // derselbe Schlüssel, den auch der offizielle Tracker liefert. Das Bild dazu
 // steht als `file` daneben, unter seinem Original-Dateinamen aus dem Spiel
 // (iconItems_flashlight.png), genau wie bei Portraits und Perks.
 //
-// Die Buckets trennen nach Art: items, powers, addons, offerings. Killer-Powers
-// und Survivor-Items stehen hier zwar in derselben Liste, ihre Bilder liegen
-// aber getrennt – die Rolle entscheidet.
+// Die Buckets trennen nach Art: items, powers, addons, offerings, classes.
+// Killer-Powers und Survivor-Items stehen hier zwar in derselben Liste, ihre
+// Bilder liegen aber getrennt – die Rolle entscheidet.
 //
 // Der Katalog ist aus echten Matches zusammengetragen und deckt darum noch
 // nicht alles ab, was es im Spiel gibt. Fehlt ein Eintrag, geht trotzdem nichts
@@ -269,6 +269,25 @@ export const ADDONS = [
   { id: 'Addon_Toolbox_002', name: 'Wire Spool', role: 'survivor', group: 'toolbox', file: 'iconAddon_spoolOfWire.png' },
 ];
 /*
+  Klassen aus 2v8. Dort gibt das Spiel die Perks vor und stellt stattdessen die
+  Klasse an ihre Stelle – für den Katalog ist sie darum ein Ausrüstungsteil wie
+  jedes andere: eigene Spiel-ID, eigener Name, eigenes Symbol.
+
+  Die IDs des Spiels und die angezeigten Namen gehen auseinander (Assassin heißt
+  im Spiel "Enforcer"), darum steht beides hier. Was noch fehlt, lernt der Import
+  aus dem Tracker dazu – dort steht zu jeder Klasse Name und Bildpfad.
+*/
+export const CLASSES = [
+  { id: 'Assassin', name: 'Enforcer', role: 'killer' },
+  { id: 'Stalker', name: 'Shadow', role: 'killer' },
+  { id: 'Beacon', name: 'Torchbearer', role: 'survivor' },
+  { id: 'Medic', name: 'Medic', role: 'survivor' },
+  { id: 'Scout', name: 'Scout', role: 'survivor' },
+  { id: 'Survivalist', name: 'Escapist', role: 'survivor' },
+  { id: 'Tactician', name: 'Guide', role: 'survivor' },
+];
+
+/*
   Fehlt eine ID im Katalog, wird der Name aus ihr abgeleitet: Präfixe des Spiels
   fallen weg, aus CamelCase werden Wörter. Aus "Item_Camper_AlexsToolbox" wird
   so "Alexs Toolbox" – nicht perfekt, aber lesbar.
@@ -300,11 +319,17 @@ function nameFromId(id) {
 
 const index = (list) => new Map(list.map((entry) => [entry.id, entry]));
 
-const INDEXES = {
-  item: index(ITEMS),
-  offering: index(OFFERINGS),
-  addon: index(ADDONS),
+/** Die Arten des Katalogs und ihre handgepflegten Listen. */
+const BASE = {
+  item: ITEMS,
+  offering: OFFERINGS,
+  addon: ADDONS,
+  class: CLASSES,
 };
+
+const INDEXES = Object.fromEntries(
+  Object.entries(BASE).map(([kind, list]) => [kind, index(list)]),
+);
 
 /*
   Dazugelerntes. Der offizielle Tracker liefert zu jedem Teil nicht nur die ID,
@@ -315,7 +340,7 @@ const INDEXES = {
   Der handgepflegte Katalog hat Vorrang: dort stehen die deutschen Feinheiten und
   die Bilder aus dem eigenen Bucket.
 */
-const LEARNED = { item: new Map(), offering: new Map(), addon: new Map() };
+const LEARNED = Object.fromEntries(Object.keys(BASE).map((kind) => [kind, new Map()]));
 
 /**
  * Einträge aus dem Tracker übernehmen. Erwartet Objekte mit `kind`, `id`,
@@ -334,12 +359,12 @@ export function learnLoadout(entries) {
 
 /** Alles zu einer Art: erst der Katalog, dann das Dazugelernte. */
 function allOf(kind) {
-  const base = kind === 'item' ? ITEMS : kind === 'offering' ? OFFERINGS : ADDONS;
-  const extra = [...LEARNED[kind].values()].filter((entry) => !INDEXES[kind].has(entry.id));
+  const base = BASE[kind] ?? [];
+  const extra = [...(LEARNED[kind]?.values() ?? [])].filter((entry) => !INDEXES[kind].has(entry.id));
   return [...base, ...extra];
 }
 
-/** Katalogeintrag zu einer ID, oder null. `kind` ist item | offering | addon. */
+/** Katalogeintrag zu einer ID, oder null. `kind` ist item | offering | addon | class. */
 export const loadoutEntry = (kind, id) =>
   (id ? INDEXES[kind]?.get(id) ?? LEARNED[kind]?.get(id) ?? null : null);
 

@@ -2,16 +2,16 @@
 // Fenster, in das die Daten eingefügt werden. Von dort aus geprüft, in der
 // Vorschau bestätigt und als Matches gespeichert.
 
-import { supabase } from './supabase.js?v=63';
+import { supabase } from './supabase.js?v=64';
 import {
   avatarHtml, killMarksHtml, loadoutIconHtml, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=63';
-import { loadoutEntry, loadoutName } from './loadout.js?v=63';
-import { saveLoadoutCatalog } from './loadout-catalog.js?v=63';
-import { perkName } from './perks.js?v=63';
-import { gameModeLabel, labelFor } from './data.js?v=63';
-import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=63';
-import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=63';
+} from './images.js?v=64';
+import { loadoutEntry, loadoutName } from './loadout.js?v=64';
+import { saveLoadoutCatalog } from './loadout-catalog.js?v=64';
+import { perkName } from './perks.js?v=64';
+import { facedKillersLabel, gameModeLabel, labelFor } from './data.js?v=64';
+import { escapeHtml, fmtDate, fmtNumber, toast } from './utils.js?v=64';
+import { attachBuilds, markDuplicates, parseMatchHistory } from './tracker-import.js?v=64';
 
 let currentUser = null;
 let onImported = null;
@@ -36,7 +36,7 @@ async function mountBookmarklet() {
   const link = el('import-bookmarklet');
 
   try {
-    const res = await fetch('assets/js/tracker-bookmarklet.js?v=63');
+    const res = await fetch('assets/js/tracker-bookmarklet.js?v=64');
     if (!res.ok) throw new Error(String(res.status));
     link.href = `javascript:${encodeURIComponent(await res.text())}`;
     link.removeAttribute('aria-disabled');
@@ -57,9 +57,7 @@ function rowHtml(row, index) {
 
   const notes = [
     gameModeLabel(payload.game_mode),
-    // In 2v8 tritt die Klasse an die Stelle der Perks – sonst bliebe die Zeile leer.
-    row.source.characterClass,
-    payload.faced_killer ? `vs ${labelFor('killer', payload.faced_killer)}` : null,
+    facedKillersLabel(payload),
     row.buildName,
     row.source.rawMode && payload.game_mode === 'event' ? row.source.rawMode : null,
   ].filter(Boolean).join(' · ');
@@ -86,6 +84,9 @@ function rowHtml(row, index) {
       <td data-label="Ergebnis">${result}</td>
       <td data-label="Perks">${(payload.perks ?? []).map((f) => perkIconHtml(f, perkName(f))).join('')}</td>
       <td data-label="Ausrüstung">${[
+        // In 2v8 steht die Klasse anstelle der Perks – sie führt die Reihe an.
+        payload.character_class
+          ? loadoutIconHtml('class', payload.character_class, loadoutName('class', payload.character_class)) : '',
         payload.item ? loadoutIconHtml('item', payload.item, loadoutName('item', payload.item)) : '',
         ...(payload.addons ?? []).map((id) => loadoutIconHtml('addon', id, loadoutName('addon', id))),
         payload.offering ? loadoutIconHtml('offering', payload.offering, loadoutName('offering', payload.offering)) : '',

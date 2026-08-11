@@ -1,10 +1,10 @@
 // Charakterbilder aus Supabase Storage.
 // Die Originaldateien aus dem Spiel liegen unverändert im Bucket "characters"
 // (z. B. K01_TheTrapper_Portrait.png); die Zuordnung steht als `file` in data.js.
-import { SUPABASE_URL } from './config.js?v=63';
-import { fileFor } from './data.js?v=63';
-import { loadoutEntry } from './loadout.js?v=63';
-import { escapeHtml } from './utils.js?v=63';
+import { SUPABASE_URL } from './config.js?v=64';
+import { fileFor } from './data.js?v=64';
+import { loadoutEntry } from './loadout.js?v=64';
+import { escapeHtml } from './utils.js?v=64';
 
 export const CHARACTER_BUCKET = 'characters';
 export const ICON_BUCKET = 'icons';
@@ -38,6 +38,7 @@ export const LOADOUT_BUCKETS = {
   power: 'powers',
   addon: 'addons',
   offering: 'offerings',
+  class: 'classes',
 };
 
 /*
@@ -49,8 +50,14 @@ export const LOADOUT_BUCKETS = {
 export const TRACKER_ASSETS = 'https://assets.live.bhvraccount.com';
 
 /* Dort heißt jede Datei nach ihrer Spiel-ID, nur der Ordner richtet sich nach
-   der Art – Killer-Kräfte liegen bei den Items. */
-const TRACKER_DIRS = { item: 'items', addon: 'add-ons', offering: 'offerings' };
+   der Art – Killer-Kräfte liegen bei den Items, die Klassen aus 2v8 in einem
+   eigenen Ordner. */
+const TRACKER_DIRS = {
+  item: 'items',
+  addon: 'add-ons',
+  offering: 'offerings',
+  class: 'characterClasses',
+};
 
 /**
  * Bild beim Tracker. Der Pfad ergibt sich aus der ID und kann darum nicht am

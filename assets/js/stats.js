@@ -1,21 +1,21 @@
-import { supabase } from './supabase.js?v=63';
-import { initAuth } from './auth.js?v=63';
-import { initCollapse } from './collapse.js?v=63';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=63';
+import { supabase } from './supabase.js?v=64';
+import { initAuth } from './auth.js?v=64';
+import { initCollapse } from './collapse.js?v=64';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=64';
 import {
-  GAME_MODES, KILLERS, SURVIVORS, gameModeLabel, hasLoadoutExtras, hasPerks, labelFor,
-  maxKills, supportsBuilds,
-} from './data.js?v=63';
-import { createSorter } from './table-sort.js?v=63';
+  GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
+  hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
+} from './data.js?v=64';
+import { createSorter } from './table-sort.js?v=64';
 import {
   aggregate, byCharacter, byLoadout, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent,
   killTier, toast,
-} from './utils.js?v=63';
+} from './utils.js?v=64';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=63';
-import { loadoutEntry, loadoutName } from './loadout.js?v=63';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=63';
+} from './images.js?v=64';
+import { loadoutEntry, loadoutName } from './loadout.js?v=64';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=64';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;
@@ -379,11 +379,17 @@ function renderFacedKillers(filtered) {
   const panel = document.getElementById('faced-panel');
   const body = document.getElementById('faced-body');
 
+  /*
+    In 2v8 zählt die Runde für beide Killer des Duos: gespielt wurde gegen jeden
+    von ihnen, und genau danach sucht man in dieser Tabelle.
+  */
   const groups = new Map();
   for (const m of filtered) {
-    if (m.role !== 'survivor' || !m.faced_killer) continue;
-    if (!groups.has(m.faced_killer)) groups.set(m.faced_killer, []);
-    groups.get(m.faced_killer).push(m);
+    if (m.role !== 'survivor') continue;
+    for (const id of [m.faced_killer, m.faced_killer_2].filter(Boolean)) {
+      if (!groups.has(id)) groups.set(id, []);
+      groups.get(id).push(m);
+    }
   }
 
   const rows = [...groups.entries()]
@@ -488,7 +494,16 @@ function editRowHtml(m) {
                 <option value="">Unbekannt</option>
                 ${optionTags(KILLERS, m.faced_killer ?? '')}
               </select>
-            </label>`}
+            </label>
+
+            ${hasKillerDuo(m.game_mode) ? `
+            <label class="field">
+              <span class="field__label">Zweiter Gegner</span>
+              <select name="faced_killer_2">
+                <option value="">Unbekannt</option>
+                ${optionTags(KILLERS, m.faced_killer_2 ?? '')}
+              </select>
+            </label>` : ''}`}
 
             <label class="field">
               <span class="field__label">Blutpunkte</span>
@@ -534,12 +549,21 @@ async function saveEditRow(match, form) {
     patch.survivor = String(data.get('character'));
     patch.escaped = data.get('escaped') === 'true';
     patch.faced_killer = String(data.get('faced_killer') ?? '') || null;
+
+    /*
+      Das zweite Feld gibt es nur in 2v8 und nur neben einem ersten Gegner –
+      steht dort allein etwas, rückt es auf den freien Platz.
+    */
+    const second = hasKillerDuo(mode) ? String(data.get('faced_killer_2') ?? '') || null : null;
+    if (patch.faced_killer) patch.faced_killer_2 = second === patch.faced_killer ? null : second;
+    else { patch.faced_killer = second; patch.faced_killer_2 = null; }
   }
 
   // Ein Moduswechsel kann Perks, Build oder Ausrüstung ungültig machen.
   if (!hasPerks(mode)) patch.perks = null;
   if (!supportsBuilds(mode)) patch.build_id = null;
   if (!hasLoadoutExtras(mode)) { patch.offering = null; patch.addons = null; }
+  if (!hasClasses(mode)) patch.character_class = null;
 
   const button = form.querySelector('[type="submit"]');
   button.disabled = true;
@@ -588,12 +612,14 @@ function wireEditRow(body) {
 }
 
 /*
-  Ausrüstung als Kachelreihe: Item bzw. Kraft, danach die Add-ons, zuletzt die
-  Opfergabe. Fehlt alles, bleibt die Zelle leer statt einen Platzhalter zu
+  Ausrüstung als Kachelreihe: in 2v8 zuerst die Klasse, dann Item bzw. Kraft,
+  danach die Add-ons, zuletzt die Opfergabe. Fehlt alles, bleibt die Zelle leer statt einen Platzhalter zu
   zeigen – die Spalte ist bei alten Matches naturgemäß leer.
 */
 function loadoutCellHtml(match) {
   const tiles = [
+    // In 2v8 steht die Klasse vorn – dort ist sie das, was sonst die Perks sind.
+    match.character_class ? loadoutIconHtml('class', match.character_class, loadoutName('class', match.character_class)) : '',
     match.item ? loadoutIconHtml('item', match.item, loadoutName('item', match.item)) : '',
     ...(match.addons ?? []).map((id) => loadoutIconHtml('addon', id, loadoutName('addon', id))),
     match.offering ? loadoutIconHtml('offering', match.offering, loadoutName('offering', match.offering)) : '',
@@ -632,7 +658,7 @@ function renderMatchList(filtered) {
       <tr${open ? ' class="is-editing"' : ''}>
         <td data-label="Datum">${fmtDate(m.played_at)}</td>
         <td data-label="Charakter">${characterCellHtml(m.role, m.killer ?? m.survivor, labelFor(m.role, m.killer ?? m.survivor),
-          m.faced_killer ? `vs ${labelFor('killer', m.faced_killer)}` : (m.role === 'killer' ? 'Killer' : 'Survivor'))}</td>
+          facedKillersLabel(m) ?? (m.role === 'killer' ? 'Killer' : 'Survivor'))}</td>
         <td data-label="Gamemode">${escapeHtml(gameModeLabel(m.game_mode))}</td>
         <td data-label="Ergebnis">${result}</td>
         <td data-label="Ausrüstung">${loadoutCellHtml(m)}</td>
@@ -667,7 +693,7 @@ function render() {
 async function loadMatches() {
   const { data, error } = await supabase
     .from('matches')
-    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, perks, item, offering, addons, bloodpoints, notes')
+    .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, faced_killer_2, character_class, perks, item, offering, addons, bloodpoints, notes')
     .order('played_at', { ascending: false })
     .limit(2000);
 

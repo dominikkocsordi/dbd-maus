@@ -1,28 +1,28 @@
-import { supabase } from './supabase.js?v=65';
-import { initAuth } from './auth.js?v=65';
-import { expandPanel, initCollapse } from './collapse.js?v=65';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=65';
-import { initPasskeyPanel } from './passkeys.js?v=65';
+import { supabase } from './supabase.js?v=66';
+import { initAuth } from './auth.js?v=66';
+import { expandPanel, initCollapse } from './collapse.js?v=66';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=66';
+import { initPasskeyPanel } from './passkeys.js?v=66';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=65';
-import { perkName } from './perks.js?v=65';
+} from './images.js?v=66';
+import { perkName } from './perks.js?v=66';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=65';
+} from './perk-picker.js?v=66';
 import {
   GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
   hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=65';
+} from './data.js?v=66';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=65';
+} from './loadout.js?v=66';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=65';
-import { createSorter } from './table-sort.js?v=65';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=65';
+} from './utils.js?v=66';
+import { createSorter } from './table-sort.js?v=66';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=66';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -307,7 +307,9 @@ function setBloodpoints(value) {
 
   input.value = fmtNumber(bp);
   range.value = Math.min(bp, SLIDER_MAX);
-  input.style.setProperty('--bp-fill', `${(Math.min(bp, SLIDER_MAX) / SLIDER_MAX) * 100}%`);
+  // Am Feld statt am Eingabefeld: so kennen Textfeld und Regler den Füllstand.
+  (input.closest('.bp-field') ?? input).style
+    .setProperty('--bp-fill', `${(Math.min(bp, SLIDER_MAX) / SLIDER_MAX) * 100}%`);
   return bp;
 }
 

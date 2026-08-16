@@ -1,21 +1,21 @@
-import { supabase } from './supabase.js?v=64';
-import { initAuth } from './auth.js?v=64';
-import { initCollapse } from './collapse.js?v=64';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=64';
+import { supabase } from './supabase.js?v=65';
+import { initAuth } from './auth.js?v=65';
+import { initCollapse } from './collapse.js?v=65';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=65';
 import {
   GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
   hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=64';
-import { createSorter } from './table-sort.js?v=64';
+} from './data.js?v=65';
+import { createSorter } from './table-sort.js?v=65';
 import {
   aggregate, byCharacter, byLoadout, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent,
   killTier, toast,
-} from './utils.js?v=64';
+} from './utils.js?v=65';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=64';
-import { loadoutEntry, loadoutName } from './loadout.js?v=64';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=64';
+} from './images.js?v=65';
+import { loadoutEntry, loadoutName } from './loadout.js?v=65';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=65';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;
@@ -612,6 +612,32 @@ function wireEditRow(body) {
 }
 
 /*
+  Löschen direkt aus der Statistik – die Liste auf der Übersicht zeigt nur die
+  jüngsten Matches, ältere Einträge sind sonst nirgends zu entfernen.
+  Die RLS-Regel matches_delete_own lässt jeden nur seine eigenen Matches löschen.
+*/
+async function deleteMatch(id) {
+  if (!window.confirm('Dieses Match wirklich löschen?')) return;
+
+  const { error } = await supabase.from('matches').delete().eq('id', id);
+  if (error) {
+    toast(`Löschen fehlgeschlagen: ${error.message}`, 'error');
+    return;
+  }
+
+  allMatches = allMatches.filter((m) => m.id !== id);
+  if (editingId === id) editingId = null;
+  toast('Match gelöscht.', 'success');
+  render();
+}
+
+function wireDeleteButtons(body) {
+  body.querySelectorAll('[data-delete]').forEach((btn) => {
+    btn.addEventListener('click', () => deleteMatch(btn.dataset.delete));
+  });
+}
+
+/*
   Ausrüstung als Kachelreihe: in 2v8 zuerst die Klasse, dann Item bzw. Kraft,
   danach die Add-ons, zuletzt die Opfergabe. Fehlt alles, bleibt die Zelle leer statt einen Platzhalter zu
   zeigen – die Spalte ist bei alten Matches naturgemäß leer.
@@ -665,13 +691,18 @@ function renderMatchList(filtered) {
         <td data-label="BP" class="num">${fmtNumber(m.bloodpoints)}</td>
         <td data-label="Notiz" class="notes">${escapeHtml(m.notes ?? '')}</td>
         <td data-label="Aktion" class="num">
-          <button type="button" class="icon-btn${open ? ' is-active' : ''}" data-edit="${escapeHtml(m.id)}"
-                  aria-expanded="${open}" title="Bearbeiten" aria-label="Match bearbeiten">&#9998;</button>
+          <span class="row-actions">
+            <button type="button" class="icon-btn${open ? ' is-active' : ''}" data-edit="${escapeHtml(m.id)}"
+                    aria-expanded="${open}" title="Bearbeiten" aria-label="Match bearbeiten">&#9998;</button>
+            <button type="button" class="icon-btn icon-btn--danger" data-delete="${escapeHtml(m.id)}"
+                    title="Löschen" aria-label="Match löschen">&#10005;</button>
+          </span>
         </td>
       </tr>${open ? editRowHtml(m) : ''}`;
   }).join('');
 
   wireEditRow(body);
+  wireDeleteButtons(body);
 }
 
 function render() {

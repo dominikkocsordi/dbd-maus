@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=67';
+import { KILLER_LABELS, SURVIVOR_LABELS, humanizeId } from './data.js?v=68';
 
 export const PERK_BUCKET = 'perks';
 
@@ -355,5 +355,5 @@ export function perkOwnerLabel(perk) {
   if (!perk || perk.general) return null;
   if (!perk.owner) return 'unbekannt';
   return KILLER_LABELS[perk.owner] ?? SURVIVOR_LABELS[perk.owner]
-    ?? EXTRA_OWNER_LABELS[perk.owner] ?? perk.owner;
+    ?? EXTRA_OWNER_LABELS[perk.owner] ?? humanizeId(perk.owner);
 }

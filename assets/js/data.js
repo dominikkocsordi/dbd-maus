@@ -173,9 +173,20 @@ export const SURVIVOR_LABELS = toMap(SURVIVORS);
 const KILLER_FILES = toFileMap(KILLERS);
 const SURVIVOR_FILES = toFileMap(SURVIVORS);
 
+/*
+  Notnagel für IDs, die der Katalog (noch) nicht kennt: Am Match steht dann der
+  gespeicherte Rohwert, und "judgment" mitten in einer Liste aus Trapper und
+  Nurse sieht nach Fehler aus. Wenigstens als Name lesbar machen – aus
+  "other_killer" wird "Other Killer".
+*/
+export const humanizeId = (id) => String(id ?? '')
+  .split('_')
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ');
+
 export function labelFor(role, id) {
   if (!id) return '–';
-  return (role === 'killer' ? KILLER_LABELS : SURVIVOR_LABELS)[id] ?? id;
+  return (role === 'killer' ? KILLER_LABELS : SURVIVOR_LABELS)[id] ?? humanizeId(id);
 }
 
 /**

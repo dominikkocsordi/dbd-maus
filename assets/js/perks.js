@@ -7,7 +7,7 @@
 //   weder/noch -> Zuordnung noch offen (in der App als "unbekannt" gelistet)
 //
 // Korrekturen einfach hier eintragen, die App liest die Liste direkt.
-import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=66';
+import { KILLER_LABELS, SURVIVOR_LABELS } from './data.js?v=67';
 
 export const PERK_BUCKET = 'perks';
 
@@ -58,6 +58,7 @@ export const PERKS = [
   { file: 'BoonExponential.png', name: "Boon: Exponential", role: 'survivor', owner: 'jonah_vasquez' },
   { file: 'Illumination.png', name: "Boon: Illumination", role: 'survivor', owner: 'alan_wake' },
   { file: 'BoonShadowStep.png', name: "Boon: Shadow Step", role: 'survivor', owner: 'mikaela_reid' },
+  { file: 'BoonSteadfast.png', name: "Boon: Steadfast", role: 'survivor', owner: 'aurora' },
   { file: 'BorrowedTime.png', name: "Borrowed Time", role: 'survivor', owner: 'bill_overbeck' },
   { file: 'BotanyKnowledge.png', name: "Botany Knowledge", role: 'survivor', owner: 'claudette_morel' },
   { file: 'Breakdown.png', name: "Breakdown", role: 'survivor', owner: 'jeff_johansen' },
@@ -68,6 +69,7 @@ export const PERKS = [
   { file: 'CallOfBrine.png', name: "Call of Brine", role: 'killer', owner: 'onryo' },
   { file: 'CalmSpirit.png', name: "Calm Spirit", role: 'survivor', owner: 'jake_park' },
   { file: 'Camaraderie.png', name: "Camaraderie", role: 'survivor', owner: 'steve_harrington' },
+  { file: 'CelestialWitness.png', name: "Celestial Witness", role: 'killer', owner: 'judgment' },
   { file: 'ChampionOfLight.png', name: "Champion of Light", role: 'survivor', owner: 'alan_wake' },
   { file: 'ChangeOfPlan.png', name: "Change of Plan", role: 'survivor', owner: 'dustin' },
   { file: 'ChemicalTrap.png', name: "Chemical Trap", role: 'survivor', owner: 'ellen_ripley' },
@@ -134,6 +136,7 @@ export const PERKS = [
   { file: 'FranklinsLoss.png', name: "Franklin's Demise", role: 'killer', owner: 'cannibal' },
   { file: 'FriendlyCompetition.png', name: "Friendly Competition", role: 'survivor', owner: 'thalita_lyra' },
   { file: 'friendsTillTheEnd.png', name: "Friends Till the End", role: 'killer', owner: 'good_guy' },
+  { file: 'FruitsOfYourLabor.png', name: "Fruits of Your Labor", role: 'survivor', owner: 'aurora' },
   { file: 'FurtiveChase.png', name: "Furtive Chase", role: 'killer', owner: 'ghost_face' },
   { file: 'GameAfoot.png', name: "Game Afoot", role: 'killer', owner: 'skull_merchant' },
   { file: 'GearHead.png', name: "Gear Head", role: 'killer', owner: 'deathslinger' },
@@ -161,6 +164,7 @@ export const PERKS = [
   { file: 'Ruin.png', name: "Hex: Ruin", role: 'killer', owner: 'hag' },
   { file: 'TheThirdSeal.png', name: "Hex: The Third Seal", role: 'killer', owner: 'hag' },
   { file: 'ThrillOfTheHunt.png', name: "Hex: Thrill of the Hunt", role: 'killer', general: true },
+  { file: 'HexUnderYourThumb.png', name: "Hex: Under Your Thumb", role: 'killer', owner: 'judgment' },
   { file: 'HexUndying.png', name: "Hex: Undying", role: 'killer', owner: 'blight' },
   { file: 'HexWretchedFate.png', name: "Hex: Wretched Fate", role: 'killer', owner: 'dark_lord' },
   { file: 'Hoarder.png', name: "Hoarder", role: 'killer', owner: 'twins' },
@@ -183,6 +187,7 @@ export const PERKS = [
   { file: 'KnockOut.png', name: "Knock Out", role: 'killer', owner: 'cannibal' },
   { file: 'LanguidTouch.png', name: "Languid Touch", role: 'killer', owner: 'lich' },
   { file: 'LastStand.png', name: "Last Stand", role: 'survivor', owner: 'michonne' },
+  { file: 'LayWaste.png', name: "Lay Waste", role: 'killer', owner: 'judgment' },
   { file: 'Leader.png', name: "Leader", role: 'survivor', owner: 'dwight_fairfield' },
   { file: 'LeftBehind.png', name: "Left Behind", role: 'survivor', owner: 'bill_overbeck' },
   { file: 'LendaHand.png', name: "Lend a Hand", role: 'survivor', owner: 'shane' },
@@ -253,6 +258,7 @@ export const PERKS = [
   { file: 'RoadLife.png', name: "Road Life", role: 'survivor', owner: 'vee' },
   { file: 'RookieSpirit.png', name: "Rookie Spirit", role: 'survivor', owner: 'leon_kennedy' },
   { file: 'Saboteur.png', name: "Saboteur", role: 'survivor', owner: 'jake_park' },
+  { file: 'SalvationsCry.png', name: "Salvation's Cry", role: 'survivor', owner: 'aurora' },
   { file: 'saveTheBestForLast.png', name: "Save the Best for Last", role: 'killer', owner: 'shape' },
   { file: 'ScaredToDeath.png', name: "Scared to Death", role: 'killer', owner: 'jason' },
   { file: 'IconPerks_scavenger.png', name: "Scavenger", role: 'survivor', owner: 'gabriel_soma' },

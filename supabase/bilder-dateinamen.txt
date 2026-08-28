@@ -44,6 +44,7 @@ K40_TheAnimatronic_Portrait.png         Springtrap
 T_UI_K41_TheKrasue_Portrait.png         Krasue
 T_UI_K42_TheFirst_Portrait.png          First
 T_UI_K43_TheSlasher_Portrait.png        Jason
+T_UI_K44_TheJudgment_Portrait.png       Judgment
 empty.png                               Anderer Killer
 
 ## Survivor
@@ -99,6 +100,7 @@ T_UI_S50_DustinHenderson_Portrait.png   Dustin
 T_UI_S51_Eleven_Portrait.png            Eleven
 T_UI_S52_KwonTaeYoung_Portrait.png      Kwon
 T_UI_S53_ShaneWiigwaas_Portrait.png     Shane
+T_UI_S54_AuroraStardotter_Portrait.png  Aurora
 empty.png                               Anderer Survivor
 
 ## Ohne Eintrag in der App (Datei vorhanden, Charakter nicht in den Dropdowns)

@@ -56,6 +56,7 @@ export const KILLERS = [
   { id: 'krasue', label: 'Krasue', file: 'T_UI_K41_TheKrasue_Portrait.png' },
   { id: 'first', label: 'First', file: 'T_UI_K42_TheFirst_Portrait.png' },
   { id: 'jason', label: 'Jason', file: 'T_UI_K43_TheSlasher_Portrait.png' },
+  { id: 'judgment', label: 'Judgment', file: 'T_UI_K44_TheJudgment_Portrait.png' },
   { id: 'other_killer', label: 'Anderer Killer', file: 'empty.png' },
 ];
 
@@ -112,6 +113,7 @@ export const SURVIVORS = [
   { id: 'eleven', label: 'Eleven', file: 'T_UI_S51_Eleven_Portrait.png' },
   { id: 'kwon', label: 'Kwon', file: 'T_UI_S52_KwonTaeYoung_Portrait.png' },
   { id: 'shane', label: 'Shane', file: 'T_UI_S53_ShaneWiigwaas_Portrait.png' },
+  { id: 'aurora', label: 'Aurora', file: 'T_UI_S54_AuroraStardotter_Portrait.png' },
   { id: 'orela_rose', label: 'Orela', file: 'S46_OrelaRose_Portrait.png' },
   { id: 'other_survivor', label: 'Anderer Survivor', file: 'empty.png' },
 ];

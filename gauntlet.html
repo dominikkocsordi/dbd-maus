@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DBD Stats – The Survivor Gauntlet</title>
-  <meta name="description" content="Tracker für The Survivor Gauntlet: der ganze Survivor-Kader, Checkpoint für Checkpoint mit immer weniger Perks.">
+  <meta name="description" content="Tracker für The Survivor Gauntlet: alle Survivor am Stück, Checkpoint für Checkpoint mit immer weniger Perks.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=69">
+  <link rel="stylesheet" href="assets/css/style.css?v=70">
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -74,41 +74,22 @@
         <a class="page-head__back" href="challenges.html">&#8592; Challenges</a>
       </div>
 
-      <!-- Wo im Lauf stehe ich, und was ist auf dieser Stufe erlaubt? -->
+      <!-- Eine Karte für den Stand: Stufe, Leiter und Zahlen. -->
       <section class="gstatus">
-        <div class="gstatus__body">
-          <span class="gstatus__eyebrow" id="status-eyebrow">–</span>
-          <strong class="gstatus__value" id="status-value">–</strong>
-          <span class="gstatus__hint" id="status-hint">–</span>
-          <div class="gtrack" id="status-track" aria-hidden="true"></div>
+        <div class="gstatus__head">
+          <div class="gstatus__body">
+            <span class="gstatus__eyebrow" id="status-eyebrow">–</span>
+            <strong class="gstatus__value" id="status-value">–</strong>
+            <span class="gstatus__hint" id="status-hint">–</span>
+          </div>
+          <div class="gstatus__perks">
+            <strong id="status-perks">–</strong>
+            <span id="status-perks-label">Perk-Plätze</span>
+          </div>
         </div>
-        <div class="gstatus__perks">
-          <strong id="status-perks">–</strong>
-          <span id="status-perks-label">Perk-Plätze</span>
-        </div>
-      </section>
 
-      <section class="kpi-grid">
-        <article class="kpi">
-          <span class="kpi__label">Fortschritt</span>
-          <strong class="kpi__value" id="kpi-progress">–</strong>
-          <span class="kpi__hint" id="kpi-progress-hint">–</span>
-        </article>
-        <article class="kpi kpi--survivor">
-          <span class="kpi__label"><span class="icon" data-icon="survivor"></span>Offen</span>
-          <strong class="kpi__value" id="kpi-open">–</strong>
-          <span class="kpi__hint" id="kpi-open-hint">–</span>
-        </article>
-        <article class="kpi kpi--killer">
-          <span class="kpi__label"><span class="icon" data-icon="killer"></span>Tode</span>
-          <strong class="kpi__value" id="kpi-deaths">–</strong>
-          <span class="kpi__hint" id="kpi-deaths-hint">–</span>
-        </article>
-        <article class="kpi kpi--bp">
-          <span class="kpi__label">Kader</span>
-          <strong class="kpi__value" id="kpi-pool">–</strong>
-          <span class="kpi__hint" id="kpi-pool-hint">–</span>
-        </article>
+        <ol class="gladder" id="status-ladder"></ol>
+        <div class="gstats" id="status-stats"></div>
       </section>
 
       <!-- Der aktuelle Zug: ziehen, spielen, Ergebnis eintragen. -->
@@ -120,20 +101,58 @@
         <div id="draw-panel"></div>
       </section>
 
-      <section class="panel">
+      <!-- Dasselbe Raster zweimal: als Stand und, umgeschaltet, als Auswahl. -->
+      <section class="panel" id="panel-roster">
         <header class="panel__head panel__head--row">
-          <h2>Checkpoints</h2>
-          <span class="panel__meta">Jede Stufe nimmt einen Perk-Platz weg</span>
-        </header>
-        <div class="gtiers" id="tier-list"></div>
-      </section>
-
-      <section class="panel">
-        <header class="panel__head panel__head--row">
-          <h2>Kader</h2>
+          <h2>Survivor</h2>
           <span class="panel__meta" id="roster-count"></span>
+          <button type="button" class="btn btn--ghost btn--sm" id="edit-toggle" data-act="edit">
+            Auswahl bearbeiten
+          </button>
         </header>
-        <div class="pgrid" id="roster-grid"></div>
+
+        <div class="groster__bar" id="roster-filter">
+          <div class="segmented segmented--sm" role="radiogroup" aria-label="Anzeige">
+            <label class="segmented__opt">
+              <input type="radio" name="roster-filter" value="all" checked>
+              <span>Alle <b data-count="all"></b></span>
+            </label>
+            <label class="segmented__opt">
+              <input type="radio" name="roster-filter" value="open">
+              <span>Offen <b data-count="open"></b></span>
+            </label>
+            <label class="segmented__opt">
+              <input type="radio" name="roster-filter" value="done">
+              <span>Geschafft <b data-count="done"></b></span>
+            </label>
+            <label class="segmented__opt">
+              <input type="radio" name="roster-filter" value="out">
+              <span>Nicht dabei <b data-count="out"></b></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="groster__bar groster__bar--tools" id="roster-tools" hidden>
+          <p class="form-hint">
+            Wem eine DLC fehlt, klickt den Survivor heraus. Wer schon geschafft ist oder gerade
+            am Zug, bleibt drin – sonst verschöbe sich der bisherige Fortschritt.
+          </p>
+
+          <label class="check">
+            <input type="checkbox" id="wildcards">
+            <span>Wildcards: fehlende Plätze mit bereits geschafften Survivorn auffüllen</span>
+          </label>
+          <p class="form-hint" id="pool-length"></p>
+
+          <div class="settings-row">
+            <button type="button" class="btn btn--ghost btn--sm" data-act="pool-all">Alle aufnehmen</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-act="pool-none">Alle entfernen</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-act="new-run">Neuen Lauf starten</button>
+          </div>
+        </div>
+
+        <div class="groster" id="roster-grid"></div>
+        <p class="empty" id="roster-empty" hidden>Kein Survivor passt zu dieser Anzeige.</p>
       </section>
 
       <section class="panel" id="panel-log" data-collapse>
@@ -150,33 +169,6 @@
         </div>
       </section>
 
-      <section class="panel" id="panel-pool" data-collapse="closed">
-        <header class="panel__head panel__head--row">
-          <h2>Charakter-Pool</h2>
-          <span class="panel__meta" id="pool-count"></span>
-        </header>
-        <div class="panel__body">
-          <p class="form-hint">
-            Wem eine DLC fehlt, nimmt den Charakter hier aus dem Kader. Wer schon geschafft ist
-            oder gerade am Zug, bleibt drin – sonst verschöbe sich der bisherige Fortschritt.
-          </p>
-
-          <label class="check">
-            <input type="checkbox" id="wildcards">
-            <span>Wildcards: fehlende Plätze mit bereits geschafften Survivorn auffüllen</span>
-          </label>
-          <p class="form-hint" id="pool-length"></p>
-
-          <div class="settings-row">
-            <button type="button" class="btn btn--ghost btn--sm" data-act="pool-all">Alle aufnehmen</button>
-            <button type="button" class="btn btn--ghost btn--sm" data-act="pool-none">Alle entfernen</button>
-            <button type="button" class="btn btn--primary btn--sm" data-act="new-run">Neuen Lauf starten</button>
-          </div>
-
-          <div class="ptoggles" id="pool-grid"></div>
-        </div>
-      </section>
-
       <section class="panel" id="panel-past" data-collapse="closed">
         <header class="panel__head panel__head--row">
           <h2>Frühere Läufe</h2>
@@ -187,8 +179,8 @@
         </div>
       </section>
 
-      <!-- Das Regelwerk zum Nachlesen. -->
-      <section class="panel" id="panel-rules" data-collapse>
+      <!-- Das Regelwerk samt Checkpoint-Tabelle, zum Nachschlagen zugeklappt. -->
+      <section class="panel" id="panel-rules" data-collapse="closed">
         <header class="panel__head panel__head--row">
           <h2>Die Regeln</h2>
           <span class="panel__meta">Ein Ausdauerlauf durch Dead by Daylight</span>
@@ -202,17 +194,19 @@
           </p>
 
           <p class="grules__lead">
-            Der Survivor Gauntlet ist ein Marathon mit hohem Einsatz: Er prüft, ob du den ganzen
-            Survivor-Kader beherrschst. Je weiter du kommst, desto mehr wird dir genommen – am
+            Der Survivor Gauntlet ist ein Marathon mit hohem Einsatz: Er prüft, ob du alle
+            Survivor beherrschst. Je weiter du kommst, desto mehr wird dir genommen – am
             Ende bleibt nur noch dein eigenes Können.
           </p>
+
+          <div class="gtiers" id="tier-list"></div>
 
           <div class="grules">
             <section class="grules__block">
               <h3>Der Kern</h3>
               <ul>
-                <li><strong>Der Kader:</strong> Mit jedem Survivor deines Kaders einmal entkommen.</li>
-                <li><strong>Die Auswahl:</strong> Gezogen wird zufällig aus den Charakteren, die noch offen sind.</li>
+                <li><strong>Die Survivor:</strong> Mit jedem ausgewählten Survivor einmal entkommen.</li>
+                <li><strong>Die Auswahl:</strong> Gezogen wird zufällig aus denen, die noch offen sind.</li>
                 <li><strong>Der Sieg:</strong> Ein Survivor gilt nur als geschafft, wenn du den Trial
                   verlässt – über die Ausgangstore oder die Luke.</li>
                 <li><strong>Der Rücksetzer:</strong> Stirbst du, ist der Fortschritt der angefangenen Stufe
@@ -225,7 +219,7 @@
               <h3>Ausrüstung</h3>
               <ul>
                 <li>Items, Add-ons (auch Ultra Rare) und Opfergaben sind durchgehend erlaubt.</li>
-                <li>Eingeschränkt werden nur die Perk-Plätze – siehe die Checkpoints weiter oben.</li>
+                <li>Eingeschränkt werden nur die Perk-Plätze – siehe die Tabelle oben.</li>
                 <li><strong>Tipp:</strong> Heb dir die stärksten Sachen wie Brandneue Teile und
                   Anti-Hämorrhagische Spritzen für „The Legend“ auf.</li>
               </ul>
@@ -246,17 +240,17 @@
               <ul>
                 <li><strong>DC vor 5 Generatoren:</strong> Verlässt ein Survivor das Spiel, bevor ein
                   Generator fertig ist, zählt das Match nicht – weder Sieg noch Niederlage.
-                  Neu gezogen wird nicht: Du spielst denselben Charakter noch einmal.</li>
+                  Neu gezogen wird nicht: Du spielst denselben Survivor noch einmal.</li>
                 <li><strong>Abgebrochenes Spiel:</strong> Bricht das Match schon beim Laden ab, weil jemand
-                  geht, zählt es ebenfalls nicht. Auch hier bleibt derselbe Charakter dran.</li>
+                  geht, zählt es ebenfalls nicht. Auch hier bleibt derselbe Survivor dran.</li>
                 <li>Im Tracker ist das der Knopf „Zählt nicht“.</li>
               </ul>
             </section>
 
             <section class="grules__block">
-              <h3>Kader und Wildcards</h3>
+              <h3>Survivor und Wildcards</h3>
               <ul>
-                <li>Fehlt dir ein Charakter oder eine DLC, nimm ihn unter „Charakter-Pool“ aus dem Kader.</li>
+                <li>Fehlt dir ein Survivor oder eine DLC, klick ihn unter „Auswahl bearbeiten“ heraus.</li>
                 <li>Dann hast du die Wahl: ein kürzerer Lauf – oder Wildcards. Mit ihnen behält der
                   Lauf seine volle Länge, und die fehlenden Plätze füllen Survivor auf, die du
                   bereits geschafft hast.</li>
@@ -268,6 +262,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/gauntlet-page.js?v=69"></script>
+  <script type="module" src="assets/js/gauntlet-page.js?v=70"></script>
 </body>
 </html>

@@ -1210,6 +1210,18 @@ option { background: #1c1c1f; color: var(--text); }
   box-shadow: var(--shadow-sm);
 }
 
+/* Der kleine Umschalter filtert nur eine Liste – dafür ist das kräftige Rot
+   des großen zu laut. Er bleibt grau und markiert die Auswahl über die
+   Fläche. */
+.segmented--sm .segmented__opt > span { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
+.segmented--sm .segmented__opt input:checked + span {
+  color: var(--text);
+  background: var(--surface-3);
+  box-shadow: none;
+}
+.segmented--sm b { font-weight: 550; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+.segmented--sm .segmented__opt input:checked + span b { color: var(--muted); }
+
 .segmented__opt--good input:checked + span { background: var(--good); color: #06240f; }
 .segmented__opt--bad input:checked + span { background: var(--bad); }
 .segmented__opt input:focus-visible + span { outline: none; box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.35); }
@@ -2189,18 +2201,15 @@ a.panel__meta:hover { text-decoration: underline; }
 .chip.is-active { color: #fff; background: rgba(255, 201, 92, 0.34); border-color: rgba(255, 201, 92, 0.55); }
 
 /* ------------------------------------------------------- Survivor Gauntlet --
-   Ein Lauf über den ganzen Kader: oben der Stand, darunter der aktuelle Zug,
-   die Checkpoints und der Kader. Die Farbe bleibt beim Survivor-Blau, Rot ist
-   den Toden vorbehalten. */
+   Drei Blöcke, mehr braucht die Seite nicht: die Statuskarte mit der
+   Stufenleiter, der aktuelle Zug und das Survivor-Raster. Farbe führt dabei:
+   Blau ist der laufende Fortschritt, Grün das Geschaffte, Rot der Tod. */
 .page-head__back { margin-left: auto; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
 .page-head__back:hover { color: var(--text); }
 
 .gstatus {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.9rem, 3vw, 2rem);
-  margin-bottom: 1.2rem;
-  padding: clamp(1rem, 3vw, 1.75rem);
+  margin-bottom: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
   background:
     radial-gradient(120% 140% at 0% 0%, rgba(10, 132, 255, 0.16), transparent 55%),
     var(--surface);
@@ -2211,13 +2220,14 @@ a.panel__meta:hover { text-decoration: underline; }
   box-shadow: var(--shadow);
 }
 
+.gstatus__head { display: flex; align-items: center; gap: clamp(0.9rem, 3vw, 2rem); }
 .gstatus__body { flex: 1; min-width: 0; }
 .gstatus__eyebrow { display: block; font-size: 0.82rem; font-weight: 510; color: var(--survivor); }
 
 .gstatus__value {
   display: block;
   margin: 0.1rem 0 0.15rem;
-  font-size: clamp(1.6rem, 4.6vw, 2.4rem);
+  font-size: clamp(1.5rem, 4.4vw, 2.2rem);
   letter-spacing: -0.035em;
 }
 
@@ -2229,7 +2239,8 @@ a.panel__meta:hover { text-decoration: underline; }
   display: grid;
   justify-items: center;
   gap: 0.15rem;
-  padding: 0.9rem 1.15rem;
+  flex: none;
+  padding: 0.75rem 1.05rem;
   text-align: center;
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -2237,29 +2248,36 @@ a.panel__meta:hover { text-decoration: underline; }
 }
 
 .gstatus__perks strong {
-  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
   font-weight: 640;
   line-height: 1;
   letter-spacing: -0.04em;
 }
 
-.gstatus__perks span { font-size: 0.76rem; color: var(--muted); }
+.gstatus__perks span { font-size: 0.74rem; color: var(--muted); }
 
-/* Ein Abschnitt je Checkpoint, so breit wie die Stufe lang ist. */
-.gtrack { display: flex; gap: 4px; margin-top: 0.85rem; }
+/* --- Stufenleiter: Fortschrittsbalken und Checkpoint-Übersicht in einem.
+   Jeder Abschnitt ist so breit, wie seine Stufe lang ist. --- */
+.gladder {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
 
-.gtrack__seg {
-  position: relative;
-  flex: 1 1 0;
-  height: 9px;
+.gstep { flex: 1 1 0; min-width: 0; }
+
+.gstep__bar {
+  display: block;
+  height: 6px;
+  margin-bottom: 0.45rem;
   border-radius: 999px;
   background: var(--surface-3);
   overflow: hidden;
 }
 
-.gtrack__seg.is-active { box-shadow: 0 0 0 1px rgba(76, 171, 255, 0.45); }
-
-.gtrack__fill {
+.gstep__fill {
   display: block;
   height: 100%;
   border-radius: 999px;
@@ -2267,15 +2285,47 @@ a.panel__meta:hover { text-decoration: underline; }
   transition: width 0.5s var(--ease);
 }
 
+.gstep__name {
+  display: block;
+  font-size: 0.79rem;
+  font-weight: 590;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gstep__meta { display: block; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+
+.gstep.is-done .gstep__fill { background: var(--good); }
+.gstep.is-done .gstep__name { color: var(--good); }
+.gstep.is-active .gstep__name { color: var(--text); }
+.gstep.is-active .gstep__bar { box-shadow: 0 0 0 1px rgba(76, 171, 255, 0.45); }
+
+/* --- Zahlen als Zeile, nicht als Kachelreihe --- */
+.gstats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 2rem;
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.gstat { display: flex; align-items: baseline; gap: 0.4rem; font-size: 0.82rem; }
+.gstat__label { color: var(--muted-2); }
+.gstat__value { color: var(--text); font-weight: 550; font-variant-numeric: tabular-nums; }
+
 /* --- Am Zug --- */
 .panel--draw { border-color: rgba(76, 171, 255, 0.22); }
 
-.gdraw { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.gdraw__text { flex: 1; min-width: 12rem; }
+.gdraw { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.gdraw__text { flex: 1 1 14rem; min-width: 0; }
 .gdraw__eyebrow { display: block; font-size: 0.78rem; font-weight: 510; color: var(--survivor); }
-.gdraw__name { display: block; margin: 0.1rem 0 0.2rem; font-size: 1.35rem; font-weight: 640; letter-spacing: -0.02em; }
+.gdraw__name { display: block; margin: 0.1rem 0 0.2rem; font-size: 1.3rem; font-weight: 640; letter-spacing: -0.02em; }
 .gdraw__meta { display: block; font-size: 0.84rem; color: var(--muted); }
 .gdraw--done .gdraw__eyebrow { color: var(--gold); }
+.gdraw__note { margin: 0.9rem 0 0; font-size: 0.79rem; color: var(--muted-2); }
 
 .gdraw__wild {
   margin-left: 0.4rem;
@@ -2291,62 +2341,169 @@ a.panel__meta:hover { text-decoration: underline; }
   border-radius: 999px;
 }
 
-/* Die eigenen Perks des gezogenen Charakters – sie erfüllen die Vorgabe. */
+/* Die Knöpfe stehen neben dem Namen, nicht darunter – dann liegt der ganze
+   Zug in einer Zeile. Wird es eng, rutschen sie unter den Namen. */
+.gactions { display: flex; flex-wrap: wrap; gap: 0.5rem; flex: 0 1 auto; }
+.gactions .btn { flex: 1 1 auto; justify-content: center; }
+
+@media (max-width: 720px) {
+  .gactions { width: 100%; }
+}
+
+/* Die eigenen Perks des gezogenen Survivors – sie erfüllen die Vorgabe. */
 .gteach {
-  margin-top: 1.1rem;
-  padding-top: 0.9rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
   border-top: 1px solid var(--line);
 }
 
-.gteach__label { display: block; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--muted); }
-.gteach__list { display: flex; flex-wrap: wrap; gap: 0.7rem; }
-.gteach__item { display: grid; justify-items: center; gap: 0.3rem; width: 5.4rem; }
-.gteach__name { font-size: 0.72rem; line-height: 1.2; text-align: center; color: var(--muted); }
+.gteach__label { display: block; margin-bottom: 0.55rem; font-size: 0.79rem; color: var(--muted); }
+.gteach__list { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.gteach__item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--muted); }
+.gteach__item .perk-icon { width: 34px; height: 34px; border-radius: 9px; }
 
-.gactions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.2rem; }
-.gactions .btn { flex: 1 1 8rem; justify-content: center; }
-.gactions__hint { margin: 0.75rem 0 0; font-size: 0.8rem; color: var(--muted-2); }
+/* --- Survivor-Raster: Anzeige und, umgeschaltet, die Auswahl --- */
+.groster__bar { margin-bottom: 0.9rem; }
+.groster__bar--tools { padding-bottom: 0.9rem; border-bottom: 1px solid var(--line); }
+.groster__bar--tools .form-hint:first-child { margin-top: 0; }
+.groster__bar--tools .check { margin: 0.8rem 0 0; }
 
-/* --- Checkpoints --- */
-.gtiers { display: grid; gap: 0.5rem; }
-
-.gtier {
+.groster {
   display: grid;
-  grid-template-columns: 7.5rem minmax(7rem, 1fr) 9rem 2.4rem minmax(11rem, 1.4fr) 5.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 0.4rem;
+}
+
+.gsel {
+  display: flex;
   align-items: center;
-  gap: 0.4rem 0.8rem;
-  padding: 0.7rem 0.85rem;
+  gap: 0.55rem;
+  padding: 0.35rem 0.55rem;
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+
+.gsel .avatar { width: 34px; height: 34px; border-radius: 10px; }
+.gsel .avatar__fallback { font-size: 0.62rem; }
+.gsel__text { min-width: 0; }
+.gsel__name { display: block; font-size: 0.84rem; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gsel__mark { display: block; font-size: 0.71rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+
+.gsel--done { border-color: rgba(48, 209, 88, 0.3); }
+.gsel--done .gsel__mark { color: var(--good); }
+.gsel--current { border-color: rgba(76, 171, 255, 0.5); background: rgba(10, 132, 255, 0.12); }
+.gsel--current .gsel__mark { color: var(--survivor); }
+/* Nicht dabei: sichtbar, aber deutlich zurückgenommen. */
+.gsel--out { opacity: 0.38; }
+
+/* Beim Bearbeiten wird aus der Kachel ein Schalter. */
+.gsel--edit { cursor: pointer; opacity: 1; }
+.gsel--edit:hover { border-color: var(--line-strong); }
+.gsel--edit:focus-visible { outline: 2px solid var(--survivor); outline-offset: 2px; }
+.gsel--edit.is-off { opacity: 0.4; background: transparent; }
+.gsel--edit.is-on { border-color: rgba(76, 171, 255, 0.32); }
+.gsel--edit.is-locked { cursor: not-allowed; border-style: dashed; }
+
+/* --- Verlauf und frühere Läufe --- */
+.glog-list, .gpast-list { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+
+.glog, .gpast {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0.65rem;
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
 }
 
-.gtier__no { font-size: 0.76rem; color: var(--muted); }
-.gtier__name { font-weight: 600; font-size: 0.95rem; }
-.gtier__range { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.glog .avatar { width: 34px; height: 34px; border-radius: 10px; }
+.glog .avatar__fallback { font-size: 0.62rem; }
+.glog__text, .gpast__text { flex: 1; min-width: 0; }
+.glog__name, .gpast__main { display: block; font-size: 0.88rem; font-weight: 550; }
+.glog__meta, .gpast__meta { display: block; font-size: 0.73rem; color: var(--muted-2); }
+
+.glog__result, .gpast__badge {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 590;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.glog--escaped .glog__result { color: var(--good); background: rgba(48, 209, 88, 0.14); }
+.glog--died .glog__result { color: var(--bad); background: rgba(255, 55, 95, 0.14); }
+.gpast__badge--done { color: var(--good); background: rgba(48, 209, 88, 0.14); }
+
+/* --- Checkpoint-Tabelle bei den Regeln --- */
+.gtiers { display: grid; gap: 0.4rem; margin-bottom: 1.4rem; }
+
+.gtier {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(7rem, 1fr) 8.5rem 2.2rem minmax(11rem, 1.4fr) 5.5rem;
+  align-items: center;
+  gap: 0.35rem 0.8rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.gtier__no { font-size: 0.75rem; color: var(--muted-2); }
+.gtier__name { font-weight: 600; font-size: 0.92rem; }
+.gtier__range { font-size: 0.79rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .gtier__perks {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 2rem;
+  height: 2rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   background: var(--surface-3);
   border-radius: 10px;
 }
 
-.gtier__req { font-size: 0.8rem; color: var(--muted); }
-.gtier__state { font-size: 0.78rem; color: var(--muted-2); text-align: right; }
+.gtier__req { font-size: 0.79rem; color: var(--muted); }
+.gtier__state { font-size: 0.77rem; color: var(--muted-2); text-align: right; }
 
-.gtier--done { border-color: rgba(48, 209, 88, 0.32); }
+.gtier--done { border-color: rgba(48, 209, 88, 0.3); }
 .gtier--done .gtier__state { color: var(--good); }
 .gtier--active { border-color: rgba(76, 171, 255, 0.45); background: rgba(10, 132, 255, 0.1); }
 .gtier--active .gtier__state { color: var(--survivor); }
 .gtier--empty { opacity: 0.45; }
 
-@media (max-width: 860px) {
+/* --- Regeln --- */
+.grules__note {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: rgba(255, 201, 92, 0.08);
+  border: 1px solid rgba(255, 201, 92, 0.28);
+  border-radius: var(--r-md);
+}
+
+.grules__lead { margin: 0 0 1.2rem; font-size: 0.93rem; color: var(--muted); }
+.grules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+.grules__block h3 { margin-bottom: 0.5rem; font-size: 0.9rem; }
+.grules__block ul { margin: 0; padding-left: 1.1rem; }
+.grules__block li { margin-bottom: 0.4rem; font-size: 0.84rem; color: var(--muted); }
+.grules__block strong { color: var(--text); font-weight: 590; }
+
+/* Schmale Fenster: Leiter und Checkpoint-Zeilen brechen um. */
+@media (max-width: 760px) {
+  .gladder { flex-wrap: wrap; }
+  .gstep { flex: 1 1 7.5rem; }
+  .gstats { gap: 0.3rem 1.2rem; }
   .gtier { grid-template-columns: 1fr auto; }
   .gtier__no { order: 1; }
   .gtier__state { order: 2; }
@@ -2356,120 +2513,8 @@ a.panel__meta:hover { text-decoration: underline; }
   .gtier__req { order: 6; grid-column: 1 / -1; }
 }
 
-/* --- Kader --- */
-.gcard {
-  display: grid;
-  justify-items: center;
-  gap: 0.4rem;
-  padding: 0.9rem 0.6rem 0.8rem;
-  text-align: center;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-}
-
-.gcard__name { font-weight: 600; font-size: 0.9rem; }
-.gcard__mark { font-size: 0.74rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
-
-.gcard--done { border-color: rgba(48, 209, 88, 0.32); }
-.gcard--done .gcard__mark { color: var(--good); }
-.gcard--current { border-color: rgba(76, 171, 255, 0.5); background: rgba(10, 132, 255, 0.12); }
-.gcard--current .gcard__mark { color: var(--survivor); }
-/* Nicht im Kader: da, aber sichtbar außen vor. */
-.gcard--out { opacity: 0.32; }
-
-/* --- Verlauf --- */
-.glog-list, .gpast-list { display: grid; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
-
-.glog, .gpast {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.5rem 0.7rem;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-}
-
-.glog__text, .gpast__text { flex: 1; min-width: 0; }
-.glog__name, .gpast__main { display: block; font-size: 0.9rem; font-weight: 550; }
-.glog__meta, .gpast__meta { display: block; font-size: 0.74rem; color: var(--muted-2); }
-
-.glog__result {
-  flex: none;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 590;
-  border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--muted);
-}
-
-.glog--escaped .glog__result { color: var(--good); background: rgba(48, 209, 88, 0.14); }
-.glog--died .glog__result { color: var(--bad); background: rgba(255, 55, 95, 0.14); }
-
-.gpast__badge {
-  flex: none;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--muted);
-}
-
-.gpast__badge--done { color: var(--good); background: rgba(48, 209, 88, 0.14); }
-
-/* --- Charakter-Pool --- */
-.ptoggles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.4rem;
-  margin-top: 1rem;
-}
-
-.ptoggle {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.4rem 0.6rem;
-  font: inherit;
-  text-align: left;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity var(--dur) var(--ease), border-color var(--dur) var(--ease), background var(--dur) var(--ease);
-}
-
-.ptoggle:hover { border-color: var(--line-strong); }
-.ptoggle__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; }
-.ptoggle.is-on { opacity: 1; color: var(--text); background: var(--surface-2); border-color: rgba(76, 171, 255, 0.3); }
-/* Wer schon im Lauf steckt, lässt sich nicht herausnehmen. */
-.ptoggle.is-locked { cursor: not-allowed; border-style: dashed; }
-
-/* --- Regeln --- */
-.grules__note {
-  margin: 0 0 1rem;
-  padding: 0.75rem 0.9rem;
-  font-size: 0.83rem;
-  color: var(--muted);
-  background: rgba(255, 201, 92, 0.08);
-  border: 1px solid rgba(255, 201, 92, 0.28);
-  border-radius: var(--r-md);
-}
-
-.grules__lead { margin: 0 0 1.2rem; font-size: 0.95rem; color: var(--muted); }
-.grules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
-.grules__block h3 { margin-bottom: 0.5rem; font-size: 0.92rem; }
-.grules__block ul { margin: 0; padding-left: 1.1rem; }
-.grules__block li { margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--muted); }
-.grules__block strong { color: var(--text); font-weight: 590; }
-
-@media (max-width: 700px) {
-  .gstatus { flex-direction: column; align-items: stretch; }
+@media (max-width: 520px) {
+  .gstatus__head { flex-direction: column; align-items: stretch; }
   .gstatus__perks { flex-direction: row; }
 }
 

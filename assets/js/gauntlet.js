@@ -1,10 +1,10 @@
 /*
   The Survivor Gauntlet – das Regelwerk, ohne Oberfläche.
 
-  Ein Lauf geht über den ganzen Survivor-Kader: Mit jedem Charakter einmal
-  entkommen, gezogen wird zufällig aus denen, die noch offen sind. Der Kader
-  ist in fünf Checkpoints geteilt, und mit jedem fällt ein Perk-Platz weg –
-  am Ende steht man ohne Perks da.
+  Ein Lauf geht über alle Survivor: Mit jedem einmal entkommen, gezogen wird
+  zufällig aus denen, die noch offen sind. Die Reihe ist in fünf Checkpoints
+  geteilt, und mit jedem fällt ein Perk-Platz weg – am Ende steht man ohne
+  Perks da.
 
   Ein Tod kostet die ganze angefangene Stufe: Es geht zurück auf deren ersten
   Platz, die dort geschafften Survivor wandern wieder in den Topf.
@@ -13,9 +13,9 @@
   (siehe `replay`). Das hält den Rücksetzer atomar und macht ein Verklicken
   rückgängig: Der letzte Eintrag fällt weg, der Rest rechnet sich neu.
 */
-import { SURVIVORS } from './data.js?v=69';
-import { PERKS } from './perks.js?v=69';
-import { pickRandom } from './utils.js?v=69';
+import { SURVIVORS } from './data.js?v=70';
+import { PERKS } from './perks.js?v=70';
+import { pickRandom } from './utils.js?v=70';
 
 /** Der Sammelposten "Anderer Survivor" ist kein Charakter und spielt nicht mit. */
 const PLACEHOLDER = 'other_survivor';
@@ -78,7 +78,7 @@ export const RESULTS = {
 /**
  * Wie viele Survivor auf jede Stufe entfallen. Die Regeln teilen 52 Survivor
  * in 10/10/10/10/12 – also je zehn, und was übrig bleibt, hängt an der letzten
- * Stufe. Genauso wird hier für beliebige Kaderstärken gerechnet.
+ * Stufe. Genauso wird hier für beliebig viele Survivor gerechnet.
  */
 export function tierSizes(total) {
   const last = TIERS.length - 1;
@@ -101,7 +101,7 @@ export function tierPlan(total) {
   });
 }
 
-/** Zu welcher Stufe ein Platz gehört. Jenseits des Kaders bleibt es die letzte. */
+/** Zu welcher Stufe ein Platz gehört. Jenseits des letzten bleibt es die letzte. */
 export function tierAt(plan, position) {
   return plan.find((tier) => tier.size > 0 && position >= tier.from && position <= tier.to)
     ?? [...plan].reverse().find((tier) => tier.size > 0)
@@ -140,7 +140,7 @@ export function replay(log, total) {
 /** Survivor, die als erledigt gelten – Wildcards zählen nicht dazu. */
 export const completedIds = (done) => done.filter((d) => !d.wild).map((d) => d.survivor);
 
-/** Wie lang der Lauf ist: mit Wildcards immer der volle Kader. */
+/** Wie lang der Lauf ist: mit Wildcards immer über alle Survivor. */
 export function runLength(pool, wildcards) {
   const size = pool.length;
   return wildcards ? Math.max(size, ROSTER_IDS.length) : size;

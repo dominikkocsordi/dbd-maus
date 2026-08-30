@@ -941,7 +941,7 @@ create policy "loadout_catalog_delete_own" on public.loadout_catalog for delete
 -- ============================================================================
 --  The Survivor Gauntlet
 --
---  Ein Lauf über den ganzen Survivor-Kader: pro Charakter einmal entkommen,
+--  Ein Lauf über alle Survivor: mit jedem einmal entkommen,
 --  und mit jedem Checkpoint fällt ein Perk-Platz weg. Ein Tod wirft auf den
 --  Anfang der laufenden Stufe zurück.
 --
@@ -986,7 +986,7 @@ create table if not exists public.gauntlet_runs (
 
 comment on table  public.gauntlet_runs           is 'Läufe der Challenge "The Survivor Gauntlet"';
 comment on column public.gauntlet_runs.log       is 'Verlauf aller Versuche; der Fortschritt wird daraus errechnet';
-comment on column public.gauntlet_runs.pool      is 'Survivor-IDs im Kader dieses Laufs';
+comment on column public.gauntlet_runs.pool      is 'Survivor-IDs, die in diesem Lauf mitspielen';
 comment on column public.gauntlet_runs.wildcards is 'Fehlende Charaktere durch bereits geschaffte ersetzen';
 
 -- Mehr als ein laufender Lauf ergibt keinen Sinn – abgeschlossene dagegen

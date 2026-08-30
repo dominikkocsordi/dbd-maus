@@ -7,13 +7,19 @@
   komplett neu gerechnet – aus dem Verlauf, nicht aus mitgeführten Zählern.
   Damit kann keine Anzeige davonlaufen, und ein zurückgenommener Eintrag
   räumt zuverlässig auf.
+
+  Die Seite kommt mit drei Blöcken aus: wo ich stehe (Stufenleiter samt
+  Zahlen), was gerade zu tun ist (Am Zug) und wer noch offen ist (das
+  Raster). Das Raster ist zugleich die Auswahl – "Auswahl bearbeiten"
+  macht aus denselben Kacheln Knöpfe, statt sie ein zweites Mal darunter
+  zu stellen.
 */
-import { supabase } from './supabase.js?v=69';
-import { initAuth } from './auth.js?v=69';
-import { initCollapse } from './collapse.js?v=69';
-import { labelFor } from './data.js?v=69';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=69';
-import { escapeHtml, fmtDate, fmtDay, fmtNumber, fmtPercent, toast } from './utils.js?v=69';
+import { supabase } from './supabase.js?v=70';
+import { initAuth } from './auth.js?v=70';
+import { initCollapse } from './collapse.js?v=70';
+import { labelFor } from './data.js?v=70';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=70';
+import { escapeHtml, fmtDate, fmtDay, fmtNumber, fmtPercent, toast } from './utils.js?v=70';
 import {
   MIN_POOL,
   ROSTER,
@@ -25,7 +31,7 @@ import {
   runLength,
   teachablePerks,
   tierAt,
-} from './gauntlet.js?v=69';
+} from './gauntlet.js?v=70';
 
 const $ = (sel) => document.querySelector(sel);
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -36,14 +42,20 @@ const RESULT_LABELS = {
   void: 'Zählt nicht',
 };
 
+/* Der Verlauf wächst über einen Lauf auf hunderte Zeilen – so viele will
+   niemand durchscrollen. Der Rest steht als Zahl darunter. */
+const LOG_LIMIT = 10;
+
 let currentUser = null;
 let run = freshRun();  // der laufende Versuch, ggf. noch ohne Zeile in der DB
 let past = [];         // abgeschlossene und abgebrochene Läufe
 let busy = false;      // während gespeichert wird, keine zweite Aktion
+let editing = false;   // Raster als Auswahl statt als Anzeige
+let filter = 'all';    // was das Raster zeigt
 
 // --------------------------------------------------------------------- Daten --
 
-/** Frischer Lauf mit vollem Kader – angelegt wird er erst beim ersten Schritt. */
+/** Frischer Lauf mit allen Survivorn – angelegt wird er erst beim ersten Schritt. */
 function freshRun() {
   return {
     id: null,
@@ -146,7 +158,7 @@ async function save(target = run) {
 
 // ---------------------------------------------------------------- Rechenstand --
 
-/** Alles, was sich aus Kader und Verlauf ergibt – an einer Stelle. */
+/** Alles, was sich aus der Auswahl und dem Verlauf ergibt – an einer Stelle. */
 function state() {
   const pool = run.pool.filter((id) => ROSTER_IDS.includes(id));
   const total = runLength(pool, run.wildcards);
@@ -169,6 +181,34 @@ function state() {
   };
 }
 
+/** Wie ein Survivor gerade dasteht – eine Einordnung für Raster und Auswahl. */
+function rosterRows(s) {
+  const places = new Map(s.done.map((entry, index) => [entry.survivor, index + 1]));
+  const finished = new Set(completedIds(s.done));
+
+  return ROSTER.map((survivor) => {
+    const inPool = s.pool.includes(survivor.id);
+    const current = run.current?.survivor === survivor.id;
+    const place = places.get(survivor.id) ?? null;
+
+    let kind = 'open';
+    if (current) kind = 'current';
+    else if (place) kind = 'done';
+    else if (!inPool) kind = 'out';
+
+    return {
+      ...survivor,
+      inPool,
+      current,
+      place,
+      kind,
+      // Wer schon im Lauf steckt, lässt sich nicht mehr herausnehmen – sonst
+      // verschöbe sich der gesamte bisherige Fortschritt.
+      locked: finished.has(survivor.id) || current,
+    };
+  });
+}
+
 // ------------------------------------------------------------------ Aktionen --
 
 function drawSurvivor() {
@@ -177,7 +217,7 @@ function drawSurvivor() {
 
   const next = drawNext({ pool: s.pool, done: s.done, wildcards: run.wildcards, total: s.total });
   if (!next) {
-    toast('Der Topf ist leer – aktiviere Wildcards oder nimm Charaktere in den Kader.', 'error');
+    toast('Der Topf ist leer – aktiviere Wildcards oder nimm weitere Survivor dazu.', 'error');
     return;
   }
 
@@ -207,14 +247,14 @@ function logResult(result) {
     at: new Date().toISOString(),
   }];
 
-  // Nach einem Abbruch bleibt derselbe Charakter dran, sonst wird neu gezogen.
+  // Nach einem Abbruch bleibt derselbe Survivor dran, sonst wird neu gezogen.
   if (result !== 'void') run.current = null;
 
   const after = state();
   if (after.finished) {
     run.status = 'done';
     run.finished_at = new Date().toISOString();
-    toast('Geschafft – der ganze Kader steht.', 'success');
+    toast('Geschafft – alle Survivor stehen.', 'success');
   } else if (result === 'died') {
     toast(`Zurück auf Platz ${after.position}.`);
   }
@@ -243,8 +283,8 @@ async function startNewRun() {
     if (!window.confirm('Der laufende Versuch wird abgebrochen und ein neuer beginnt. Fortsetzen?')) return;
   }
 
-  // Kader und Wildcards übernimmt der neue Lauf – sie sind eine Einstellung,
-  // keine Eigenschaft des Versuchs.
+  // Die Survivor-Auswahl und die Wildcards übernimmt der neue Lauf – sie sind
+  // eine Einstellung, keine Eigenschaft des Versuchs.
   const settings = { pool: [...run.pool], wildcards: run.wildcards };
 
   if (run.id && run.status === 'active') {
@@ -256,7 +296,7 @@ async function startNewRun() {
   }
 
   run = { ...freshRun(), ...settings };
-  // Gleich anlegen: Sonst stünde nach einem Neuladen wieder der volle Kader da.
+  // Gleich anlegen: Sonst stünden nach einem Neuladen wieder alle Survivor da.
   await save();
   toast('Neuer Lauf steht bereit.');
 }
@@ -264,22 +304,17 @@ async function startNewRun() {
 function togglePool(id) {
   if (busy) return;
 
-  const s = state();
-  const inPool = run.pool.includes(id);
+  const row = rosterRows(state()).find((entry) => entry.id === id);
+  if (!row) return;
 
-  // Wer schon geschafft ist, bleibt im Kader – sonst verschöbe sich der
-  // gesamte bisherige Fortschritt.
-  if (inPool && completedIds(s.done).includes(id)) {
-    toast(`${labelFor('survivor', id)} ist bereits geschafft und bleibt im Kader.`);
+  if (row.locked) {
+    toast(row.current
+      ? `${row.label} ist gerade dran – erst das Match eintragen.`
+      : `${row.label} ist bereits geschafft und bleibt dabei.`);
     return;
   }
 
-  if (inPool && run.current?.survivor === id) {
-    toast(`${labelFor('survivor', id)} ist gerade dran – erst das Match eintragen.`);
-    return;
-  }
-
-  run.pool = inPool
+  run.pool = row.inPool
     ? run.pool.filter((entry) => entry !== id)
     : [...run.pool, id].sort((a, b) => ROSTER_IDS.indexOf(a) - ROSTER_IDS.indexOf(b));
 
@@ -289,8 +324,8 @@ function togglePool(id) {
 function setPool(ids) {
   if (busy) return;
 
-  // Geschaffte und der aktuelle Zug bleiben in jedem Fall drin.
-  const keep = new Set([...completedIds(state().done), run.current?.survivor].filter(Boolean));
+  // Geschaffte und der aktuelle Zug bleiben in jedem Fall dabei.
+  const keep = new Set(rosterRows(state()).filter((row) => row.locked).map((row) => row.id));
   run.pool = ROSTER_IDS.filter((id) => ids.includes(id) || keep.has(id));
   save();
 }
@@ -301,21 +336,51 @@ function setWildcards(enabled) {
   save();
 }
 
+/** Zwischen Anzeige und Auswahl umschalten – dasselbe Raster, andere Rolle. */
+function toggleEditing() {
+  editing = !editing;
+  if (editing) filter = 'all';
+  render();
+}
+
 // -------------------------------------------------------------------- Anzeige --
 
-function tierBadge(tier) {
-  return `<span class="gtier__perks" title="Erlaubte Perk-Plätze">${tier.perks}</span>`;
-}
+/** "11–20", bei einer Stufe von genau einem Platz nur die eine Zahl. */
+const rangeText = (tier) => (tier.from === tier.to ? `${tier.from}` : `${tier.from}–${tier.to}`);
+
+const perkText = (count) => (count === 0 ? 'ohne Perks' : `${count} ${count === 1 ? 'Perk' : 'Perks'}`);
 
 /** Was als Nächstes ansteht: der nächste Checkpoint oder das Ziel. */
 function nextGoalText(s) {
   if (s.finished) return 'Lauf abgeschlossen';
 
   const last = s.plan[s.plan.length - 1];
-  if (s.tier.index === last.index) {
-    return `Noch ${fmtNumber(s.total - s.done.length)} bis zum Ziel`;
-  }
-  return `Noch ${fmtNumber(s.tier.to - s.done.length)} bis Checkpoint ${s.tier.index + 1}`;
+  if (s.tier.index === last.index) return `noch ${fmtNumber(s.total - s.done.length)} bis zum Ziel`;
+  return `noch ${fmtNumber(s.tier.to - s.done.length)} bis Checkpoint ${s.tier.index + 1}`;
+}
+
+/**
+ * Die Stufenleiter: fünf Abschnitte, jeder so breit wie seine Stufe lang ist.
+ * Sie ersetzt Fortschrittsbalken und Checkpoint-Tabelle in einem Zug.
+ */
+function renderLadder(s) {
+  $('#status-ladder').innerHTML = s.plan.map((tier) => {
+    const inTier = clamp(s.done.length - (tier.from - 1), 0, tier.size);
+    const width = tier.size ? (inTier / tier.size) * 100 : 0;
+    const passed = tier.size > 0 && s.done.length >= tier.to;
+    const active = !s.finished && tier.index === s.tier.index;
+
+    return `
+      <li class="gstep${passed ? ' is-done' : ''}${active ? ' is-active' : ''}"
+          style="flex-grow:${tier.size || 1}"
+          title="${escapeHtml(`Checkpoint ${tier.index}: ${tier.name} · ${tier.requirement}`)}">
+        <span class="gstep__bar"><span class="gstep__fill" style="width:${width}%"></span></span>
+        <span class="gstep__name">${escapeHtml(tier.name)}</span>
+        <span class="gstep__meta">${tier.size
+          ? `${escapeHtml(perkText(tier.perks))} · ${rangeText(tier)}`
+          : 'entfällt'}</span>
+      </li>`;
+  }).join('');
 }
 
 function renderStatus(s) {
@@ -331,42 +396,33 @@ function renderStatus(s) {
     : `Survivor ${fmtNumber(s.position)} von ${fmtNumber(s.total)}`;
   $('#status-hint').textContent = s.finished
     ? `${fmtNumber(s.total)} Survivor, ${fmtNumber(s.deaths)} ${s.deaths === 1 ? 'Tod' : 'Tode'} unterwegs`
-    : `${s.tier.perks === 0 ? 'Keine Perks' : `${s.tier.perks} ${s.tier.perks === 1 ? 'Perk' : 'Perks'}`} · ${s.tier.requirement}`;
+    : `${perkText(s.tier.perks)} · ${s.tier.requirement}`;
 
   $('#status-perks').textContent = String(s.tier.perks);
   $('#status-perks-label').textContent = s.tier.perks === 1 ? 'Perk-Platz' : 'Perk-Plätze';
 
-  // Ein Abschnitt je Stufe, so breit wie sie lang ist – die Checkpoints sind
-  // damit auch im Balken zu sehen.
-  $('#status-track').innerHTML = s.plan.map((tier) => {
-    const inTier = clamp(s.done.length - (tier.from - 1), 0, tier.size);
-    const width = tier.size ? (inTier / tier.size) * 100 : 0;
-    const active = !s.finished && tier.index === s.tier.index;
-    return `
-      <span class="gtrack__seg${active ? ' is-active' : ''}" style="flex-grow:${tier.size}"
-            title="${escapeHtml(`${tier.name}: ${tier.from}–${tier.to}`)}">
-        <span class="gtrack__fill" style="width:${width}%"></span>
-      </span>`;
-  }).join('');
+  renderLadder(s);
 
-  $('#kpi-progress').textContent = fmtPercent(s.percent, 0);
-  $('#kpi-progress-hint').textContent = `${fmtNumber(s.done.length)} von ${fmtNumber(s.total)} Plätzen`;
-  $('#kpi-open').textContent = fmtNumber(Math.max(0, s.total - s.done.length));
-  $('#kpi-open-hint').textContent = nextGoalText(s);
-  $('#kpi-deaths').textContent = fmtNumber(s.deaths);
-  $('#kpi-deaths-hint').textContent = s.voided
-    ? `${fmtNumber(s.voided)} Match${s.voided === 1 ? '' : 'es'} ohne Wertung`
-    : 'Kein Match ohne Wertung';
-  $('#kpi-pool').textContent = fmtNumber(s.pool.length);
-  $('#kpi-pool-hint').textContent = run.wildcards
-    ? `Wildcards an · Lauf über ${fmtNumber(s.total)} Plätze`
-    : `von ${fmtNumber(ROSTER_IDS.length)} Survivorn im Spiel`;
+  // Die Zahlen als eine Zeile statt als vier Kacheln: Sie wiederholen zum
+  // Teil, was darüber schon steht, und sollen die Karte nicht dominieren.
+  const stats = [
+    ['Fortschritt', fmtPercent(s.percent, 0)],
+    ['Offen', `${fmtNumber(Math.max(0, s.total - s.done.length))} · ${nextGoalText(s)}`],
+    ['Tode', `${fmtNumber(s.deaths)}${s.voided ? ` · ${fmtNumber(s.voided)} ohne Wertung` : ''}`],
+    ['Ausgewählt', `${fmtNumber(s.pool.length)} von ${fmtNumber(ROSTER_IDS.length)}${run.wildcards ? ' · Wildcards' : ''}`],
+  ];
+
+  $('#status-stats').innerHTML = stats.map(([label, value]) => `
+    <span class="gstat">
+      <span class="gstat__label">${escapeHtml(label)}</span>
+      <span class="gstat__value">${escapeHtml(value)}</span>
+    </span>`).join('');
 }
 
 function currentHtml(s) {
   if (!s.playable) {
-    return `<p class="empty">Im Kader stehen ${fmtNumber(s.pool.length)} Survivor –
-      für einen Lauf braucht es mindestens ${MIN_POOL}. Ergänze ihn unter „Charakter-Pool“.</p>`;
+    return `<p class="empty">Ausgewählt sind ${fmtNumber(s.pool.length)} Survivor –
+      für einen Lauf braucht es mindestens ${MIN_POOL}. Ergänze sie über „Auswahl bearbeiten“.</p>`;
   }
 
   if (s.finished) {
@@ -374,24 +430,30 @@ function currentHtml(s) {
       <div class="gdraw gdraw--done">
         <div class="gdraw__text">
           <span class="gdraw__eyebrow">The Legend</span>
-          <strong class="gdraw__name">Der ganze Kader steht</strong>
+          <strong class="gdraw__name">Alle Survivor geschafft</strong>
           <span class="gdraw__meta">${fmtNumber(s.total)} Survivor · ${fmtNumber(s.deaths)}
             ${s.deaths === 1 ? 'Tod' : 'Tode'} · seit ${escapeHtml(fmtDay(run.started_at))}</span>
         </div>
-        <button type="button" class="btn btn--primary" data-act="new-run">Neuen Lauf starten</button>
+        <div class="gactions">
+          <button type="button" class="btn btn--primary" data-act="new-run">Neuen Lauf starten</button>
+        </div>
       </div>`;
   }
 
   if (!run.current) {
+    const open = s.pool.length - completedIds(s.done).length;
     return `
       <div class="gdraw gdraw--empty">
         <div class="gdraw__text">
           <span class="gdraw__eyebrow">Platz ${fmtNumber(s.position)} · ${escapeHtml(s.tier.name)}</span>
           <strong class="gdraw__name">Noch kein Survivor gezogen</strong>
-          <span class="gdraw__meta">Gezogen wird aus ${fmtNumber(s.pool.length - completedIds(s.done).length)}
-            offenen Charakteren.</span>
+          <span class="gdraw__meta">${open > 0
+            ? `Gezogen wird aus ${fmtNumber(open)} offenen Survivorn · ${escapeHtml(perkText(s.tier.perks))}`
+            : 'Alle ausgewählten sind geschafft – jetzt übernehmen die Wildcards.'}</span>
         </div>
-        <button type="button" class="btn btn--primary" data-act="draw" ${busy ? 'disabled' : ''}>Survivor ziehen</button>
+        <div class="gactions">
+          <button type="button" class="btn btn--primary" data-act="draw" ${busy ? 'disabled' : ''}>Survivor ziehen</button>
+        </div>
       </div>`;
   }
 
@@ -410,13 +472,24 @@ function currentHtml(s) {
           ? ' <span class="gdraw__wild">Wildcard</span>' : ''}</strong>
         <span class="gdraw__meta">${s.tier.perks === 0
           ? 'Ohne Perks – Items, Add-ons und Opfergaben bleiben erlaubt.'
-          : `${s.tier.perks} ${s.tier.perks === 1 ? 'Perk' : 'Perks'} · ${escapeHtml(s.tier.requirement)}`}</span>
+          : `${perkText(s.tier.perks)} · ${escapeHtml(s.tier.requirement)}`}</span>
+      </div>
+      <div class="gactions">
+        <button type="button" class="btn btn--good" data-act="result" data-result="escaped" ${busy ? 'disabled' : ''}>
+          Entkommen
+        </button>
+        <button type="button" class="btn btn--bad" data-act="result" data-result="died" ${busy ? 'disabled' : ''}>
+          Gestorben
+        </button>
+        <button type="button" class="btn btn--ghost" data-act="result" data-result="void" ${busy ? 'disabled' : ''}>
+          Zählt nicht
+        </button>
       </div>
     </div>
 
     ${s.tier.teachable === 0 || !teachables.length ? '' : `
       <div class="gteach">
-        <span class="gteach__label">Eigene Perks von ${escapeHtml(label)}</span>
+        <span class="gteach__label">Eigene Perks von ${escapeHtml(label)} – einer davon erfüllt die Vorgabe</span>
         <div class="gteach__list">
           ${teachables.map((perk) => `
             <span class="gteach__item">
@@ -426,25 +499,13 @@ function currentHtml(s) {
         </div>
       </div>`}
 
-    <div class="gactions">
-      <button type="button" class="btn btn--good" data-act="result" data-result="escaped" ${busy ? 'disabled' : ''}>
-        Entkommen
-      </button>
-      <button type="button" class="btn btn--bad" data-act="result" data-result="died" ${busy ? 'disabled' : ''}>
-        Gestorben
-      </button>
-      <button type="button" class="btn btn--ghost" data-act="result" data-result="void" ${busy ? 'disabled' : ''}>
-        Zählt nicht
-      </button>
-    </div>
-
-    <p class="gactions__hint">
+    <p class="gdraw__note">
       ${loss.lost > 0
         ? `Ein Tod kostet ${fmtNumber(loss.lost)} ${loss.lost === 1 ? 'geschafften Survivor' : 'geschaffte Survivor'}
            und setzt auf Platz ${fmtNumber(loss.back)} zurück.`
         : 'Ein Tod kostet hier keinen Fortschritt – die Stufe hat gerade erst begonnen.'}
       „Zählt nicht“ ist für den DC vor dem ersten Generator und für Abbrüche beim Laden:
-      Es geht mit demselben Charakter weiter.
+      Es geht mit demselben Survivor weiter.
     </p>`;
 }
 
@@ -455,65 +516,76 @@ function renderCurrent(s) {
     : (s.finished ? 'Fertig' : `Platz ${fmtNumber(s.position)}`);
 }
 
-/** "Survivor 11–20" – bei einer Stufe von genau einem Platz ohne Spanne. */
-function rangeText(tier) {
-  if (!tier.size) return 'entfällt';
-  return tier.from === tier.to ? `Survivor ${tier.from}` : `Survivor ${tier.from}–${tier.to}`;
-}
-
-function renderTiers(s) {
-  $('#tier-list').innerHTML = s.plan.map((tier) => {
-    const passed = s.done.length >= tier.to && tier.size > 0;
-    const active = !s.finished && tier.index === s.tier.index;
-    const cls = tier.size === 0 ? ' gtier--empty' : (passed ? ' gtier--done' : (active ? ' gtier--active' : ''));
-
-    return `
-      <article class="gtier${cls}">
-        <span class="gtier__no">Checkpoint ${tier.index}</span>
-        <span class="gtier__name">${escapeHtml(tier.name)}</span>
-        <span class="gtier__range">${rangeText(tier)}</span>
-        ${tierBadge(tier)}
-        <span class="gtier__req">${escapeHtml(tier.requirement)}</span>
-        <span class="gtier__state">${tier.size === 0 ? '–' : (passed ? 'geschafft' : (active ? 'läuft' : 'offen'))}</span>
-      </article>`;
-  }).join('');
-}
-
+/** Das Raster: im Normalfall Anzeige, beim Bearbeiten die Auswahl selbst. */
 function renderRoster(s) {
-  const done = new Map(s.done.map((entry, index) => [entry.survivor, index + 1]));
-  const rows = ROSTER.map((survivor) => {
-    const inPool = s.pool.includes(survivor.id);
-    const place = done.get(survivor.id);
-    const isCurrent = run.current?.survivor === survivor.id;
+  const rows = rosterRows(s);
+  const counts = {
+    all: rows.length,
+    open: rows.filter((row) => row.kind === 'open').length,
+    done: rows.filter((row) => row.kind === 'done').length,
+    out: rows.filter((row) => row.kind === 'out').length,
+  };
 
-    let mark = 'offen';
-    let cls = '';
-    if (isCurrent) { mark = 'im Zug'; cls = ' gcard--current'; }
-    else if (place) { mark = `Nr. ${place}`; cls = ' gcard--done'; }
-    else if (!inPool) { mark = 'nicht im Kader'; cls = ' gcard--out'; }
+  $('#roster-count').textContent = editing
+    ? `${fmtNumber(s.pool.length)} von ${fmtNumber(rows.length)} ausgewählt`
+    : `${fmtNumber(counts.done)} geschafft · ${fmtNumber(counts.open)} offen`;
 
-    return `
-      <div class="gcard${cls}">
-        ${avatarHtml('survivor', survivor.id, survivor.label, 'avatar--xl')}
-        <span class="gcard__name">${escapeHtml(survivor.label)}</span>
-        <span class="gcard__mark">${escapeHtml(mark)}</span>
-      </div>`;
+  const button = $('#edit-toggle');
+  button.textContent = editing ? 'Fertig' : 'Auswahl bearbeiten';
+  button.classList.toggle('btn--primary', editing);
+  button.classList.toggle('btn--ghost', !editing);
+
+  $('#roster-filter').hidden = editing;
+  $('#roster-tools').hidden = !editing;
+  $('#wildcards').checked = run.wildcards;
+  $('#pool-length').textContent = run.wildcards
+    ? `Der Lauf geht über ${fmtNumber(s.total)} Plätze: Sind alle ausgewählten Survivor `
+      + 'geschafft, kommen bereits bestandene noch einmal dran.'
+    : `Der Lauf ist so lang wie die Auswahl – aktuell ${fmtNumber(s.total)} Plätze.`;
+
+  Object.entries(counts).forEach(([key, count]) => {
+    const label = $(`#roster-filter [data-count="${key}"]`);
+    if (label) label.textContent = fmtNumber(count);
   });
 
-  $('#roster-count').textContent =
-    `${fmtNumber(completedIds(s.done).length)} von ${fmtNumber(s.pool.length)} geschafft`;
-  $('#roster-grid').innerHTML = rows.join('');
+  // Beim Bearbeiten immer alle zeigen, sonst ließe sich nichts dazunehmen.
+  const visible = editing ? rows : rows.filter((row) => filter === 'all' || row.kind === filter);
+  $('#roster-empty').hidden = visible.length > 0;
+
+  $('#roster-grid').innerHTML = visible.map((row) => {
+    const mark = editing
+      ? (row.locked ? 'im Lauf' : (row.inPool ? 'dabei' : 'nicht dabei'))
+      : ({ current: 'im Zug', done: `Nr. ${row.place}`, out: 'nicht dabei' }[row.kind] ?? 'offen');
+
+    const classes = ['gsel', `gsel--${row.kind}`];
+    if (editing) classes.push('gsel--edit', row.inPool ? 'is-on' : 'is-off');
+    if (editing && row.locked) classes.push('is-locked');
+
+    const inner = `
+      ${avatarHtml('survivor', row.id, row.label)}
+      <span class="gsel__text">
+        <span class="gsel__name">${escapeHtml(row.label)}</span>
+        <span class="gsel__mark">${escapeHtml(mark)}</span>
+      </span>`;
+
+    return editing
+      ? `<button type="button" class="${classes.join(' ')}" data-act="pool-toggle"
+                 data-id="${escapeHtml(row.id)}" aria-pressed="${row.inPool}">${inner}</button>`
+      : `<div class="${classes.join(' ')}">${inner}</div>`;
+  }).join('');
 }
 
 function renderLog(s) {
   const entries = [...run.log].reverse();
+  const shown = entries.slice(0, LOG_LIMIT);
+
   $('#log-count').textContent = entries.length
     ? `${fmtNumber(entries.length)} ${entries.length === 1 ? 'Versuch' : 'Versuche'}`
     : 'Noch nichts gespielt';
   $('#log-undo').disabled = busy || !entries.length;
 
-  $('#log-list').innerHTML = entries.length
-    ? entries.map((entry) => {
+  $('#log-list').innerHTML = shown.length
+    ? shown.map((entry) => {
       const label = labelFor('survivor', entry.survivor);
       return `
         <li class="glog glog--${escapeHtml(entry.result)}">
@@ -528,35 +600,11 @@ function renderLog(s) {
     }).join('')
     : '<li class="empty">Sobald du einen Versuch einträgst, steht er hier.</li>';
 
-  // Der Verlauf des laufenden Versuchs; s wird nur für die Kopfzeile gebraucht.
-  $('#log-hint').textContent = s.deaths
-    ? `${fmtNumber(s.deaths)} ${s.deaths === 1 ? 'Tod' : 'Tode'} in diesem Lauf`
-    : 'Noch kein Tod in diesem Lauf';
-}
-
-function renderPool(s) {
-  const finished = new Set(completedIds(s.done));
-
-  $('#pool-count').textContent = `${fmtNumber(s.pool.length)} von ${fmtNumber(ROSTER_IDS.length)} im Kader`;
-  $('#wildcards').checked = run.wildcards;
-  $('#pool-length').textContent = run.wildcards
-    ? `Mit Wildcards läuft der Versuch über ${fmtNumber(s.total)} Plätze: Sind alle Charaktere `
-      + 'des Kaders geschafft, kommen bereits bestandene noch einmal dran.'
-    : `Ohne Wildcards ist der Lauf so lang wie der Kader – aktuell ${fmtNumber(s.total)} Plätze.`;
-
-  $('#pool-grid').innerHTML = ROSTER.map((survivor) => {
-    const inPool = s.pool.includes(survivor.id);
-    const locked = finished.has(survivor.id) || run.current?.survivor === survivor.id;
-
-    return `
-      <button type="button" class="ptoggle${inPool ? ' is-on' : ''}${locked ? ' is-locked' : ''}"
-              data-act="pool-toggle" data-id="${escapeHtml(survivor.id)}"
-              aria-pressed="${inPool}"
-              title="${escapeHtml(locked ? 'Schon im Lauf – bleibt im Kader' : survivor.label)}">
-        ${avatarHtml('survivor', survivor.id, survivor.label)}
-        <span class="ptoggle__name">${escapeHtml(survivor.label)}</span>
-      </button>`;
-  }).join('');
+  const rest = entries.length - shown.length;
+  $('#log-hint').textContent = [
+    rest > 0 ? `${fmtNumber(rest)} ältere nicht gezeigt` : '',
+    s.deaths ? `${fmtNumber(s.deaths)} ${s.deaths === 1 ? 'Tod' : 'Tode'} in diesem Lauf` : '',
+  ].filter(Boolean).join(' · ');
 }
 
 function renderPast() {
@@ -584,16 +632,34 @@ function renderPast() {
     : '<li class="empty">Abgeschlossene und abgebrochene Läufe sammeln sich hier.</li>';
 }
 
+/** Die Checkpoint-Tabelle steht bei den Regeln – dort wird nachgeschlagen. */
+function renderTiers(s) {
+  $('#tier-list').innerHTML = s.plan.map((tier) => {
+    const passed = tier.size > 0 && s.done.length >= tier.to;
+    const active = !s.finished && tier.index === s.tier.index;
+    const cls = tier.size === 0 ? ' gtier--empty' : (passed ? ' gtier--done' : (active ? ' gtier--active' : ''));
+
+    return `
+      <article class="gtier${cls}">
+        <span class="gtier__no">Checkpoint ${tier.index}</span>
+        <span class="gtier__name">${escapeHtml(tier.name)}</span>
+        <span class="gtier__range">${tier.size ? `Survivor ${rangeText(tier)}` : 'entfällt'}</span>
+        <span class="gtier__perks" title="Erlaubte Perk-Plätze">${tier.perks}</span>
+        <span class="gtier__req">${escapeHtml(tier.requirement)}</span>
+        <span class="gtier__state">${tier.size === 0 ? '–' : (passed ? 'geschafft' : (active ? 'läuft' : 'offen'))}</span>
+      </article>`;
+  }).join('');
+}
+
 function render() {
   const s = state();
 
   renderStatus(s);
   renderCurrent(s);
-  renderTiers(s);
   renderRoster(s);
   renderLog(s);
-  renderPool(s);
   renderPast();
+  renderTiers(s);
 
   mountIcons();
 }
@@ -604,7 +670,9 @@ function render() {
   Ein Klick-Empfänger für die ganze Seite: Die Karten werden bei jedem Schritt
   neu gebaut, einzeln verdrahtete Knöpfe müssten also jedes Mal mitwandern.
 */
-document.getElementById('app-view').addEventListener('click', (event) => {
+const appView = document.getElementById('app-view');
+
+appView.addEventListener('click', (event) => {
   const target = event.target.closest('[data-act]');
   if (!target) return;
 
@@ -612,6 +680,7 @@ document.getElementById('app-view').addEventListener('click', (event) => {
     draw: drawSurvivor,
     result: () => logResult(target.dataset.result),
     undo: undoLast,
+    edit: toggleEditing,
     'new-run': startNewRun,
     'pool-toggle': () => togglePool(target.dataset.id),
     'pool-all': () => setPool(ROSTER_IDS),
@@ -621,7 +690,13 @@ document.getElementById('app-view').addEventListener('click', (event) => {
   actions[target.dataset.act]?.();
 });
 
-$('#wildcards').addEventListener('change', (event) => setWildcards(event.target.checked));
+appView.addEventListener('change', (event) => {
+  if (event.target.id === 'wildcards') setWildcards(event.target.checked);
+  if (event.target.name === 'roster-filter') {
+    filter = event.target.value;
+    render();
+  }
+});
 
 initCollapse();
 mountIcons();
@@ -635,5 +710,6 @@ initAuth({
     currentUser = null;
     run = freshRun();
     past = [];
+    editing = false;
   },
 });

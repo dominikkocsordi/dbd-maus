@@ -1,28 +1,28 @@
-import { supabase } from './supabase.js?v=69';
-import { initAuth } from './auth.js?v=69';
-import { expandPanel, initCollapse } from './collapse.js?v=69';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=69';
-import { initPasskeyPanel } from './passkeys.js?v=69';
+import { supabase } from './supabase.js?v=70';
+import { initAuth } from './auth.js?v=70';
+import { expandPanel, initCollapse } from './collapse.js?v=70';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=70';
+import { initPasskeyPanel } from './passkeys.js?v=70';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=69';
-import { perkName } from './perks.js?v=69';
+} from './images.js?v=70';
+import { perkName } from './perks.js?v=70';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=69';
+} from './perk-picker.js?v=70';
 import {
   GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
   hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=69';
+} from './data.js?v=70';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=69';
+} from './loadout.js?v=70';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=69';
-import { createSorter } from './table-sort.js?v=69';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=69';
+} from './utils.js?v=70';
+import { createSorter } from './table-sort.js?v=70';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=70';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;

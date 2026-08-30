@@ -19,7 +19,7 @@ export const CHALLENGES = [
   {
     id: 'survivor_gauntlet',
     title: 'The Survivor Gauntlet',
-    tagline: 'Der ganze Kader am Stück – und am Ende ohne Perks.',
+    tagline: 'Alle Survivor am Stück – und am Ende ohne Perks.',
     rules: [
       'mit jedem Survivor einmal entkommen',
       'gezogen wird zufällig aus den offenen',

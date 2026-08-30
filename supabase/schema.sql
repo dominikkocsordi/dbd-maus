@@ -936,3 +936,105 @@ create policy "loadout_catalog_update_own" on public.loadout_catalog for update
 drop policy if exists "loadout_catalog_delete_own" on public.loadout_catalog;
 create policy "loadout_catalog_delete_own" on public.loadout_catalog for delete
   to authenticated using (auth.uid() = user_id);
+
+
+-- ============================================================================
+--  The Survivor Gauntlet
+--
+--  Ein Lauf über den ganzen Survivor-Kader: pro Charakter einmal entkommen,
+--  und mit jedem Checkpoint fällt ein Perk-Platz weg. Ein Tod wirft auf den
+--  Anfang der laufenden Stufe zurück.
+--
+--  Gespeichert wird der ganze Lauf als eine Zeile. Der Verlauf in `log` ist
+--  dabei die Wahrheit – wie weit jemand ist, rechnet die Seite daraus aus
+--  (assets/js/gauntlet.js). Das hält den Rücksetzer atomar: Es fällt nichts
+--  weg, was danach noch einmal gebraucht wird, und ein Fehlgriff lässt sich
+--  zurücknehmen, indem der letzte Eintrag verschwindet.
+--
+--  Einspielen: Dashboard -> SQL Editor -> New query -> Run
+-- ============================================================================
+
+create table if not exists public.gauntlet_runs (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+
+  status      text not null default 'active'
+                check (status in ('active', 'done', 'abandoned')),
+
+  -- Charakter-Pool: die Survivor-IDs, die mitspielen. Wer eine DLC nicht hat,
+  -- nimmt sie hier raus.
+  pool        text[] not null default '{}',
+  -- Wildcards: fehlende Plätze werden mit bereits geschafften Survivorn
+  -- aufgefüllt, damit der Lauf seine volle Länge behält.
+  wildcards   boolean not null default false,
+
+  -- Verlauf: [{ "survivor": "meg_thomas", "wild": false,
+  --             "result": "escaped" | "died" | "void", "at": "2026-08-30T…" }]
+  log         jsonb   not null default '[]'::jsonb
+                check (jsonb_typeof(log) = 'array' and jsonb_array_length(log) <= 2000),
+
+  -- Gerade gezogen und noch nicht gespielt.
+  current_survivor text,
+  current_wild     boolean not null default false,
+
+  started_at  timestamptz not null default now(),
+  finished_at timestamptz,
+
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table  public.gauntlet_runs           is 'Läufe der Challenge "The Survivor Gauntlet"';
+comment on column public.gauntlet_runs.log       is 'Verlauf aller Versuche; der Fortschritt wird daraus errechnet';
+comment on column public.gauntlet_runs.pool      is 'Survivor-IDs im Kader dieses Laufs';
+comment on column public.gauntlet_runs.wildcards is 'Fehlende Charaktere durch bereits geschaffte ersetzen';
+
+-- Mehr als ein laufender Lauf ergibt keinen Sinn – abgeschlossene dagegen
+-- schon, die bleiben als Historie stehen.
+create unique index if not exists gauntlet_runs_one_active_idx
+  on public.gauntlet_runs (user_id) where status = 'active';
+
+create index if not exists gauntlet_runs_user_idx
+  on public.gauntlet_runs (user_id, started_at desc);
+
+alter table public.gauntlet_runs enable row level security;
+
+drop policy if exists "gauntlet_runs_select_own" on public.gauntlet_runs;
+create policy "gauntlet_runs_select_own" on public.gauntlet_runs for select
+  to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "gauntlet_runs_insert_own" on public.gauntlet_runs;
+create policy "gauntlet_runs_insert_own" on public.gauntlet_runs for insert
+  to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "gauntlet_runs_update_own" on public.gauntlet_runs;
+create policy "gauntlet_runs_update_own" on public.gauntlet_runs for update
+  to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "gauntlet_runs_delete_own" on public.gauntlet_runs;
+create policy "gauntlet_runs_delete_own" on public.gauntlet_runs for delete
+  to authenticated using (auth.uid() = user_id);
+
+drop trigger if exists gauntlet_runs_set_updated_at on public.gauntlet_runs;
+create trigger gauntlet_runs_set_updated_at
+  before update on public.gauntlet_runs
+  for each row execute function public.set_updated_at();
+
+create or replace function public.gauntlet_runs_set_user_id()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.user_id is null then
+    new.user_id = auth.uid();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists gauntlet_runs_set_user_id on public.gauntlet_runs;
+create trigger gauntlet_runs_set_user_id
+  before insert on public.gauntlet_runs
+  for each row execute function public.gauntlet_runs_set_user_id();

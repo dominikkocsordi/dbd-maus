@@ -1,7 +1,8 @@
 // Challenge-Katalog. Neue Challenges einfach unten ergänzen.
 //
 //   generator: 'random_build'  -> die Challenge bekommt den Zufallsgenerator
-//   Ohne `generator` ist es eine reine Beschreibung.
+//   page: { href, label }      -> die Challenge hat eine eigene Seite
+//   Ohne beides ist es eine reine Beschreibung.
 
 export const CHALLENGES = [
   {
@@ -14,6 +15,18 @@ export const CHALLENGES = [
       'Annehmen legt den Build zum Eintragen bereit',
     ],
     generator: 'random_build',
+  },
+  {
+    id: 'survivor_gauntlet',
+    title: 'The Survivor Gauntlet',
+    tagline: 'Der ganze Kader am Stück – und am Ende ohne Perks.',
+    rules: [
+      'mit jedem Survivor einmal entkommen',
+      'gezogen wird zufällig aus den offenen',
+      'je Checkpoint fällt ein Perk-Platz weg',
+      'ein Tod wirft auf den Anfang der Stufe zurück',
+    ],
+    page: { href: 'gauntlet.html', label: 'Lauf öffnen' },
   },
 ];
 

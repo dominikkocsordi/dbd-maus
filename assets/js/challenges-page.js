@@ -1,10 +1,10 @@
-import { supabase } from './supabase.js?v=68';
-import { initAuth } from './auth.js?v=68';
-import { CHALLENGES } from './challenges.js?v=68';
-import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=68';
-import { KILLERS, SURVIVORS, labelFor } from './data.js?v=68';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=68';
-import { escapeHtml, fmtDay, fmtNumber, toast } from './utils.js?v=68';
+import { supabase } from './supabase.js?v=69';
+import { initAuth } from './auth.js?v=69';
+import { CHALLENGES } from './challenges.js?v=69';
+import { PERKS, perkName, perkOwnerLabel } from './perks.js?v=69';
+import { KILLERS, SURVIVORS, labelFor } from './data.js?v=69';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=69';
+import { escapeHtml, fmtDay, fmtNumber, pickRandom as pick, toast } from './utils.js?v=69';
 
 const PERKS_PER_BUILD = 4;
 
@@ -13,13 +13,6 @@ const rolls = {};
 const accepted = {};
 
 // ------------------------------------------------------------------ Zufall --
-
-/** Gleichverteilt aus der Liste ziehen (crypto, damit es nicht klumpt). */
-function pick(list) {
-  const buffer = new Uint32Array(1);
-  crypto.getRandomValues(buffer);
-  return list[buffer[0] % list.length];
-}
 
 function pickMany(list, count) {
   const pool = [...list];
@@ -251,6 +244,10 @@ function cardHtml(challenge) {
       </header>
 
       <p class="challenge-card__rules">${challenge.rules.map((r) => escapeHtml(r)).join(' · ')}</p>
+
+      ${challenge.page ? `<p class="challenge-card__link">
+        <a class="btn btn--primary" href="${escapeHtml(challenge.page.href)}">${escapeHtml(challenge.page.label)}</a>
+      </p>` : ''}
 
       ${challenge.generator ? generatorHtml(challenge.id) : ''}
     </article>`;

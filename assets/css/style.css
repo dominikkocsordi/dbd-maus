@@ -1339,6 +1339,12 @@ option { background: #1c1c1f; color: var(--text); }
 .btn--ghost { color: var(--text); background: var(--surface-2); }
 .btn--ghost:hover { background: var(--surface-3); }
 
+/* Ausgang eines Matches: grün geschafft, rot gestorben. */
+.btn--good { color: #06240f; background: var(--good); box-shadow: 0 6px 18px -10px rgba(48, 209, 88, 0.9); }
+.btn--good:hover { background: #3ee06a; }
+.btn--bad { color: #fff; background: var(--bad); box-shadow: 0 6px 18px -10px rgba(255, 55, 95, 0.9); }
+.btn--bad:hover { background: #ff5476; }
+
 .btn--passkey { color: var(--survivor); background: rgba(10, 132, 255, 0.16); }
 .btn--passkey:hover { background: rgba(10, 132, 255, 0.26); }
 .btn--sm { padding: 0.34rem 0.8rem; font-size: 0.83rem; border-radius: 999px; }
@@ -2181,6 +2187,291 @@ a.panel__meta:hover { text-decoration: underline; }
 .quick { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
 .quick .chip { flex: 0 0 auto; min-width: 3.1rem; }
 .chip.is-active { color: #fff; background: rgba(255, 201, 92, 0.34); border-color: rgba(255, 201, 92, 0.55); }
+
+/* ------------------------------------------------------- Survivor Gauntlet --
+   Ein Lauf über den ganzen Kader: oben der Stand, darunter der aktuelle Zug,
+   die Checkpoints und der Kader. Die Farbe bleibt beim Survivor-Blau, Rot ist
+   den Toden vorbehalten. */
+.page-head__back { margin-left: auto; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+.page-head__back:hover { color: var(--text); }
+
+.gstatus {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.9rem, 3vw, 2rem);
+  margin-bottom: 1.2rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(10, 132, 255, 0.16), transparent 55%),
+    var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow);
+}
+
+.gstatus__body { flex: 1; min-width: 0; }
+.gstatus__eyebrow { display: block; font-size: 0.82rem; font-weight: 510; color: var(--survivor); }
+
+.gstatus__value {
+  display: block;
+  margin: 0.1rem 0 0.15rem;
+  font-size: clamp(1.6rem, 4.6vw, 2.4rem);
+  letter-spacing: -0.035em;
+}
+
+.gstatus__hint { font-size: 0.85rem; color: var(--muted); }
+
+/* Die erlaubten Perk-Plätze als Zahl – die eine Angabe, die vor jedem Match
+   zählt. */
+.gstatus__perks {
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: 0.9rem 1.15rem;
+  text-align: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.gstatus__perks strong {
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.gstatus__perks span { font-size: 0.76rem; color: var(--muted); }
+
+/* Ein Abschnitt je Checkpoint, so breit wie die Stufe lang ist. */
+.gtrack { display: flex; gap: 4px; margin-top: 0.85rem; }
+
+.gtrack__seg {
+  position: relative;
+  flex: 1 1 0;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.gtrack__seg.is-active { box-shadow: 0 0 0 1px rgba(76, 171, 255, 0.45); }
+
+.gtrack__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--survivor-deep), var(--survivor));
+  transition: width 0.5s var(--ease);
+}
+
+/* --- Am Zug --- */
+.panel--draw { border-color: rgba(76, 171, 255, 0.22); }
+
+.gdraw { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.gdraw__text { flex: 1; min-width: 12rem; }
+.gdraw__eyebrow { display: block; font-size: 0.78rem; font-weight: 510; color: var(--survivor); }
+.gdraw__name { display: block; margin: 0.1rem 0 0.2rem; font-size: 1.35rem; font-weight: 640; letter-spacing: -0.02em; }
+.gdraw__meta { display: block; font-size: 0.84rem; color: var(--muted); }
+.gdraw--done .gdraw__eyebrow { color: var(--gold); }
+
+.gdraw__wild {
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--gold);
+  background: rgba(255, 201, 92, 0.14);
+  border: 1px solid rgba(255, 201, 92, 0.32);
+  border-radius: 999px;
+}
+
+/* Die eigenen Perks des gezogenen Charakters – sie erfüllen die Vorgabe. */
+.gteach {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.gteach__label { display: block; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--muted); }
+.gteach__list { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.gteach__item { display: grid; justify-items: center; gap: 0.3rem; width: 5.4rem; }
+.gteach__name { font-size: 0.72rem; line-height: 1.2; text-align: center; color: var(--muted); }
+
+.gactions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.2rem; }
+.gactions .btn { flex: 1 1 8rem; justify-content: center; }
+.gactions__hint { margin: 0.75rem 0 0; font-size: 0.8rem; color: var(--muted-2); }
+
+/* --- Checkpoints --- */
+.gtiers { display: grid; gap: 0.5rem; }
+
+.gtier {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(7rem, 1fr) 9rem 2.4rem minmax(11rem, 1.4fr) 5.5rem;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.gtier__no { font-size: 0.76rem; color: var(--muted); }
+.gtier__name { font-weight: 600; font-size: 0.95rem; }
+.gtier__range { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.gtier__perks {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface-3);
+  border-radius: 10px;
+}
+
+.gtier__req { font-size: 0.8rem; color: var(--muted); }
+.gtier__state { font-size: 0.78rem; color: var(--muted-2); text-align: right; }
+
+.gtier--done { border-color: rgba(48, 209, 88, 0.32); }
+.gtier--done .gtier__state { color: var(--good); }
+.gtier--active { border-color: rgba(76, 171, 255, 0.45); background: rgba(10, 132, 255, 0.1); }
+.gtier--active .gtier__state { color: var(--survivor); }
+.gtier--empty { opacity: 0.45; }
+
+@media (max-width: 860px) {
+  .gtier { grid-template-columns: 1fr auto; }
+  .gtier__no { order: 1; }
+  .gtier__state { order: 2; }
+  .gtier__name { order: 3; }
+  .gtier__perks { order: 4; }
+  .gtier__range { order: 5; }
+  .gtier__req { order: 6; grid-column: 1 / -1; }
+}
+
+/* --- Kader --- */
+.gcard {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 0.9rem 0.6rem 0.8rem;
+  text-align: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.gcard__name { font-weight: 600; font-size: 0.9rem; }
+.gcard__mark { font-size: 0.74rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+
+.gcard--done { border-color: rgba(48, 209, 88, 0.32); }
+.gcard--done .gcard__mark { color: var(--good); }
+.gcard--current { border-color: rgba(76, 171, 255, 0.5); background: rgba(10, 132, 255, 0.12); }
+.gcard--current .gcard__mark { color: var(--survivor); }
+/* Nicht im Kader: da, aber sichtbar außen vor. */
+.gcard--out { opacity: 0.32; }
+
+/* --- Verlauf --- */
+.glog-list, .gpast-list { display: grid; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+
+.glog, .gpast {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.glog__text, .gpast__text { flex: 1; min-width: 0; }
+.glog__name, .gpast__main { display: block; font-size: 0.9rem; font-weight: 550; }
+.glog__meta, .gpast__meta { display: block; font-size: 0.74rem; color: var(--muted-2); }
+
+.glog__result {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 590;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.glog--escaped .glog__result { color: var(--good); background: rgba(48, 209, 88, 0.14); }
+.glog--died .glog__result { color: var(--bad); background: rgba(255, 55, 95, 0.14); }
+
+.gpast__badge {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.gpast__badge--done { color: var(--good); background: rgba(48, 209, 88, 0.14); }
+
+/* --- Charakter-Pool --- */
+.ptoggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.ptoggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  text-align: left;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity var(--dur) var(--ease), border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.ptoggle:hover { border-color: var(--line-strong); }
+.ptoggle__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; }
+.ptoggle.is-on { opacity: 1; color: var(--text); background: var(--surface-2); border-color: rgba(76, 171, 255, 0.3); }
+/* Wer schon im Lauf steckt, lässt sich nicht herausnehmen. */
+.ptoggle.is-locked { cursor: not-allowed; border-style: dashed; }
+
+/* --- Regeln --- */
+.grules__note {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.83rem;
+  color: var(--muted);
+  background: rgba(255, 201, 92, 0.08);
+  border: 1px solid rgba(255, 201, 92, 0.28);
+  border-radius: var(--r-md);
+}
+
+.grules__lead { margin: 0 0 1.2rem; font-size: 0.95rem; color: var(--muted); }
+.grules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+.grules__block h3 { margin-bottom: 0.5rem; font-size: 0.92rem; }
+.grules__block ul { margin: 0; padding-left: 1.1rem; }
+.grules__block li { margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--muted); }
+.grules__block strong { color: var(--text); font-weight: 590; }
+
+@media (max-width: 700px) {
+  .gstatus { flex-direction: column; align-items: stretch; }
+  .gstatus__perks { flex-direction: row; }
+}
 
 /* ------------------------------------------------------------ Ladefehler -- */
 .boot-error {

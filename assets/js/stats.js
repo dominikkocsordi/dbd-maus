@@ -1,21 +1,21 @@
-import { supabase } from './supabase.js?v=68';
-import { initAuth } from './auth.js?v=68';
-import { initCollapse } from './collapse.js?v=68';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=68';
+import { supabase } from './supabase.js?v=69';
+import { initAuth } from './auth.js?v=69';
+import { initCollapse } from './collapse.js?v=69';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=69';
 import {
   GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
   hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=68';
-import { createSorter } from './table-sort.js?v=68';
+} from './data.js?v=69';
+import { createSorter } from './table-sort.js?v=69';
 import {
   aggregate, byCharacter, byLoadout, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent,
   killTier, toast,
-} from './utils.js?v=68';
+} from './utils.js?v=69';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=68';
-import { loadoutEntry, loadoutName } from './loadout.js?v=68';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=68';
+} from './images.js?v=69';
+import { loadoutEntry, loadoutName } from './loadout.js?v=69';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=69';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;

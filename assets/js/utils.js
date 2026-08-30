@@ -1,5 +1,5 @@
 // Kleine Helfer für Formatierung, Toasts und Statistik-Berechnung.
-import { maxKills, streakMinKills } from './data.js?v=68';
+import { maxKills, streakMinKills } from './data.js?v=69';
 
 const nf = new Intl.NumberFormat('de-DE');
 const df = new Intl.DateTimeFormat('de-DE', {
@@ -43,6 +43,17 @@ export function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
+}
+
+/**
+ * Gleichverteilt aus einer Liste ziehen. `Math.random()` genügte dafür, aber
+ * bei kurzen Listen klumpen die Werte sichtbar – der Zufall aus der Krypto-API
+ * verteilt sauberer, und mehr als eine Zeile kostet er nicht.
+ */
+export function pickRandom(list) {
+  const buffer = new Uint32Array(1);
+  crypto.getRandomValues(buffer);
+  return list[buffer[0] % list.length];
 }
 
 let toastTimer;

@@ -12,7 +12,7 @@
 //
 // Passkeys brauchen supabase-js >= 2.105.0 und das experimentelle Opt-in.
 
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=70';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=71';
 
 const VERSION = '2.105.0';
 
@@ -53,3 +53,21 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     experimental: { passkey: true },
   },
 });
+
+/*
+  Supabase liefert pro Abfrage höchstens 1000 Zeilen – ein .limit() darüber
+  wird stillschweigend gekappt. Darum seitenweise holen, bis eine Seite nicht
+  mehr voll ist. `build` baut die Abfrage jedes Mal neu auf; sie sollte eindeutig
+  sortiert sein (z. B. zusätzlich nach id), sonst verrutschen die Seiten.
+*/
+const PAGE_SIZE = 1000;
+
+export async function selectAll(build) {
+  const rows = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await build().range(from, from + PAGE_SIZE - 1);
+    if (error) return { data: null, error };
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) return { data: rows, error: null };
+  }
+}

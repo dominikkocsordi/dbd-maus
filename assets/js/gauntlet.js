@@ -13,9 +13,9 @@
   (siehe `replay`). Das hält den Rücksetzer atomar und macht ein Verklicken
   rückgängig: Der letzte Eintrag fällt weg, der Rest rechnet sich neu.
 */
-import { SURVIVORS } from './data.js?v=70';
-import { PERKS } from './perks.js?v=70';
-import { pickRandom } from './utils.js?v=70';
+import { SURVIVORS } from './data.js?v=71';
+import { PERKS } from './perks.js?v=71';
+import { pickRandom } from './utils.js?v=71';
 
 /** Der Sammelposten "Anderer Survivor" ist kein Charakter und spielt nicht mit. */
 const PLACEHOLDER = 'other_survivor';

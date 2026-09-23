@@ -13,9 +13,9 @@
 import {
   KILLERS, SURVIVORS, hasClasses, hasKillerDuo, hasLoadoutExtras, hasPerks, maxKills,
   supportsBuilds,
-} from './data.js?v=70';
-import { PERKS } from './perks.js?v=70';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=70';
+} from './data.js?v=71';
+import { PERKS } from './perks.js?v=71';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=71';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -67,6 +67,7 @@ function norm(value) {
   return String(value ?? '')
     .normalize('NFKD')
     .replace(/^\s*hex:\s*/i, '')
+    .replace(/&/g, 'and')                    // "Quick & Quiet" = "Quick and Quiet"
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '');
 }

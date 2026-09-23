@@ -1,21 +1,21 @@
-import { supabase } from './supabase.js?v=70';
-import { initAuth } from './auth.js?v=70';
-import { initCollapse } from './collapse.js?v=70';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=70';
+import { selectAll, supabase } from './supabase.js?v=71';
+import { initAuth } from './auth.js?v=71';
+import { initCollapse } from './collapse.js?v=71';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=71';
 import {
   GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
   hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=70';
-import { createSorter } from './table-sort.js?v=70';
+} from './data.js?v=71';
+import { createSorter } from './table-sort.js?v=71';
 import {
   aggregate, byCharacter, byLoadout, byPerk, escapeHtml, fmtDate, fmtDay, fmtDecimal, fmtNumber, fmtPercent,
   killTier, toast,
-} from './utils.js?v=70';
+} from './utils.js?v=71';
 import {
   characterCellHtml, iconHtml, loadoutIconHtml, mountIcons, outcomeIconHtml, perkIconHtml,
-} from './images.js?v=70';
-import { loadoutEntry, loadoutName } from './loadout.js?v=70';
-import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=70';
+} from './images.js?v=71';
+import { loadoutEntry, loadoutName } from './loadout.js?v=71';
+import { perkByFile, perkName, perkOwnerLabel } from './perks.js?v=71';
 
 const PAGE_SIZE = 30;
 const BP_MAX = 2000000;
@@ -722,11 +722,11 @@ function render() {
 // -------------------------------------------------------------------- Daten --
 
 async function loadMatches() {
-  const { data, error } = await supabase
+  const { data, error } = await selectAll(() => supabase
     .from('matches')
     .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, faced_killer_2, character_class, perks, item, offering, addons, bloodpoints, notes')
     .order('played_at', { ascending: false })
-    .limit(2000);
+    .order('id', { ascending: false }));
 
   if (error) {
     toast(`Daten konnten nicht geladen werden: ${error.message}`, 'error');

@@ -14,12 +14,12 @@
   macht aus denselben Kacheln Knöpfe, statt sie ein zweites Mal darunter
   zu stellen.
 */
-import { supabase } from './supabase.js?v=70';
-import { initAuth } from './auth.js?v=70';
-import { initCollapse } from './collapse.js?v=70';
-import { labelFor } from './data.js?v=70';
-import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=70';
-import { escapeHtml, fmtDate, fmtDay, fmtNumber, fmtPercent, toast } from './utils.js?v=70';
+import { supabase } from './supabase.js?v=71';
+import { initAuth } from './auth.js?v=71';
+import { initCollapse } from './collapse.js?v=71';
+import { labelFor } from './data.js?v=71';
+import { avatarHtml, mountIcons, perkIconHtml } from './images.js?v=71';
+import { escapeHtml, fmtDate, fmtDay, fmtNumber, fmtPercent, toast } from './utils.js?v=71';
 import {
   MIN_POOL,
   ROSTER,
@@ -31,7 +31,7 @@ import {
   runLength,
   teachablePerks,
   tierAt,
-} from './gauntlet.js?v=70';
+} from './gauntlet.js?v=71';
 
 const $ = (sel) => document.querySelector(sel);
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));

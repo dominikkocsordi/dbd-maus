@@ -1,28 +1,28 @@
-import { supabase } from './supabase.js?v=70';
-import { initAuth } from './auth.js?v=70';
-import { expandPanel, initCollapse } from './collapse.js?v=70';
-import { loadLoadoutCatalog } from './loadout-catalog.js?v=70';
-import { initPasskeyPanel } from './passkeys.js?v=70';
+import { selectAll, supabase } from './supabase.js?v=71';
+import { initAuth } from './auth.js?v=71';
+import { expandPanel, initCollapse } from './collapse.js?v=71';
+import { loadLoadoutCatalog } from './loadout-catalog.js?v=71';
+import { initPasskeyPanel } from './passkeys.js?v=71';
 import {
   avatarHtml, characterCellHtml, iconHtml, killMarksHtml, loadoutIconHtml, mountIcons, outcomeIconHtml,
   perkIconHtml,
-} from './images.js?v=70';
-import { perkName } from './perks.js?v=70';
+} from './images.js?v=71';
+import { perkName } from './perks.js?v=71';
 import {
   clearPerks, initPerkPicker, pickedPerks, setPerkCharacter, setPerkRole, setPickedPerks,
-} from './perk-picker.js?v=70';
+} from './perk-picker.js?v=71';
 import {
   GAME_MODES, KILLERS, SURVIVORS, facedKillersLabel, gameModeLabel, hasClasses, hasKillerDuo,
   hasLoadoutExtras, hasPerks, labelFor, maxKills, supportsBuilds,
-} from './data.js?v=70';
+} from './data.js?v=71';
 import {
   addonsForItem, cleanAddons, loadoutList, loadoutName, powerForKiller,
-} from './loadout.js?v=70';
+} from './loadout.js?v=71';
 import {
   aggregate, byCharacter, escapeHtml, fmtDate, fmtDecimal, fmtNumber, fmtPercent, killTier, parseNumber, toast,
-} from './utils.js?v=70';
-import { createSorter } from './table-sort.js?v=70';
-import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=70';
+} from './utils.js?v=71';
+import { createSorter } from './table-sort.js?v=71';
+import { initTrackerImport, openTrackerImport } from './tracker-import-panel.js?v=71';
 
 const RECENT_LIMIT = 5;
 const BP_MAX = 2000000;
@@ -729,11 +729,11 @@ async function loadBuilds() {
 }
 
 async function loadMatches() {
-  const { data, error } = await supabase
+  const { data, error } = await selectAll(() => supabase
     .from('matches')
     .select('id, played_at, role, game_mode, killer, kills, survivor, escaped, faced_killer, faced_killer_2, character_class, build_id, perks, item, offering, addons, bloodpoints, notes')
     .order('played_at', { ascending: false })
-    .limit(2000);
+    .order('id', { ascending: false }));
 
   if (error) {
     toast(`Daten konnten nicht geladen werden: ${error.message}`, 'error');

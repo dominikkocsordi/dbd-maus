@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Halloween – Haunted by Daylight
+   Greift nur, wenn assets/js/season.js die Klasse .halloween an <html> setzt.
+   Die Seite selbst bleibt unverändert; getauscht werden Farben und Licht,
+   dazu kommen Mond, Fledermäuse, Spinnennetz und Nebel als Kulisse.
+   ========================================================================== */
+
+html.halloween {
+  --bg: #08050b;
+  --bg-2: #130a19;
+  --surface: rgba(30, 18, 36, 0.74);
+  --surface-solid: #1a1120;
+  --surface-2: rgba(140, 100, 160, 0.14);
+  --surface-3: rgba(140, 100, 160, 0.26);
+  --line: rgba(255, 190, 140, 0.09);
+  --line-strong: rgba(255, 190, 140, 0.18);
+  --text: #f6eee4;
+  --muted: rgba(240, 225, 210, 0.62);
+  --muted-2: rgba(240, 225, 210, 0.34);
+
+  /* Killer: Kürbis statt Signalrot. Survivor: Geisterviolett statt Blau. */
+  --killer: #ff7a1a;
+  --killer-deep: #d9480f;
+  --killer-rgb: 255, 122, 26;
+  --killer-hover: #ff9142;
+  --survivor: #b18cff;
+  --survivor-deep: #8a5cff;
+  --survivor-rgb: 177, 140, 255;
+  --survivor-deep-rgb: 138, 92, 255;
+
+  --gold: #ffc14d;
+  --good: #8ee04a;
+  --bad: #ff3b4e;
+  --purple: #c77dff;
+}
+
+html.halloween body { background: var(--bg); }
+
+html.halloween ::selection { background: rgba(255, 122, 26, 0.38); }
+
+/* -------------------------------------------------------------- Kulisse -- */
+
+/* Kerzenschein unten links, Geisterlicht oben rechts, dazu der Mond. */
+html.halloween .glow {
+  background:
+    radial-gradient(70px 70px at 88% 9%, rgba(255, 244, 214, 0.95), rgba(255, 228, 170, 0.55) 55%, transparent 72%),
+    radial-gradient(260px 260px at 88% 9%, rgba(255, 214, 140, 0.16), transparent 70%),
+    radial-gradient(900px 560px at 0% 108%, rgba(255, 122, 26, 0.20), transparent 64%),
+    radial-gradient(820px 520px at 100% -6%, rgba(138, 92, 255, 0.18), transparent 62%),
+    radial-gradient(1200px 600px at 50% 120%, rgba(90, 40, 120, 0.22), transparent 70%),
+    linear-gradient(180deg, var(--bg-2), var(--bg) 46%);
+}
+
+/* Fledermäuse vor dem Mond – schweben leicht auf und ab. */
+html.halloween .glow::before {
+  content: "";
+  position: absolute;
+  top: 3.2rem;
+  right: 5%;
+  width: 260px;
+  height: 120px;
+  opacity: 0.85;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 120'%3E%3Cg fill='%23060308'%3E%3Cpath d='M40 40c-6-8-16-10-24-6 6 1 9 5 9 9-5-3-11-3-15 1 8 0 13 4 15 9 2-3 6-5 9-5s5 2 6 5c2-5 7-9 15-9-4-4-10-4-15-1 0-4 3-8 9-9-8-4-18-2-24 6z'/%3E%3Cpath d='M150 70c-4-5-11-7-16-4 4 1 6 3 6 6-3-2-7-2-10 1 5 0 8 3 10 6 1-2 4-3 6-3s4 1 4 3c1-3 5-6 10-6-3-3-7-3-10-1 0-3 2-5 6-6-5-3-12-1-16 4z'/%3E%3Cpath d='M215 25c-3-4-8-5-12-3 3 1 4 2 4 4-2-1-5-1-7 1 4 0 6 2 7 4 1-1 3-2 4-2s3 1 3 2c1-2 4-4 7-4-2-2-5-2-7-1 0-2 1-3 4-4-4-2-9-1-12 3z'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain;
+  animation: hw-bats 7s ease-in-out infinite;
+}
+
+/* Bodennebel, der langsam seitlich zieht. */
+html.halloween .glow::after {
+  content: "";
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: 0;
+  height: 32vh;
+  background:
+    radial-gradient(40% 60% at 20% 100%, rgba(200, 180, 230, 0.10), transparent 70%),
+    radial-gradient(35% 55% at 60% 100%, rgba(200, 180, 230, 0.08), transparent 70%),
+    radial-gradient(30% 50% at 90% 100%, rgba(200, 180, 230, 0.09), transparent 70%);
+  filter: blur(6px);
+  animation: hw-fog 38s ease-in-out infinite alternate;
+}
+
+/* Spinnennetz in der oberen linken Ecke, unter der Topbar. */
+html.halloween body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 180px;
+  height: 180px;
+  pointer-events: none;
+  opacity: 0.16;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180' fill='none' stroke='%23f6eee4' stroke-width='1'%3E%3Cpath d='M0 0L180 40M0 0L150 110M0 0L100 160M0 0L40 180'/%3E%3Cpath d='M45 10Q38 22 34 31Q25 33 9 41'/%3E%3Cpath d='M90 20Q75 45 67 62Q50 70 18 82'/%3E%3Cpath d='M135 30Q113 66 100 93Q76 104 27 122'/%3E%3Cpath d='M175 39Q150 88 134 124Q100 138 36 162'/%3E%3C/svg%3E") no-repeat top left / contain;
+}
+
+@keyframes hw-bats {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-2deg); }
+}
+
+@keyframes hw-fog {
+  from { transform: translateX(-4%); }
+  to { transform: translateX(4%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.halloween .glow::before,
+  html.halloween .glow::after { animation: none; }
+}
+
+@media (max-width: 640px) {
+  html.halloween .glow::before { width: 170px; height: 80px; right: 2%; }
+  html.halloween body::after { width: 110px; height: 110px; }
+}
+
+/* ------------------------------------------------------------- Details -- */
+
+/* Ein schmaler Glutstreifen unter der Topbar. */
+html.halloween .topbar {
+  background: rgba(12, 6, 14, 0.66);
+  border-bottom-color: rgba(255, 122, 26, 0.22);
+  box-shadow: 0 1px 0 rgba(255, 122, 26, 0.08), 0 10px 30px -20px rgba(255, 122, 26, 0.5);
+}
+
+/* Kürbis hinter dem Namen. */
+html.halloween .topbar__brand > span:last-child::after {
+  content: " \1F383";
+  font-size: 0.9em;
+}
+
+/* Überschriften glimmen leicht wie im Kerzenlicht. */
+html.halloween h1 {
+  text-shadow: 0 0 22px rgba(255, 122, 26, 0.28);
+}
+
+html.halloween .btn--primary {
+  color: #1a0b02;
+  background: linear-gradient(180deg, #ff9a3c, var(--killer));
+}
+
+html.halloween * {
+  scrollbar-color: rgba(255, 122, 26, 0.35) transparent;
+}
+html.halloween ::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 26, 0.3);
+  background-clip: content-box;
+}

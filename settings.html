@@ -6,7 +6,9 @@
   <title>DBD Stats – Einstellungen</title>
   <meta name="description" content="Konto, Passwort und Passkeys verwalten.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128128;</text></svg>">
-  <link rel="stylesheet" href="assets/css/style.css?v=72">
+  <link rel="stylesheet" href="assets/css/style.css?v=73">
+  <link rel="stylesheet" href="assets/css/halloween.css?v=73">
+  <script src="assets/js/season.js?v=73"></script>
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
@@ -108,6 +110,21 @@
         </section>
       </div>
 
+      <section class="panel">
+        <header class="panel__head">
+          <h2>Design</h2>
+        </header>
+        <label class="field">
+          <span class="field__label">Halloween-Look</span>
+          <select id="set-theme">
+            <option value="auto">Automatisch (1. Okt. – 10. Nov.)</option>
+            <option value="halloween">Immer an</option>
+            <option value="normal">Aus</option>
+          </select>
+        </label>
+        <p class="form-hint">Gilt nur für diesen Browser.</p>
+      </section>
+
       <section class="panel" id="passkey-panel" hidden>
         <header class="panel__head">
           <h2>Passkeys</h2>
@@ -148,6 +165,6 @@
     </section>
   </main>
 
-  <script type="module" src="assets/js/settings.js?v=72"></script>
+  <script type="module" src="assets/js/settings.js?v=73"></script>
 </body>
 </html>

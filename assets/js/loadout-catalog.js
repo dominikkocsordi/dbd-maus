@@ -4,9 +4,9 @@
 // Der handgepflegte Katalog in loadout.js bleibt die erste Adresse; hier landet
 // nur, was dort noch fehlt. Beides führt loadout.js zusammen.
 
-import { supabase } from './supabase.js?v=71';
-import { learnLoadout } from './loadout.js?v=71';
-import { toast } from './utils.js?v=71';
+import { supabase } from './supabase.js?v=72';
+import { learnLoadout } from './loadout.js?v=72';
+import { toast } from './utils.js?v=72';
 
 /* In der Tabelle heißt die Spalte `grp` – `group` ist in SQL belegt. */
 const fromRow = (row) => ({

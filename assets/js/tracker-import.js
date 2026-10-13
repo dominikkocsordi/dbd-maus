@@ -13,9 +13,9 @@
 import {
   KILLERS, SURVIVORS, hasClasses, hasKillerDuo, hasLoadoutExtras, hasPerks, maxKills,
   supportsBuilds,
-} from './data.js?v=71';
-import { PERKS } from './perks.js?v=71';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=71';
+} from './data.js?v=72';
+import { PERKS } from './perks.js?v=72';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=72';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -51,8 +51,24 @@ const GAME_MODES = {
 */
 const GAME_MODE_NAMES = { '2v8': '2v8' };
 
+/*
+  Saisonale Events laufen alle unter derselben Warteschlange "SeasonalEvent" –
+  welches gerade läuft, verrät erst das Datum. Haunted by Daylight ist das
+  Halloween-Event und liegt im Oktober/November; alles andere bleibt
+  Event-Modus, bis es hier einen eigenen Eintrag bekommt.
+*/
+const SEASONAL_EVENTS = [
+  { mode: 'haunted_by_daylight', months: [9, 10] },   // Oktober, November
+];
+
+function seasonalMode(playedAt) {
+  const month = playedAt.getUTCMonth();
+  return SEASONAL_EVENTS.find((event) => event.months.includes(month))?.mode ?? 'event';
+}
+
 /** Modus der App zum Eintrag des Trackers – Unbekanntes wird zum Event-Modus. */
-function gameMode(id, name) {
+function gameMode(id, name, playedAt) {
+  if (id === 'SeasonalEvent') return seasonalMode(playedAt);
   return GAME_MODES[id] ?? GAME_MODE_NAMES[norm(name)] ?? 'event';
 }
 
@@ -172,7 +188,7 @@ function convert(entry) {
   // Gekürzt, damit ein unerwartet langer Wert nicht am Längenlimit der
   // Notiz-Spalte scheitert.
   const rawMode = String(match.gameType?.id ?? '').slice(0, 60);
-  const mode = gameMode(rawMode, match.gameType?.name);
+  const mode = gameMode(rawMode, match.gameType?.name, playedAt);
   const character = findCharacter(role, stat.characterName);
   const warnings = [];
 

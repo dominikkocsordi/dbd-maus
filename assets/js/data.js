@@ -10,6 +10,7 @@ export const GAME_MODES = [
   { id: 'event', label: 'Event-Modus' },
   { id: 'custom', label: 'Privates Spiel (Custom)' },
   { id: 'lights_out', label: 'Lights Out' },
+  { id: 'haunted_by_daylight', label: 'Haunted by Daylight' },
 ];
 
 export const KILLERS = [

@@ -1,102 +1,145 @@
 /* ==========================================================================
    Halloween – Haunted by Daylight
    Greift nur, wenn assets/js/season.js die Klasse .halloween an <html> setzt.
-   Die Seite selbst bleibt unverändert; getauscht werden Farben und Licht,
-   dazu kommen Mond, Fledermäuse, Spinnennetz und Nebel als Kulisse.
+   Aufbau und Abläufe der Seite bleiben unverändert; getauscht werden Farben,
+   Licht und Oberflächen. Dazu kommt eine ruhige Kulisse: Sternenhimmel,
+   Mond mit Hof, ein Schwarm Fledermäuse, Glutfunken und Bodennebel.
    ========================================================================== */
 
 html.halloween {
-  --bg: #08050b;
-  --bg-2: #130a19;
-  --surface: rgba(30, 18, 36, 0.74);
-  --surface-solid: #1a1120;
-  --surface-2: rgba(140, 100, 160, 0.14);
-  --surface-3: rgba(140, 100, 160, 0.26);
-  --line: rgba(255, 190, 140, 0.09);
+  --bg: #07050a;
+  --bg-2: #120b17;
+  /* Tafeln: fast schwarzes Aubergine, leicht durchscheinend. */
+  --surface: rgba(24, 16, 30, 0.7);
+  --surface-solid: #160f1b;
+  --surface-2: rgba(150, 120, 170, 0.1);
+  --surface-3: rgba(150, 120, 170, 0.2);
+  --line: rgba(255, 214, 180, 0.075);
   --line-strong: rgba(255, 190, 140, 0.18);
-  --text: #f6eee4;
-  --muted: rgba(240, 225, 210, 0.62);
-  --muted-2: rgba(240, 225, 210, 0.34);
+  --text: #f7f0e8;
+  --muted: rgba(240, 226, 214, 0.6);
+  --muted-2: rgba(240, 226, 214, 0.36);
 
   /* Killer: Kürbis statt Signalrot. Survivor: Geisterviolett statt Blau. */
   --killer: #ff7a1a;
-  --killer-deep: #d9480f;
+  --killer-deep: #e2550c;
   --killer-rgb: 255, 122, 26;
   --killer-hover: #ff9142;
-  --survivor: #b18cff;
+  --survivor: #b79bff;
   --survivor-deep: #8a5cff;
-  --survivor-rgb: 177, 140, 255;
+  --survivor-rgb: 183, 155, 255;
   --survivor-deep-rgb: 138, 92, 255;
 
-  --gold: #ffc14d;
+  --gold: #ffc35c;
   --good: #8ee04a;
-  --bad: #ff3b4e;
+  --bad: #ff4560;
   --purple: #c77dff;
+
+  /* Weicher, wärmer: Schatten mit einem Hauch Violett statt reinem Schwarz. */
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 2px 10px rgba(5, 0, 10, 0.35), 0 24px 54px -32px rgba(5, 0, 10, 0.95);
+  --shadow-lg: 0 6px 20px rgba(5, 0, 10, 0.45), 0 44px 84px -36px rgba(5, 0, 10, 1);
+  --glow-killer: 0 0 0 1px rgba(255, 122, 26, 0.35), 0 10px 32px -12px rgba(255, 122, 26, 0.55);
 }
 
 html.halloween body { background: var(--bg); }
-
-html.halloween ::selection { background: rgba(255, 122, 26, 0.38); }
+html.halloween ::selection { background: rgba(255, 122, 26, 0.38); color: #fff; }
 
 /* -------------------------------------------------------------- Kulisse -- */
 
-/* Kerzenschein unten links, Geisterlicht oben rechts, dazu der Mond. */
+/* Mond mit Kratern und Hof oben rechts, Kerzenschein unten links,
+   Geisterlicht dahinter. Alles reine Verläufe – nichts muss nachladen. */
 html.halloween .glow {
   background:
-    radial-gradient(70px 70px at 88% 9%, rgba(255, 244, 214, 0.95), rgba(255, 228, 170, 0.55) 55%, transparent 72%),
-    radial-gradient(260px 260px at 88% 9%, rgba(255, 214, 140, 0.16), transparent 70%),
-    radial-gradient(900px 560px at 0% 108%, rgba(255, 122, 26, 0.20), transparent 64%),
-    radial-gradient(820px 520px at 100% -6%, rgba(138, 92, 255, 0.18), transparent 62%),
-    radial-gradient(1200px 600px at 50% 120%, rgba(90, 40, 120, 0.22), transparent 70%),
-    linear-gradient(180deg, var(--bg-2), var(--bg) 46%);
+    /* Krater */
+    radial-gradient(9px 9px at calc(88% - 14px) calc(9% - 10px), rgba(190, 160, 120, 0.35), transparent 70%),
+    radial-gradient(14px 12px at calc(88% + 12px) calc(9% + 8px), rgba(190, 160, 120, 0.3), transparent 70%),
+    radial-gradient(6px 6px at calc(88% + 16px) calc(9% - 16px), rgba(190, 160, 120, 0.3), transparent 70%),
+    /* Mondscheibe mit Schattenrand */
+    radial-gradient(46px 46px at 88% 9%, #fff6df 0%, #ffe7b5 58%, rgba(255, 214, 150, 0.85) 82%, transparent 100%),
+    /* Hof */
+    radial-gradient(150px 150px at 88% 9%, rgba(255, 220, 160, 0.22), transparent 70%),
+    radial-gradient(420px 360px at 88% 9%, rgba(255, 190, 120, 0.09), transparent 70%),
+    /* Kerzenschein und Geisterlicht */
+    radial-gradient(1000px 620px at -4% 110%, rgba(255, 110, 20, 0.2), transparent 62%),
+    radial-gradient(900px 560px at 104% -8%, rgba(138, 92, 255, 0.17), transparent 62%),
+    radial-gradient(1300px 700px at 50% 125%, rgba(90, 36, 120, 0.26), transparent 70%),
+    linear-gradient(180deg, var(--bg-2), var(--bg) 52%);
 }
 
-/* Fledermäuse vor dem Mond – schweben leicht auf und ab. */
+/* Fledermausschwarm vor dem Mond – zieht in einer sanften Acht. */
 html.halloween .glow::before {
   content: "";
   position: absolute;
-  top: 3.2rem;
-  right: 5%;
-  width: 260px;
-  height: 120px;
-  opacity: 0.85;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 120'%3E%3Cg fill='%23060308'%3E%3Cpath d='M40 40c-6-8-16-10-24-6 6 1 9 5 9 9-5-3-11-3-15 1 8 0 13 4 15 9 2-3 6-5 9-5s5 2 6 5c2-5 7-9 15-9-4-4-10-4-15-1 0-4 3-8 9-9-8-4-18-2-24 6z'/%3E%3Cpath d='M150 70c-4-5-11-7-16-4 4 1 6 3 6 6-3-2-7-2-10 1 5 0 8 3 10 6 1-2 4-3 6-3s4 1 4 3c1-3 5-6 10-6-3-3-7-3-10-1 0-3 2-5 6-6-5-3-12-1-16 4z'/%3E%3Cpath d='M215 25c-3-4-8-5-12-3 3 1 4 2 4 4-2-1-5-1-7 1 4 0 6 2 7 4 1-1 3-2 4-2s3 1 3 2c1-2 4-4 7-4-2-2-5-2-7-1 0-2 1-3 4-4-4-2-9-1-12 3z'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain;
-  animation: hw-bats 7s ease-in-out infinite;
+  top: 2.6rem;
+  right: 3%;
+  width: 300px;
+  height: 150px;
+  opacity: 0.9;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 150'%3E%3Cdefs%3E%3Cpath id='b' d='M50 22c-1.6-3.4-3.6-5-6-4.6l-1.6-4.2-1.4 4.4C33 16 26 11 14 12c4 3 5.4 6.6 4.2 10.6C12 20.6 6 21.8 0 26.4c7.4-.2 13.2 2 16.4 6.4 3.4-2.6 8-3 12.4-.8 2.8-3 7.4-4 12.2-2.4L46 33l4 5 4-5 5-3.4c4.8-1.6 9.4-.6 12.2 2.4 4.4-2.2 9-1.8 12.4.8 3.2-4.4 9-6.6 16.4-6.4-6-4.6-12-5.8-18.2-3.8C80.6 18.6 82 15 86 12c-12-1-19 4-27 5.6l-1.4-4.4-1.6 4.2c-2.4-.4-4.4 1.2-6 4.6z'/%3E%3C/defs%3E%3Cg fill='%23050208'%3E%3Cuse href='%23b' transform='translate(20 46) scale(.78)'/%3E%3Cuse href='%23b' transform='translate(150 92) scale(.5) rotate(-8 50 25)'/%3E%3Cuse href='%23b' transform='translate(222 20) scale(.36) rotate(10 50 25)'/%3E%3Cuse href='%23b' transform='translate(118 18) scale(.26)'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain;
+  filter: drop-shadow(0 0 1px rgba(255, 220, 170, 0.18));
+  animation: hw-bats 9s ease-in-out infinite;
 }
 
-/* Bodennebel, der langsam seitlich zieht. */
+/* Bodennebel in zwei Schichten, die gegeneinander ziehen. */
 html.halloween .glow::after {
   content: "";
   position: absolute;
-  left: -20%;
-  right: -20%;
+  left: -25%;
+  right: -25%;
   bottom: 0;
-  height: 32vh;
+  height: 36vh;
   background:
-    radial-gradient(40% 60% at 20% 100%, rgba(200, 180, 230, 0.10), transparent 70%),
-    radial-gradient(35% 55% at 60% 100%, rgba(200, 180, 230, 0.08), transparent 70%),
-    radial-gradient(30% 50% at 90% 100%, rgba(200, 180, 230, 0.09), transparent 70%);
-  filter: blur(6px);
-  animation: hw-fog 38s ease-in-out infinite alternate;
+    radial-gradient(38% 62% at 18% 100%, rgba(205, 185, 235, 0.11), transparent 70%),
+    radial-gradient(34% 56% at 52% 100%, rgba(205, 185, 235, 0.07), transparent 70%),
+    radial-gradient(30% 52% at 86% 100%, rgba(205, 185, 235, 0.1), transparent 70%),
+    linear-gradient(0deg, rgba(160, 130, 200, 0.05), transparent 60%);
+  filter: blur(8px);
+  animation: hw-fog 42s ease-in-out infinite alternate;
 }
 
-/* Spinnennetz in der oberen linken Ecke, unter der Topbar. */
+/* Sternenhimmel – feine Punkte, die nur oben stehen und langsam funkeln. */
+html.halloween body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 70vh;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='300'%3E%3Cg fill='%23fff3e0'%3E%3Ccircle cx='22' cy='34' r='.8'/%3E%3Ccircle cx='96' cy='12' r='.6'/%3E%3Ccircle cx='160' cy='70' r='1'/%3E%3Ccircle cx='214' cy='26' r='.6'/%3E%3Ccircle cx='288' cy='88' r='.8'/%3E%3Ccircle cx='350' cy='40' r='.6'/%3E%3Ccircle cx='402' cy='120' r='.9'/%3E%3Ccircle cx='58' cy='150' r='.6'/%3E%3Ccircle cx='132' cy='196' r='.8'/%3E%3Ccircle cx='246' cy='170' r='.6'/%3E%3Ccircle cx='318' cy='230' r='.7'/%3E%3Ccircle cx='190' cy='262' r='.5'/%3E%3Ccircle cx='30' cy='254' r='.7'/%3E%3C/g%3E%3C/svg%3E") repeat;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent);
+  mask-image: linear-gradient(180deg, #000, transparent);
+  opacity: 0.7;
+  animation: hw-twinkle 6s ease-in-out infinite alternate;
+}
+
+/* Glutfunken, die vom Kerzenschein unten links aufsteigen. */
 html.halloween body::after {
   content: "";
   position: fixed;
-  top: 0;
   left: 0;
+  bottom: 0;
   z-index: 0;
-  width: 180px;
-  height: 180px;
+  width: min(520px, 60vw);
+  height: 60vh;
   pointer-events: none;
-  opacity: 0.16;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180' fill='none' stroke='%23f6eee4' stroke-width='1'%3E%3Cpath d='M0 0L180 40M0 0L150 110M0 0L100 160M0 0L40 180'/%3E%3Cpath d='M45 10Q38 22 34 31Q25 33 9 41'/%3E%3Cpath d='M90 20Q75 45 67 62Q50 70 18 82'/%3E%3Cpath d='M135 30Q113 66 100 93Q76 104 27 122'/%3E%3Cpath d='M175 39Q150 88 134 124Q100 138 36 162'/%3E%3C/svg%3E") no-repeat top left / contain;
+  background:
+    radial-gradient(2px 2px at 12% 80%, rgba(255, 170, 80, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 28% 62%, rgba(255, 140, 50, 0.8), transparent),
+    radial-gradient(2px 2px at 44% 90%, rgba(255, 190, 110, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 58% 70%, rgba(255, 150, 60, 0.6), transparent),
+    radial-gradient(2px 2px at 20% 40%, rgba(255, 170, 80, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 70% 52%, rgba(255, 160, 70, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 8% 22%, rgba(255, 170, 80, 0.35), transparent);
+  -webkit-mask-image: linear-gradient(0deg, #000 30%, transparent);
+  mask-image: linear-gradient(0deg, #000 30%, transparent);
+  animation: hw-embers 14s linear infinite;
 }
 
 @keyframes hw-bats {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(-2deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-8px, -8px) rotate(-1.5deg); }
+  50% { transform: translate(0, -12px) rotate(0deg); }
+  75% { transform: translate(8px, -6px) rotate(1.5deg); }
 }
 
 @keyframes hw-fog {
@@ -104,45 +147,381 @@ html.halloween body::after {
   to { transform: translateX(4%); }
 }
 
+@keyframes hw-twinkle {
+  from { opacity: 0.45; }
+  to { opacity: 0.85; }
+}
+
+@keyframes hw-embers {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { opacity: 1; }
+  80% { opacity: 0.8; }
+  100% { transform: translateY(-34vh); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.halloween .glow::before,
-  html.halloween .glow::after { animation: none; }
+  html.halloween .glow::after,
+  html.halloween body::before,
+  html.halloween body::after { animation: none; }
 }
 
 @media (max-width: 640px) {
-  html.halloween .glow::before { width: 170px; height: 80px; right: 2%; }
-  html.halloween body::after { width: 110px; height: 110px; }
+  html.halloween .glow::before { top: 3.4rem; width: 190px; height: 95px; right: 0; }
+  html.halloween body::after { opacity: 0.6; }
 }
 
-/* ------------------------------------------------------------- Details -- */
+/* --------------------------------------------------------------- Topbar -- */
 
-/* Ein schmaler Glutstreifen unter der Topbar. */
 html.halloween .topbar {
-  background: rgba(12, 6, 14, 0.66);
-  border-bottom-color: rgba(255, 122, 26, 0.22);
-  box-shadow: 0 1px 0 rgba(255, 122, 26, 0.08), 0 10px 30px -20px rgba(255, 122, 26, 0.5);
+  background: linear-gradient(180deg, rgba(14, 8, 18, 0.82), rgba(10, 6, 14, 0.62));
+  border-bottom-color: transparent;
+  box-shadow: 0 10px 30px -22px rgba(255, 122, 26, 0.55);
 }
 
-/* Kürbis hinter dem Namen. */
+/* Glutstreifen unter der Leiste: läuft zu den Rändern hin aus. */
+html.halloween .topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 122, 26, 0.55) 30%, rgba(183, 155, 255, 0.45) 70%, transparent);
+  pointer-events: none;
+}
+
+/* Kleiner Kürbis hinter dem Namen – als Zeichnung statt Emoji. */
+html.halloween .topbar__brand > span:last-child { white-space: nowrap; }
 html.halloween .topbar__brand > span:last-child::after {
-  content: " \1F383";
-  font-size: 0.9em;
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-left: 0.4em;
+  vertical-align: -0.12em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12.6 5.4c.3-1.6 1.2-2.6 2.6-3' fill='none' stroke='%237bbf3a' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath fill='%23ff7a1a' d='M12 6c-1.2-.8-3-1-4.6-.4C4.2 6.4 2 9.4 2 13.4 2 18 5 21 8.4 21c1.4 0 2.6-.4 3.6-1 1 .6 2.2 1 3.6 1C19 21 22 18 22 13.4c0-4-2.2-7-5.4-7.8-1.6-.6-3.4-.4-4.6.4z'/%3E%3Cpath fill='%23d9480f' opacity='.55' d='M12 6c-1.6 2-2 5-2 7.6s.6 5.6 2 7.4c1.4-1.8 2-4.8 2-7.4S13.6 8 12 6z'/%3E%3Cpath fill='%231a0b02' d='M7.4 11.6l2.2 1.4-2.4.6zM16.6 11.6l-2.2 1.4 2.4.6zM7 15.6c1.6 1.4 3.2 2 5 2s3.4-.6 5-2c-.4 1.8-2.6 3.2-5 3.2s-4.6-1.4-5-3.2z'/%3E%3C/svg%3E") no-repeat center / contain;
+  filter: drop-shadow(0 0 6px rgba(255, 122, 26, 0.55));
 }
 
-/* Überschriften glimmen leicht wie im Kerzenlicht. */
-html.halloween h1 {
-  text-shadow: 0 0 22px rgba(255, 122, 26, 0.28);
+html.halloween .topbar__glyph { color: var(--killer); text-shadow: 0 0 12px rgba(255, 122, 26, 0.6); }
+
+html.halloween .topbar__nav {
+  background: rgba(150, 120, 170, 0.08);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
+
+html.halloween .topbar__nav a.is-active,
+html.halloween .tab.is-active {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255, 122, 26, 0.26), rgba(255, 122, 26, 0.14));
+  box-shadow: inset 0 0 0 1px rgba(255, 140, 60, 0.32), 0 4px 14px -6px rgba(255, 122, 26, 0.6);
+}
+
+/* ------------------------------------------------------------ Typografie -- */
+
+/* Große Überschrift im Kerzenlicht: warmer Verlauf statt Flackern. */
+html.halloween h1 {
+  text-shadow: none;
+}
+
+html.halloween .hero__title,
+html.halloween .page-head h1 {
+  background: linear-gradient(180deg, #fff8ee 18%, #ffc58f 78%, #ff9a4a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px rgba(255, 122, 26, 0.22));
+}
+
+html.halloween .hero__eyebrow,
+html.halloween .page-head__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.65rem;
+  color: #ffb27a;
+  background: rgba(255, 122, 26, 0.1);
+  border: 1px solid rgba(255, 122, 26, 0.22);
+  border-radius: 999px;
+}
+
+/* Kleiner Glimmpunkt vor der Kategorie. */
+html.halloween .hero__eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--killer);
+  box-shadow: 0 0 8px var(--killer);
+}
+
+/* -------------------------------------------------------------- Flächen -- */
+
+/* Tafeln bekommen von oben einen Hauch warmes Licht und eine Glutkante. */
+html.halloween .panel,
+html.halloween .kpi,
+html.halloween .auth-card,
+html.halloween .challenge-card,
+html.halloween .board__col {
+  background:
+    linear-gradient(180deg, rgba(255, 150, 80, 0.035), transparent 120px),
+    var(--surface);
+  border-color: var(--line);
+}
+
+html.halloween .panel::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 160, 90, 0.28) 30%, rgba(200, 170, 255, 0.2) 70%, transparent);
+}
+
+html.halloween .kpi {
+  --kpi-tint: rgba(183, 155, 255, 0.07);
+}
+html.halloween .kpi--killer { --kpi-tint: rgba(255, 122, 26, 0.18); }
+html.halloween .kpi--survivor { --kpi-tint: rgba(138, 92, 255, 0.2); }
+html.halloween .kpi--bp { --kpi-tint: rgba(255, 195, 92, 0.15); }
+
+html.halloween .kpi:hover {
+  border-color: rgba(255, 150, 80, 0.26);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 122, 26, 0.08), 0 18px 40px -26px rgba(255, 122, 26, 0.6);
+}
+
+/* Unten an jeder Kennzahl ein feiner Glutstrich in der Rollenfarbe. */
+html.halloween .kpi::after {
+  content: "";
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kpi-line, rgba(255, 220, 190, 0.18)), transparent);
+  pointer-events: none;
+}
+html.halloween .kpi--killer { --kpi-line: rgba(255, 122, 26, 0.7); }
+html.halloween .kpi--survivor { --kpi-line: rgba(183, 155, 255, 0.7); }
+html.halloween .kpi--bp { --kpi-line: rgba(255, 195, 92, 0.65); }
+
+html.halloween .kpi__icon { box-shadow: inset 0 0 0 1px var(--line); }
+html.halloween .kpi--killer .kpi__icon { box-shadow: inset 0 0 0 1px rgba(255, 122, 26, 0.3), 0 0 18px -4px rgba(255, 122, 26, 0.55); }
+html.halloween .kpi--survivor .kpi__icon { box-shadow: inset 0 0 0 1px rgba(183, 155, 255, 0.3), 0 0 18px -4px rgba(138, 92, 255, 0.55); }
+html.halloween .kpi--bp .kpi__icon { box-shadow: inset 0 0 0 1px rgba(255, 195, 92, 0.3), 0 0 18px -4px rgba(255, 195, 92, 0.45); }
+
+/* Nebliger Bereich zum Sommit und Gauntlet: Kopf leuchtet wärmer. */
+html.halloween .summit,
+html.halloween .gstatus { border-color: rgba(255, 170, 110, 0.12); }
+
+/* Listenkarten: beim Überfahren ein warmer Rand statt nur heller. */
+html.halloween .perk-card:hover,
+html.halloween .streak-card:hover,
+html.halloween .pcard:hover,
+html.halloween .tcard:hover,
+html.halloween .build-slot:hover {
+  border-color: rgba(255, 150, 80, 0.32);
+}
+
+html.halloween .streak-card--hot {
+  border-color: rgba(255, 122, 26, 0.38);
+  background: linear-gradient(120deg, rgba(255, 122, 26, 0.16), var(--surface-2) 65%);
+  box-shadow: 0 10px 28px -20px rgba(255, 122, 26, 0.9);
+}
+html.halloween .streak-card--hot .streak-card__value,
+html.halloween .streak-badge { color: #ffa25c; text-shadow: 0 0 14px rgba(255, 122, 26, 0.5); }
+
+/* ---------------------------------------------------------- Formulare -- */
+
+html.halloween input[type="text"],
+html.halloween input[type="email"],
+html.halloween input[type="password"],
+html.halloween input[type="datetime-local"],
+html.halloween input[type="number"],
+html.halloween input[type="search"],
+html.halloween select,
+html.halloween textarea {
+  background-color: rgba(150, 120, 170, 0.08);
+  border-color: var(--line);
+}
+
+html.halloween input[type="text"]:hover,
+html.halloween input[type="email"]:hover,
+html.halloween input[type="password"]:hover,
+html.halloween input[type="datetime-local"]:hover,
+html.halloween input[type="number"]:hover,
+html.halloween input[type="search"]:hover,
+html.halloween select:hover,
+html.halloween textarea:hover { border-color: var(--line-strong); }
+
+/* Fokus: Kürbisglut statt Systemblau. */
+html.halloween input:focus,
+html.halloween select:focus,
+html.halloween textarea:focus {
+  border-color: rgba(255, 122, 26, 0.7);
+  box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.16);
+}
+
+/* Die zwei Felder, die sonst randlos sind, bleiben es. */
+html.halloween .perk-pick__select { background-color: transparent; border-color: transparent; }
+html.halloween .perk-pick__select:focus { box-shadow: none; border-color: rgba(255, 122, 26, 0.35); }
+html.halloween .bp-display input { border-color: transparent; }
+html.halloween .bp-display input:focus { border-color: rgba(255, 195, 92, 0.7); box-shadow: 0 0 0 4px rgba(255, 195, 92, 0.18); }
+
+html.halloween option { background: #1a1120; }
+html.halloween input[type="datetime-local"] { color-scheme: dark; }
+
+html.halloween .form-group__title::before {
+  background: linear-gradient(180deg, #ffb06a, var(--killer));
+  box-shadow: 0 0 10px rgba(255, 122, 26, 0.6);
+}
+html.halloween #entry-panel[data-role="survivor"] .form-group__title::before {
+  background: linear-gradient(180deg, #d9c8ff, var(--survivor));
+  box-shadow: 0 0 10px rgba(138, 92, 255, 0.6);
+}
+
+/* Gewählte Option: Glut mit Lichtkante. */
+html.halloween .segmented {
+  background: rgba(150, 120, 170, 0.08);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+html.halloween .segmented__opt input:checked + span {
+  color: #1a0b02;
+  background: linear-gradient(180deg, #ffa053, var(--killer));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -8px rgba(255, 122, 26, 0.85);
+}
+
+html.halloween .segmented--sm .segmented__opt input:checked + span {
+  color: var(--text);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+html.halloween .segmented__opt--good input:checked + span {
+  color: #0d2203;
+  background: linear-gradient(180deg, #a8ec6c, var(--good));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -8px rgba(142, 224, 74, 0.8);
+}
+
+html.halloween .segmented__opt--bad input:checked + span {
+  color: #fff;
+  background: linear-gradient(180deg, #ff6a7e, var(--bad));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 18px -8px rgba(255, 69, 96, 0.8);
+}
+
+html.halloween .segmented__opt input:focus-visible + span { box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.45); }
+
+html.halloween .bp-field {
+  background: linear-gradient(160deg, rgba(255, 195, 92, 0.08), rgba(255, 122, 26, 0.03));
+  border-color: rgba(255, 195, 92, 0.18);
+}
+
+html.halloween .bp-display input { text-shadow: 0 0 18px rgba(255, 195, 92, 0.35); }
+
+html.halloween .bp-slider {
+  background: linear-gradient(90deg, #ff9a3c, var(--gold) var(--bp-fill, 0%), rgba(255, 195, 92, 0.16) var(--bp-fill, 0%));
+}
+html.halloween .bp-slider::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(255, 195, 92, 0.2), 0 2px 6px rgba(0, 0, 0, 0.6); }
+html.halloween .bp-slider::-moz-range-thumb { box-shadow: 0 0 0 4px rgba(255, 195, 92, 0.2), 0 2px 6px rgba(0, 0, 0, 0.6); }
+
+html.halloween .check input { accent-color: var(--killer); }
+
+/* --------------------------------------------------------------- Buttons -- */
 
 html.halloween .btn--primary {
   color: #1a0b02;
-  background: linear-gradient(180deg, #ff9a3c, var(--killer));
+  background: linear-gradient(180deg, #ffa053, var(--killer) 60%, var(--killer-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 22px -10px rgba(255, 122, 26, 0.9);
+}
+html.halloween .btn--primary:hover {
+  background: linear-gradient(180deg, #ffb06a, var(--killer-hover) 60%, var(--killer));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 10px 28px -10px rgba(255, 122, 26, 1);
 }
 
-html.halloween * {
-  scrollbar-color: rgba(255, 122, 26, 0.35) transparent;
+html.halloween .btn--ghost {
+  background: rgba(150, 120, 170, 0.1);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
-html.halloween ::-webkit-scrollbar-thumb {
-  background: rgba(255, 122, 26, 0.3);
-  background-clip: content-box;
+html.halloween .btn--ghost:hover {
+  background: rgba(150, 120, 170, 0.18);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+html.halloween .btn:focus-visible,
+html.halloween .icon-btn:focus-visible,
+html.halloween .th-sort:focus-visible { box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.45); }
+
+html.halloween .icon-btn:hover { color: var(--survivor); background: rgba(138, 92, 255, 0.16); }
+html.halloween .icon-btn--danger:hover { color: var(--killer); background: rgba(255, 122, 26, 0.16); }
+html.halloween .icon-btn--owner:hover { color: #ffd79a; background: rgba(255, 195, 92, 0.14); }
+
+html.halloween .chip { background: rgba(255, 195, 92, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 195, 92, 0.14); }
+html.halloween .chip:hover { background: rgba(255, 195, 92, 0.22); }
+html.halloween .chip--reset { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* --------------------------------------------------------------- Tabellen -- */
+
+html.halloween .table th { color: var(--muted-2); border-bottom-color: var(--line-strong); }
+html.halloween .table td { border-bottom-color: rgba(255, 214, 180, 0.05); }
+html.halloween .table tbody tr:hover { background: linear-gradient(90deg, rgba(255, 122, 26, 0.06), rgba(150, 120, 170, 0.04) 60%, transparent); }
+html.halloween .th-sort.is-sorted::after { color: var(--killer); }
+
+html.halloween .pill--k4 { color: #fff; background: linear-gradient(180deg, rgba(255, 122, 26, 0.55), rgba(226, 85, 12, 0.45)); box-shadow: 0 0 14px -4px rgba(255, 122, 26, 0.8); }
+
+/* Balken leuchten leicht nach. */
+html.halloween .bar__track { background: rgba(150, 120, 170, 0.1); }
+html.halloween .bar__fill--k4,
+html.halloween .bar__fill--killer { box-shadow: 0 0 10px rgba(255, 122, 26, 0.55); }
+html.halloween .bar__fill--survivor { box-shadow: 0 0 10px rgba(138, 92, 255, 0.55); }
+html.halloween .bar__fill--good { box-shadow: 0 0 10px rgba(142, 224, 74, 0.45); }
+html.halloween .bar__fill--bad { box-shadow: 0 0 10px rgba(255, 69, 96, 0.45); }
+
+html.halloween .gstep__fill { background: linear-gradient(90deg, var(--survivor-deep), var(--survivor)); box-shadow: 0 0 10px rgba(138, 92, 255, 0.5); }
+html.halloween .gstep.is-done .gstep__fill { background: var(--good); }
+
+/* ------------------------------------------------------ Schwebende Teile -- */
+
+html.halloween .fab {
+  color: #1a0b02;
+  background: linear-gradient(180deg, #ffa053, var(--killer) 60%, var(--killer-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 12px 32px -10px rgba(255, 122, 26, 0.95), var(--shadow);
+}
+html.halloween .fab:hover { background: linear-gradient(180deg, #ffb06a, var(--killer-hover) 60%, var(--killer)); }
+html.halloween .fab__badge { border-color: var(--bg); }
+
+html.halloween .toast {
+  background: rgba(26, 16, 32, 0.82);
+  border-color: rgba(255, 170, 110, 0.18);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+html.halloween .toast--success::before { box-shadow: 0 0 8px var(--good); }
+html.halloween .toast--error::before { box-shadow: 0 0 8px var(--bad); }
+
+html.halloween .drawer__scrim { background: rgba(6, 2, 10, 0.6); }
+html.halloween .drawer__panel {
+  background: linear-gradient(180deg, rgba(255, 150, 80, 0.04), transparent 160px), rgba(20, 12, 26, 0.9);
+  border-left-color: rgba(255, 170, 110, 0.12);
+}
+
+/* Login: Karte schwebt im Mondlicht. */
+html.halloween .auth-card {
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 170, 110, 0.06), 0 30px 80px -40px rgba(255, 122, 26, 0.35);
+}
+
+/* --------------------------------------------------------- Rollbalken -- */
+
+html.halloween * { scrollbar-color: rgba(255, 122, 26, 0.35) transparent; }
+html.halloween ::-webkit-scrollbar-thumb { background: rgba(255, 122, 26, 0.3); background-clip: content-box; }
+html.halloween ::-webkit-scrollbar-thumb:hover { background: rgba(255, 122, 26, 0.5); background-clip: content-box; }
+
+/* Ohne Weichzeichner werden die Flächen deckend – auch im Halloween-Look. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.halloween .panel, html.halloween .kpi, html.halloween .auth-card { background: var(--surface-solid); }
+  html.halloween .topbar { background: rgba(12, 6, 16, 0.97); }
+  html.halloween .drawer__panel { background: #160f1b; }
+  html.halloween .toast { background: #22152a; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html.halloween .panel, html.halloween .kpi, html.halloween .auth-card { background: var(--surface-solid); }
+  html.halloween .topbar { background: #0c0610; }
+  html.halloween .drawer__panel { background: #160f1b; }
+  html.halloween .toast { background: #22152a; }
 }

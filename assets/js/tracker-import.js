@@ -13,9 +13,9 @@
 import {
   KILLERS, SURVIVORS, hasClasses, hasKillerDuo, hasLoadoutExtras, hasPerks, maxKills,
   supportsBuilds,
-} from './data.js?v=73';
-import { PERKS } from './perks.js?v=73';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=73';
+} from './data.js?v=74';
+import { PERKS } from './perks.js?v=74';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=74';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';

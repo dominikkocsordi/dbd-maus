@@ -13,9 +13,9 @@
 import {
   KILLERS, SURVIVORS, hasClasses, hasKillerDuo, hasLoadoutExtras, hasPerks, maxKills,
   supportsBuilds,
-} from './data.js?v=74';
-import { PERKS } from './perks.js?v=74';
-import { cleanAddons, loadoutEntry } from './loadout.js?v=74';
+} from './data.js?v=75';
+import { PERKS } from './perks.js?v=75';
+import { cleanAddons, loadoutEntry } from './loadout.js?v=75';
 
 export const TRACKER_ENDPOINT =
   'https://account-backend.bhvr.com/player-stats/match-history/games/dbd/providers/bhvr';
@@ -33,8 +33,9 @@ const ESCAPED = 'VE_Escaped';
   mit dem eigenen Spielverlauf – bestätigt sind Calamari, ChocolateBox und
   Firefly.
 
-  Alles Unbekannte landet als Event-Modus in der App, der Deckname bleibt dann
-  in den Notizen stehen – daran lässt sich der nächste Eintrag hier ablesen.
+  Alles Unbekannte landet als saisonales Event in der App (siehe gameMode),
+  der Deckname bleibt dann in den Notizen stehen – daran lässt sich der nächste
+  Eintrag hier ablesen.
 */
 const GAME_MODES = {
   Online: 'public',
@@ -66,10 +67,22 @@ function seasonalMode(playedAt) {
   return SEASONAL_EVENTS.find((event) => event.months.includes(month))?.mode ?? 'event';
 }
 
-/** Modus der App zum Eintrag des Trackers – Unbekanntes wird zum Event-Modus. */
+/*
+  Modus der App zum Eintrag des Trackers. Unbekannte Warteschlangen behandelt
+  er wie ein saisonales Event: Während Haunted by Daylight läuft, ist eine
+  fremde Warteschlange so gut wie sicher das Event selbst – sonst blieben
+  einzelne Runden im Event-Modus hängen, sobald der Tracker sie anders
+  benennt. Außerhalb der Event-Monate bleibt es beim Event-Modus.
+*/
 function gameMode(id, name, playedAt) {
-  if (id === 'SeasonalEvent') return seasonalMode(playedAt);
-  return GAME_MODES[id] ?? GAME_MODE_NAMES[norm(name)] ?? 'event';
+  if (Object.hasOwn(GAME_MODES, id)) return GAME_MODES[id];
+  if (Object.hasOwn(GAME_MODE_NAMES, norm(name))) return GAME_MODE_NAMES[norm(name)];
+  return seasonalMode(playedAt);
+}
+
+/** Ob der Tracker-Name der Warteschlange fest zugeordnet ist. */
+function knownQueue(id, name) {
+  return id === 'SeasonalEvent' || Object.hasOwn(GAME_MODES, id) || Object.hasOwn(GAME_MODE_NAMES, norm(name));
 }
 
 const BP_MAX = 2000000;
@@ -201,9 +214,12 @@ function convert(entry) {
     game_mode: mode,
     role,
     bloodpoints: Math.min(Math.max(Math.round(Number(stat.bloodpointsEarned) || 0), 0), BP_MAX),
-    // Der Modus geht sonst verloren: die App kennt nur "Event-Modus", welches
-    // Event es war, steht danach nur noch hier.
-    notes: mode === 'event' && rawMode ? `${rawMode} (offizieller Tracker)` : null,
+    // Der Modus geht sonst verloren: Im Event-Modus oder bei einer unbekannten
+    // Warteschlange steht nur hier, wie der Tracker sie genannt hat – daran
+    // lässt sich der nächste Eintrag in GAME_MODES ablesen.
+    notes: rawMode && (mode === 'event' || !knownQueue(rawMode, match.gameType?.name))
+      ? `${rawMode} (offizieller Tracker)`
+      : null,
     killer: null,
     kills: null,
     survivor: null,
